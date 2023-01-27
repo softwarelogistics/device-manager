@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "device-mgr",
+    "owner": "kevindwolf",
     "slug": "device-mgr",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -18,16 +19,33 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.softwarelogistics.devicemgr",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "nuviot"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.softwarelogistics.devicemgr",
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "scheme": "nuviot",
+    "extra": {
+      "eas": {
+        "projectId": "60332f43-00fd-4a35-8b33-c269770169e9"
+      }
     }
   }
 }
