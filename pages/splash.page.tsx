@@ -14,7 +14,7 @@ import Page from "../mobile-ui-common/page";
 
 export default function SplashPage({ navigation }: IReactPageServices) {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-  const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
+  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
 
   const checkStartup = async () => {
     if ((await AsyncStorage.getItem("isLoggedIn")) == "true") {
@@ -43,7 +43,7 @@ export default function SplashPage({ navigation }: IReactPageServices) {
 
   useEffect(() => {
     (async () => {
-      await checkStartup();
+      //await checkStartup();
     })();
   });
 
