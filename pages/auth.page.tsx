@@ -120,7 +120,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
 
           {false && <Text style={styles.authForgotPasswordLink}>Forgot Password?</Text>}
 
-          <StatusBar style="auto" backgroundColor="red" />
+          <StatusBar style="auto"  />
           <StdButton label="Login" onPress={() => login(email, password)} />
         </KeyboardAwareScrollView>
       }

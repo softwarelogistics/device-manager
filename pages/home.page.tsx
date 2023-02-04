@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { Text, PermissionsAndroid, Platform, View, Image, TextInput, TouchableOpacity, TextStyle, ViewStyle } from 'react-native';
 import Tabbar from "@mindinventory/react-native-tab-bar-interaction";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
 import { IReactPageServices } from "../services/react-page-services";
 import { DefaultTheme } from "@react-navigation/native";
 
@@ -19,13 +21,13 @@ import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
 
 import FaIcon from "react-native-vector-icons/FontAwesome5";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
+
+
 export default function HomePage({ navigation }: IReactPageServices) {
-  const [initialCall, setInitialCall] = useState<boolean>(true);
   const [currentTab, setCurrentTab] = useState<string>("home");
-  const [userInitials, setUserInitials] = useState<string>('?');
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
-
+  const [userInitials, setUserInitials] = useState<string>('?');
   const temporaryNotificationsFormatter: TextStyle = ViewStylesHelper.combineViewStyles([styles.container, { width: '100%', backgroundColor: themePalette.background }]);
   const temporaryHeader: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { width: '100%', textAlign: 'center', color: themePalette.shellTextColor }]);
 
@@ -48,6 +50,9 @@ export default function HomePage({ navigation }: IReactPageServices) {
 
   ];
 
+  const Tab = createBottomTabNavigator();
+
+
   useEffect(() => {
     let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     setSubscription(changed);
@@ -69,12 +74,11 @@ export default function HomePage({ navigation }: IReactPageServices) {
     await AsyncStorage.removeItem("refreshtoken");
     await AsyncStorage.removeItem("refreshtokenExpires");
     await AsyncStorage.removeItem("jwtExpires");
-    await AsyncStorage.removeItem("userInitials");
     navigation.replace('authPage');
   };
 
 
-  const reposPage = () => {
+  function reposPage() {
     console.log('repos page.');
 
     return (
@@ -100,13 +104,14 @@ export default function HomePage({ navigation }: IReactPageServices) {
     );
   };
 
-  const profilePage = () => {
+  function profilePage() {
     return <View>
       <Image style={styles.logoImage} source={require('../assets/icon.png')} />
       <View style={styles.formGroup}>
+        <IconButton color={themePalette.buttonPrimaryText} label="Back" icon="log-in-outline" iconType="ion" onPress={() => setCurrentTab('home')} ></IconButton>
         <IconButton color={themePalette.buttonPrimaryText} label="Switch Organization" icon="podium-outline" iconType="ion" onPress={() => showPage('changeOrgsPage')} ></IconButton>
         <IconButton color={themePalette.buttonPrimaryText} label="Settings" icon="settings-outline" iconType="ion" onPress={() => showPage('accountPage')} ></IconButton>
-        <IconButton color={themePalette.buttonPrimaryText} label="Log Out" icon="log-out-outline" iconType="ion" onPress={() => logOut()} ></IconButton>
+        <IconButton color={themePalette.buttonPrimaryText} label="Log Out" icon="log-out-outline" iconType="ion" onPress={() => logOut()} ></IconButton>        
       </View>
     </View>
   };
@@ -144,21 +149,10 @@ export default function HomePage({ navigation }: IReactPageServices) {
         </View>),
     });
   });
-
   return (
     <Page>
       <StatusBar style="auto" />
-      { renderTabs()}
-
-      <Tabbar
-        tabs={tabs}
-        tabBarContainerBackground={themePalette.shell}
-        tabBarBackground={themePalette.shell}
-        activeTabBackground={colors.transparent}
-        labelStyle={{ color: themePalette.shellNavColor, fontWeight: '600', fontSize: 10, marginTop: 3 }}
-        onTabChange={(tab) => tabChanged(tab)}
-      />
-
+      {renderTabs()}
     </Page>
   );
 }

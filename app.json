@@ -22,6 +22,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.softwarelogistics.devicemgr",
       "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription":"NuvIoT Device Manager uses Bluetooth to communicate with NuvIoT Devices.",
         "LSApplicationQueriesSchemes": [
           "nuviot"
         ]
@@ -35,7 +36,12 @@
       "package": "com.softwarelogistics.devicemgr",
       "permissions": [
         "android.permission.BLUETOOTH",
-        "android.permission.BLUETOOTH_ADMIN"
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_ADVERTISE",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.ACCESS_FINE_LOCATION",        
+        "android.permission.ACCESS_COARSE_LOCATION"
       ]
     },
     "web": {
