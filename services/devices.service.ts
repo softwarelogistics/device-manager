@@ -3,7 +3,6 @@ import { Observable } from 'rxjs';
 import { ReplaySubject } from 'rxjs';
 import { DeviceGroupService } from './device-group.service';
 import { NuviotClientService } from './nuviot-client.service';
-import { decode as atob, encode as btoa } from 'base-64'
 import { Device } from 'react-native-ble-plx';
 
 export class DevicesService {
@@ -19,7 +18,7 @@ export class DevicesService {
   private _deviceGroup: Devices.DeviceGroup | undefined;
 
   private _devices: Devices.DeviceSummary[] | undefined = [];
-  private _deviceRepo: Devices.DeviceRepo | undefined;
+  private _deviceRepo: Devices.DeviceRepository | undefined;
   private _deviceRepos: Devices.DeviceRepoSummary[] | undefined = [];
 
   private _deviceGroups: Devices.DeviceGroupSummary[] | undefined = [];
@@ -30,7 +29,7 @@ export class DevicesService {
   protected _deviceLoading$ = new ReplaySubject<string | undefined>();
   protected _devices$ = new ReplaySubject<Devices.DeviceSummary[] | undefined>();
   protected _devicesLoading$ = new ReplaySubject<boolean>();
-  protected _deviceRepo$ = new ReplaySubject<Devices.DeviceRepo | undefined>();
+  protected _deviceRepo$ = new ReplaySubject<Devices.DeviceRepository | undefined>();
   protected _deviceGroup$ = new ReplaySubject<Devices.DeviceGroup | undefined>();
   protected _deviceRepos$ = new ReplaySubject<Devices.DeviceRepoSummary[] | undefined>();
 
@@ -141,7 +140,7 @@ export class DevicesService {
 
       this._repoId = id;
 
-      this.nuviotClient.getFormResponse<Devices.DeviceRepo, Devices.DeviceRepoView>(`/api/devicerepo/${id}`)
+      this.nuviotClient.getFormResponse<Devices.DeviceRepository, Devices.DeviceRepoView>(`/api/devicerepo/${id}`)
         .then(deviceRepoResponse => this.setDeviceRepo(deviceRepoResponse.model));
 
       this.nuviotClient.getListResponse<Devices.DeviceSummary>(`/api/devices/${id}`)
@@ -159,9 +158,9 @@ export class DevicesService {
     }
   }
 
-  public loadDeviceRepo(repoId: string): Promise<Devices.DeviceRepo> {
-    const promise = new Promise<Devices.DeviceRepo>((resolve, reject) => {
-      this.nuviotClient.getFormResponse<Devices.DeviceRepo, Devices.DeviceRepoView>(`/api/devicerepo/${repoId}`)
+  public loadDeviceRepo(repoId: string): Promise<Devices.DeviceRepository> {
+    const promise = new Promise<Devices.DeviceRepository>((resolve, reject) => {
+      this.nuviotClient.getFormResponse<Devices.DeviceRepository, Devices.DeviceRepoView>(`/api/devicerepo/${repoId}`)
         .then(deviceRepoResponse => {
           this.setDeviceRepo(deviceRepoResponse.model);
           resolve(deviceRepoResponse.model);
@@ -170,6 +169,10 @@ export class DevicesService {
     });
 
     return promise;
+  }
+
+  getDevicesForRepoAsync(repoId: string) : Promise<Core.ListResponse<Devices.DeviceSummary>> {
+    return this.nuviotClient.getListResponse<Devices.DeviceSummary>(`/api/devices/${repoId}`);
   }
 
   /**
@@ -456,7 +459,7 @@ export class DevicesService {
     return this._devicesLoading$.asObservable();
   }
 
-  onDeviceRepo(): Observable<Devices.DeviceRepo | undefined> {
+  onDeviceRepo(): Observable<Devices.DeviceRepository | undefined> {
     return this._deviceRepo$.asObservable();
   }
 
@@ -504,7 +507,7 @@ export class DevicesService {
     return this._devices;
   }
 
-  getDeviceRepo(): Devices.DeviceRepo | undefined {
+  getDeviceRepo(): Devices.DeviceRepository | undefined {
     return this._deviceRepo;
   }
 
@@ -525,7 +528,7 @@ export class DevicesService {
     this._devicesLoading$.next(isLoading);
   }
 
-  setDeviceRepo(deviceRepoSummary: Devices.DeviceRepo | undefined) {
+  setDeviceRepo(deviceRepoSummary: Devices.DeviceRepository | undefined) {
     this._deviceRepo = deviceRepoSummary;
     this._deviceRepo$.next(deviceRepoSummary);
   }

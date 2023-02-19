@@ -43,7 +43,7 @@ export default function SplashPage({ navigation }: IReactPageServices) {
 
   useEffect(() => {
     (async () => {
-      //await checkStartup();
+      await checkStartup();
     })();
   });
 

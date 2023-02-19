@@ -26,6 +26,9 @@ import { useEffect, useState } from 'react';
 import { OAuthHandlerPage } from './pages/oauthHandlerPage';
 import { Subscription } from './utils/NuvIoTEventEmitter';
 import { ThemePalette, ThemePaletteService } from './styles.palette.theme';
+import { DevicesPage } from './pages/devices.page';
+import { InstancePage } from './pages/instance.page';
+import { ProfilePage } from './pages/profilePage';
 
 const Stack = createNativeStackNavigator();
 
@@ -129,6 +132,9 @@ const App = () => {
         <Stack.Screen name="settingsPage" component={ConnectivityPage} options={{ title: 'Configure Device: Connectivity' }} />
         <Stack.Screen name="splashPage" component={SplashPage} options={{ title: 'Welcome' }} />
         <Stack.Screen name="tempSensorsPage" component={TempSensorPage} options={{ title: 'Sensors' }} />
+        <Stack.Screen name="instancePage" component={InstancePage} options={{ title: 'Instance' }} />
+        <Stack.Screen name="devicesPage" component={DevicesPage} options={{ title: 'Devices' }} />
+        <Stack.Screen name="profilePage" component={ProfilePage} options={{ title: 'Profile' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
