@@ -27,7 +27,7 @@ const DISCONNECTED_PAGE_SUSPENDED = 4;
 
 let simData = new SimulatedData();
 
-export const DevicePage = ({ props, navigation, route }: IReactPageServices) => {
+export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices) => {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
   const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
 
@@ -60,8 +60,6 @@ export const DevicePage = ({ props, navigation, route }: IReactPageServices) => 
       console.log(value.value);
       let values = new IOValues(value.value);
       setSensorValues(values);
-      console.log('hi');
-      console.log(values.ioValues);
     }
   }
 
@@ -93,7 +91,6 @@ export const DevicePage = ({ props, navigation, route }: IReactPageServices) => 
       setIsBusy(false);
       setSysConfig(simData.getSysConfig());
       setRemoteDeviceState(simData.getRemoteDeviceState());
-
 
       setDeviceDetail(simData.getDeviceDetail());
       setSensorValues(simData.getSensorValues());

@@ -183,6 +183,8 @@ namespace Devices {
 
   export interface DeviceSummary {
     id: string;
+    deviceRepo: string;
+    deviceRepoId: string;
     deviceConfiguration: string;
     deviceConfigurationId: string;
     deviceName: string;
@@ -553,6 +555,6 @@ namespace Devices {
     notes: DeviceNote[];
     errors: DeviceError[];
     macAddress: string;
-  }
+    iosBLEAddress: string;}
 }
 

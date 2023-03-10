@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, ScrollView, View, Text, TextInput, ActivityIndicator, TextStyle, ViewStyle } from "react-native";
+import { TouchableOpacity, ScrollView, View, Text, TextInput, ActivityIndicator, TextStyle, ViewStyle, Platform } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 import { Device } from "react-native-ble-plx";
 
@@ -122,7 +122,11 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     newDevice.deviceConfiguration = { id: selectedDeviceType!.defaultDeviceConfigId!, key: '', text: selectedDeviceType!.defaultDeviceConfigName! };
     newDevice.deviceId = deviceId!;
     newDevice.name = deviceName!;
-    newDevice.macAddress = peripheralId;
+    
+    if(Platform.OS === 'ios') 
+      newDevice.iosBLEAddress = peripheralId;
+    else
+      newDevice.macAddress = peripheralId; 
 
     let result = await appServices.deviceServices.addDevice(newDevice);
     if (result.successful) {

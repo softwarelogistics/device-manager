@@ -40,9 +40,8 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
   };
 
   const showDevice= (deviceSummary: Devices.DeviceSummary) => {
-
+    navigation.navigate('deviceProfilePage', { id: deviceSummary.id, repoId: deviceRepoId });
   }
-
 
   useEffect(() => {
     if (initialCall) {

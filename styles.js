@@ -22,6 +22,12 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap'
   },
 
+  ...Platform.select({
+    ios: {},
+    android: {}
+    }
+  ),
+
   flex_toggle_row: {
     display: 'flex',
     flexDirection: 'row',

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { StatusBar } from 'expo-status-bar';
 import { Text, PermissionsAndroid, Platform, View, TouchableOpacity, FlatList, ActivityIndicator, Pressable, BackHandler, Alert, TextStyle, } from 'react-native';
 import { Peripheral } from 'react-native-ble-manager'
 import { ble, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
@@ -8,7 +7,6 @@ import AppServices from "../services/app-services";
 
 import Icon from "react-native-vector-icons/Ionicons";
 import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
-import FaIcon from "react-native-vector-icons/FontAwesome5";
 
 import { IReactPageServices } from "../services/react-page-services";
 import { BLENuvIoTDevice } from "../models/device/device-local";
@@ -17,8 +15,6 @@ import { SysConfig } from "../models/blemodels/sysconfig";
 import { ThemePalette } from "../styles.palette.theme";
 import styles from '../styles';
 import palettes from "../styles.palettes";
-import colors from "../styles.colors";
-import ViewStylesHelper from "../utils/viewStylesHelper";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
 
 export default function ScanPage({ navigation }: IReactPageServices) {
@@ -31,27 +27,6 @@ export default function ScanPage({ navigation }: IReactPageServices) {
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [busyMessage, setIsBusyMessage] = useState<String>('Busy');
   const [initialCall, setInitialCall] = useState<boolean>(true);
-
-  const tabs = [
-    {
-      name: 'Home',
-      activeIcon: <Icon name="home" color={colors.primaryColor} size={42} style={{ top: 16 }} />,
-      inactiveIcon: <Icon name="home" color={themePalette.shellNavColor} size={42} />
-    },
-    {
-      name: 'Scan',
-      activeIcon: <MciIcon name="radar" color={colors.primaryColor} size={42} style={{ top: 16 }} />,
-      inactiveIcon: <MciIcon name="radar" color={themePalette.shellNavColor} size={42} />
-    },
-    {
-      name: 'Profile',
-      activeIcon: <FaIcon name="user-alt" color={colors.primaryColor} size={42} style={{ top: 16 }} />,
-      inactiveIcon: <FaIcon name="user-alt" color={themePalette.shellNavColor} size={42} />
-    },
-
-  ];
-
-  const tabBarLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([{ color: themePalette.shellNavColor, fontWeight: '600', fontSize: 10, marginTop: 3 }]);
 
   const requestLocationPermission = async () => {
     try {
@@ -259,7 +234,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
 
   const showDevice = async (device: BLENuvIoTDevice) => {
     if (device.provisioned)
-      navigation.navigate('devicePage', { id: device.peripheralId });
+      navigation.navigate('liveDevicePage', { id: device.peripheralId });
     else
       navigation.navigate('provisionPage', { id: device.peripheralId });
   }

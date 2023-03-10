@@ -12,7 +12,7 @@ import { BlePropertiesPage } from './pages/bleproperties.page';
 import ChangeOrgPage from './pages/changeOrgs.page';
 import { ConfigureDevicePage } from './pages/configureDevice.page';
 import { ConnectivityPage } from './pages/connectivity.page';
-import { DevicePage } from './pages/device.page';
+import { LiveDevicePage } from './pages/liveDevice.page';
 import DfuPage from './pages/dfu.page';
 import HomePage from './pages/home.page';
 import ProvisionPage from './pages/provision.page';
@@ -29,6 +29,7 @@ import { ThemePalette, ThemePaletteService } from './styles.palette.theme';
 import { DevicesPage } from './pages/devices.page';
 import { InstancePage } from './pages/instance.page';
 import { ProfilePage } from './pages/profilePage';
+import { DeviceProfilePage } from './pages/deviceProfilePage';
 
 const Stack = createNativeStackNavigator();
 
@@ -122,7 +123,8 @@ const App = () => {
         <Stack.Screen name="blePropertiesPage" component={BlePropertiesPage} options={{ title: 'Device Properties' }} />
         <Stack.Screen name="changeOrgsPage" component={ChangeOrgPage} options={{ title: 'Organizations' }} />
         <Stack.Screen name="configureDevice" component={ConfigureDevicePage} options={{ title: 'Configure Device' }} />
-        <Stack.Screen name="devicePage" component={DevicePage} options={{ title: 'Device Info' }} />
+        <Stack.Screen name="liveDevicePage" component={LiveDevicePage} options={{ title: 'Device Info' }} />
+        <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
         <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
         <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home' }} />
         <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
