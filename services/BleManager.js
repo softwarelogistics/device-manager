@@ -229,6 +229,7 @@ class BleManager {
         if (error) {
           reject(error);
         } else {
+          console.log('ble manager start.');
           fulfill();
         }
       });
@@ -283,12 +284,13 @@ class BleManager {
 
       console.log('ble manager scanning');
 
-      bleManager.scan(
+      let result = bleManager.scan(
         serviceUUIDs,
         seconds,
         allowDuplicates,
         scanningOptions,
         error => {
+          console.log('got it');
           if (error) {
             reject(error);
           } else {
@@ -296,6 +298,10 @@ class BleManager {
           }
         }
       );
+
+      console.log(result);
+
+      console.log('back');
     });
   }
 

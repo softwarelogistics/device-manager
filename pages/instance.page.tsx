@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
 
+
+import Icon from "react-native-vector-icons/Ionicons";
 import Page from "../mobile-ui-common/page";
 import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
@@ -39,6 +41,10 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     );
   };
 
+  const addDevice = () => {
+    navigation.navigate('scanPage');
+  }
+
   const showDevice= (deviceSummary: Devices.DeviceSummary) => {
     navigation.navigate('deviceProfilePage', { id: deviceSummary.id, repoId: deviceRepoId });
   }
@@ -53,6 +59,15 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
       loadDevices();
       setInitialCall(false);
     }
+
+    
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ flexDirection: 'row' }} >
+          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={addDevice} name='add-outline' />
+        </View>),
+    });
+
     let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     setSubscription(changed);
     return (() => {
@@ -61,6 +76,8 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     });
     
   }, []);
+
+
 
   return (
     <Page>
