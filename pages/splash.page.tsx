@@ -9,7 +9,6 @@ import styles from '../styles';
 import AppServices from "../services/app-services";
 import { ThemePalette } from "../styles.palette.theme";
 import StdButton from "../mobile-ui-common/std-button";
-import ThemeSwitcher from "../mobile-ui-common/theme-switcher";
 import Page from "../mobile-ui-common/page";
 
 export default function SplashPage({ navigation }: IReactPageServices) {
@@ -43,7 +42,7 @@ export default function SplashPage({ navigation }: IReactPageServices) {
 
   useEffect(() => {
     (async () => {
-      //await checkStartup();
+      await checkStartup();
     })();
   });
 

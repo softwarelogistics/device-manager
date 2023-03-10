@@ -32,6 +32,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
   const [serverUrl, setServerUrl] = useState<string>();
   const [serverUid, setServerUid] = useState<string>();
   const [serverPwd, setServerPwd] = useState<string>();
+  const [serverType, setServerType] = useState<string>();
   const [port, setPort] = useState<string>();
   const [isBusy, setIsBusy] = useState<boolean>(true);
   const [wifiSSID, setWiFiSSID] = useState<string>();
@@ -71,6 +72,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
       if (port) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `port=${port}`);
       if (serverUid) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `uid=${serverUid}`);
       if (serverPwd) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `pwd=${serverPwd}`);
+      if (serverType) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `srvrtype=${serverType}`);
 
       if (wifiSSID) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${wifiSSID}`);
       if (wifiPWD) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${wifiPWD}`);
@@ -99,6 +101,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
       let sysconfig = new SysConfig(deviceConfig!);
 
       setDeviceId(sysconfig.deviceId);
+      setServerType(sysconfig.serverType);
       setServerUrl(sysconfig.serverHostName);
       setServerUid(sysconfig.serverUid);
       setServerPwd(sysconfig.serverPwd);
@@ -163,6 +166,9 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
           <Text style={inputLabelStyle}>Server Host Name:</Text>
           <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Server URL" value={serverUrl} onChangeText={e => setServerUrl(e)} />
+
+          <Text style={inputLabelStyle}>Server Type:</Text>
+          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Server Type (mqtt/rest)" value={serverType } onChangeText={e => setServerType(e)} />
 
           <Text style={inputLabelStyle}>Server User Id:</Text>
           <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Server URL" value={serverUid} onChangeText={e => setServerUid(e)} />
