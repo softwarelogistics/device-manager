@@ -22,31 +22,45 @@ namespace Core {
     }
 
     export interface Label {
-      id: string;
-      text: string;
-      description: string;
-      foregroundColor: string;
-      backgroundColor: string;
+        id: string;
+        text: string;
+        description: string;
+        foregroundColor: string;
+        backgroundColor: string;
+    }
+
+
+    export interface KeyValuePair<TKey, TValue> {
+        key: TKey;
+        value: TValue;
+      }
+
+    export interface SummaryData {
+        id: string;
+        isPublic: boolean;
+        name: string;
+        key: string;
+        description: string;
     }
 
     export interface LabelSet {
-      id: string;
-      creationDate: string;
-      lastUpdateDate: string;
-      createdBy: EntityHeader;
-      lastUpdatedBy: EntityHeader;
-      isPublic: boolean;
-      ownerOrganization: EntityHeader;
-      ownerUser: EntityHeader;
-      labels: Label[];
+        id: string;
+        creationDate: string;
+        lastUpdateDate: string;
+        createdBy: EntityHeader;
+        lastUpdatedBy: EntityHeader;
+        isPublic: boolean;
+        ownerOrganization: EntityHeader;
+        ownerUser: EntityHeader;
+        labels: Label[];
     }
 
     export interface LabeledEntity {
-      id: string;
-      entityType: string;
-      name: string;
-      description: string;
-      labels: Label[];
+        id: string;
+        entityType: string;
+        name: string;
+        description: string;
+        labels: Label[];
     }
 
     export interface FormField {
@@ -185,7 +199,7 @@ namespace Core {
         text: string;
     }
 
-    export interface  SortedEntityHeader {
+    export interface SortedEntityHeader {
         id: string;
         text: string;
         sortIndex: number;
@@ -297,4 +311,56 @@ namespace Core {
         key: string;
         name: string;
     }
+
+    export interface DiagramLocation {
+        x: number;
+        y: number;
+        page: number;
+    }
+
+    export interface AdminNote {
+        id: string;
+        creationDate: string;
+        createdBy: Core.EntityHeader;
+        lastUpdatedDate: string;
+        lastUpdatedBy: Core.EntityHeader;
+        note: string;
+    }
+
+    export interface ConnectionSettings {
+        name: string;
+        uri: string;
+        baud: string;
+        iPAddressV4: string;
+        iPAddressV6: string;
+        accessKey: string;
+        accountId: string;
+        userName: string;
+        password: string;
+        port: string;
+        deviceId: string;
+        resourceName: string;
+        validThrough: string;
+        isSSL: boolean;
+        settings: { [key: string]: string; };
+        timeoutInSeconds: number;
+    }
+
+    export enum ParameterTypes {
+        String,
+        Integer,
+        Decimal,
+        TrueFalse,
+        GeoLocation,
+        DateTime,
+        State,
+        ValueWithUnit,
+        Image,
+        DecimalArray,
+        IntArray,
+        StringArray,
+        MLInference,
+        Object
+    }
+
 }
