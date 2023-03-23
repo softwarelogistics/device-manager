@@ -30,7 +30,7 @@ export const ProfilePage = ({ navigation, props, route }: IReactPageServices) =>
       };
     
     return (<View>
-      <Image style={styles.logoImage} source={require('../assets/icon.png')} />
+      <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
       <View style={styles.formGroup}>
         <IconButton color={themePalette.buttonPrimaryText} label="Switch Organization" icon="podium-outline" iconType="ion" onPress={() => showPage('changeOrgsPage')} ></IconButton>
         <IconButton color={themePalette.buttonPrimaryText} label="Settings" icon="settings-outline" iconType="ion" onPress={() => showPage('accountPage')} ></IconButton>

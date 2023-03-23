@@ -71,7 +71,7 @@ export default function HomePage({ navigation }: IReactPageServices) {
   };
 
   const showInstance = (instance: Deployment.DeploymentInstanceSummary) => {
-    navigation.navigate('instancePage', { instanceId: instance.id, repoId: instance.deviceRepoId });    
+    navigation.navigate('instancePage', { instanceId: instance.id, repoId: instance.deviceRepoId });
   }
 
   const myItemSeparator = () => { return <View style={{ height: 1, backgroundColor: "#c0c0c0git ", marginHorizontal: 6 }} />; };
@@ -105,20 +105,37 @@ export default function HomePage({ navigation }: IReactPageServices) {
         </View>
       }
       {!isBusy &&
-        <FlatList
-          contentContainerStyle={{ alignItems: "stretch" }}
-          style={{ backgroundColor: themePalette.background, width: "100%" }}
-          ItemSeparatorComponent={myItemSeparator}
-          ListEmptyComponent={myListEmpty}
-          data={instances}
-          renderItem={({ item }) =>
-            <Pressable onPress={() => showInstance(item)} key={item.id} >
-              <View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 60, backgroundColor: themePalette.shell, }]}  >
-                <Text style={[{ marginLeft: 10, color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>{item.name}</Text>
-              </View>
-            </Pressable>
-          }
-        />
+        <View style={[
+          styles.container,
+          {
+            flex: 1,
+            width:"100%",
+            padding: 20,
+            // Try setting `flexDirection` to `"row"`.
+            flexDirection: 'column',
+            backgroundColor:'yellow'
+          },
+        ]}>
+          <View style={{ flex: 1, backgroundColor: 'red', width:"100%" }} >
+            <FlatList
+              contentContainerStyle={{ alignItems: "stretch" }}
+              style={{ backgroundColor: themePalette.background, width: "100%" }}
+              ItemSeparatorComponent={myItemSeparator}
+              ListEmptyComponent={myListEmpty}
+              data={instances}
+              renderItem={({ item }) =>
+                <Pressable onPress={() => showInstance(item)} key={item.id} >
+                  <View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 60, backgroundColor: themePalette.shell, }]}  >
+                    <Text style={[{ marginLeft: 10, color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>{item.name}</Text>
+                  </View>
+                </Pressable>
+              }
+            />
+          </View>
+          <View style={{ flex: 1, backgroundColor: 'green', width:"100%"  }}>
+              
+          </View>
+        </View>
       }
     </Page>
   );

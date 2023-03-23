@@ -102,7 +102,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
     <Page>
       <Icon.Button size={36} style={{marginTop:60}} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={closeView} name='close-outline' />
 
-      <Image style={logoAuthImageStyle} source={require('../assets/icon.png')} />
+      <Image style={logoAuthImageStyle} source={require('../assets/app-icon.png')} />
       {
         isBusy &&
         <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>

@@ -54,7 +54,7 @@ export const RegisterPage = ({ navigation, props, route }: IReactPageServices) =
           <Icon.Button size={30} name="close" color={colors.black} backgroundColor={colors.transparent} onPress={() => navigation.navigate('splashPage')}></Icon.Button>
         </View>
       }
-      <Image style={logoAuthImageStyle} source={require('../assets/icon.png')} />
+      <Image style={logoAuthImageStyle} source={require('../assets/app-icon.png')} />
       {
         !isBusy && externalProviders &&
         <View style={styles.formGroup}>

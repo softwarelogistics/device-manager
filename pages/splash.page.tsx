@@ -51,7 +51,7 @@ export default function SplashPage({ navigation }: IReactPageServices) {
 
   return (
     <Page >
-      <Image style={styles.logoImage} source={require('../assets/icon.png')} />
+      <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
       <View style={styles.formGroup}>
         <StatusBar style="auto" />
         <StdButton onPress={login} label="Login"/>

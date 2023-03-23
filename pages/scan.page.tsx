@@ -16,6 +16,8 @@ import { ThemePalette } from "../styles.palette.theme";
 import styles from '../styles';
 import palettes from "../styles.palettes";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
+import { PermissionsHelper } from "../services/ble-permissions";
+import { scanUtils } from "../services/scan-utils";
 
 export default function ScanPage({ navigation }: IReactPageServices) {
   const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
@@ -26,127 +28,26 @@ export default function ScanPage({ navigation }: IReactPageServices) {
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [busyMessage, setIsBusyMessage] = useState<String>('Busy');
+  const [hasPermissions, setHasPermissions] = useState<boolean>(false);
   const [initialCall, setInitialCall] = useState<boolean>(true);
 
-  const requestLocationPermission = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION, {
-        title: 'Location permission for bluetooth scanning',
-        message: 'To scan for NuvIoT devices, the application must have permissions to access course location.',
-        buttonNeutral: 'Ask Me Later',
-        buttonNegative: 'Cancel',
-        buttonPositive: 'OK',
-      },
-      );
 
-      let btGranted = PermissionsAndroid.RESULTS.GRANTED;
-      let btcGranted = PermissionsAndroid.RESULTS.GRANTED;
-
-      let OsVer = Platform.Version;//.constants["Release"] as number;
-
-      console.log('react native version' + OsVer)
-
-      // android revision 30 is android release 11, 31 is 12.
-      if (OsVer > 30) {
-        console.log('OS Version is greater then 30, need to request additional BT permissions.');
-
-        btGranted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN, {
-          title: 'Bluetooth Scanning Permission',
-          message: 'To scan for NuvIoT devices, the application must have permissions to scan for bluetooth devices.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        });
-
-        console.log('Scan permissions granted?', btGranted);
-
-        btcGranted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT, {
-          title: 'Bluetooth Connect Permissions',
-          message: 'To connect to NuvIoT devices, the application must have permissions to connect to bluetooth devices.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        });
-
-        console.log('Scan permissions granted?', btGranted);
-      }
-      else {
-        console.log('OS Version less or equal to 30, do not need to request additional BT permissions.');
+  const checkPermissions = async () => {
+    if (Platform.OS === 'android') {
+      let hasPermissions = false;
+      if (Platform.Version >= 23) {
+        hasPermissions = await PermissionsHelper.requestLocationPermissions();
       }
 
-      console.log('Permissions Granted', granted, btGranted, btcGranted);
-
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        if (btGranted === PermissionsAndroid.RESULTS.GRANTED) {
-          if (btcGranted === PermissionsAndroid.RESULTS.GRANTED) {
-            console.log('Location permission for bluetooth scanning granted');
-            return true;
-          }
-          else {
-            console.log('Blue tooth connect permission => ' + btcGranted);
-            return false;
-          }
-        }
-        else {
-          console.log('Blue tooth scan permission revoked -=> ' + btGranted);
-          return false;
-        }
-      } else {
-        console.log('Location permission for bluetooth scanning revoked -=> ' + granted);
-        return false;
-      }
-    } catch (err) {
-      console.warn(err);
-      return false;
+      hasPermissions = await PermissionsHelper.requestBLEPermission();
+      setHasPermissions(hasPermissions);
+    }
+    else {
+      setHasPermissions(true);
     }
   }
 
-  const findNuvIoTDevices = async () => {
-    let idx = 1;
-    setIsScanning(true);
-    let newDevices:BLENuvIoTDevice[] = [];
-
-    for (let peripheral of discoveredPeripherals) {
-      setIsBusyMessage(`Loading Device ${idx++} of ${discoveredPeripherals.length}`);
-      if (await ble.connectById(peripheral.id, CHAR_UUID_SYS_CONFIG)) {
-        let sysConfigStr = await ble.getCharacteristic(peripheral.id, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
-        if (sysConfigStr) {
-          console.log(sysConfigStr);
-
-          let sysConfig = new SysConfig(sysConfigStr);
-
-          let name = sysConfig.deviceId;
-          if (!name || name == '')
-            name = peripheral.name!;
-
-          let device: BLENuvIoTDevice = {
-            peripheralId: peripheral.id,
-            name: name,
-            deviceType: sysConfig.deviceModelId,
-            provisioned: false,
-            orgId: sysConfig.orgId,
-            repoId: sysConfig.repoId,
-            deviceUniqueId: sysConfig.id,
-            id: devices!.length
-          }
-
-          if (sysConfig.id && sysConfig.id.length > 0)
-            device.provisioned = true;
-
-          newDevices!.push(device);
-          setDevices([...newDevices!]);
-        }
-
-        await ble.disconnectById(peripheral.id);
-      }
-    }
-    setIsScanning(false);
-  }
-
-  const scanningStatusChanged = (isScanning: boolean) => {
+  const scanningStatusChanged = async (isScanning: boolean) => {
     console.log('scanningStatusChanged=>' + isScanning);
     setIsScanning(isScanning);
 
@@ -154,7 +55,12 @@ export default function ScanPage({ navigation }: IReactPageServices) {
       console.log('scanning finished');
       ble.removeAllListeners('connected');
       ble.removeAllListeners('scanning');
-      findNuvIoTDevices();
+      setIsScanning(true);
+      setIsBusyMessage('Loading devices');
+      let newDevices = await scanUtils.getNuvIoTDevices(discoveredPeripherals, devices.length);
+      setDevices([...newDevices]);
+
+      setIsScanning(false);
     }
     else {
       setIsBusyMessage('Scanning for local devices.');
@@ -162,25 +68,9 @@ export default function ScanPage({ navigation }: IReactPageServices) {
   }
 
   if (initialCall) {
-    ble.peripherals = [];
-
-    if (Platform.OS === 'android' && Platform.Version >= 23) {
-      PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
-        if (result) {
-          console.log("Permission is OK");
-        } else {
-          PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
-            if (result) {
-              console.log("User accept");
-            } else {
-              console.log("User refuse");
-            }
-          });
-        }
-      });
-    }
-
+    checkPermissions();
     setInitialCall(false);
+    ble.peripherals = [];
   }
 
   const startScan = async () => {
@@ -189,11 +79,10 @@ export default function ScanPage({ navigation }: IReactPageServices) {
       return;
 
     setDevices([]);
-    
-    let newDevices:BLENuvIoTDevice[] = [];
 
-    const permission = Platform.OS == "android" ? await requestLocationPermission() : true;
-    if (permission) {
+    let newDevices: BLENuvIoTDevice[] = [];
+
+    if (hasPermissions) {
       setDiscoveredPeripherals([]);
 
       ble.addListener('connected', (device) => discovered(device))
@@ -204,20 +93,13 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         setIsBusyMessage('Scanning for local devices.');
         setIsScanning(true);
         window.setTimeout(() => {
-        let idx = newDevices.length;
-        for (let item of ble.peripherals) {
-          newDevices.push({
-            name: item.name!,
-            peripheralId: item.id,
-            provisioned: idx % 2 == 0,
-            id: idx++,
-            deviceType: 'BILL0'
-          })
-        }
+          let idx = newDevices.length;
+          for (let item of ble.peripherals) {
+            newDevices.push({ name: item.name!, peripheralId: item.id, provisioned: idx % 2 == 0, id: idx++, deviceType: 'BILL0'})
+          }
 
-        setDevices(newDevices);
-        findNuvIoTDevices();
-      }, 5000);
+          setDevices(newDevices);
+          }, 5000);
       }
     }
   }
@@ -257,7 +139,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
 
     ble.peripherals = [];
 
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()) );
+    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     setSubscription(changed);
     setThemePalette(AppServices.getAppTheme());
 
@@ -269,18 +151,13 @@ export default function ScanPage({ navigation }: IReactPageServices) {
       ),
     });
 
-    const focusSubscription = navigation.addListener('focus', () => {
-
-    });
-
-    const blurSubscription = navigation.addListener('beforeRemove', () => {
-      stopScanning();
-    });
+    const focusSubscription = navigation.addListener('focus', () => { });
+    const blurSubscription = navigation.addListener('beforeRemove', () => { stopScanning();});
 
     return (() => {
       focusSubscription();
       blurSubscription();
-      
+
       if (subscription)
         AppServices.themeChangeSubscription.remove(subscription);
     });
@@ -308,10 +185,10 @@ export default function ScanPage({ navigation }: IReactPageServices) {
             <Pressable onPress={() => showDevice(item)} key={item.peripheralId} >
               <View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 90, backgroundColor: themePalette.shell, }]}  >
                 <View style={{ flex: 3 }} key={item.peripheralId}>
-                  <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize:18, flex: 3 }]}>ID: {item.name}</Text>
-                  <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize:18, flex: 3 }]}>Type: {item.deviceType}</Text>
+                  <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>ID: {item.name}</Text>
+                  <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>Type: {item.deviceType}</Text>
                 </View>
-                <Text style={[{ marginLeft:10, color: themePalette.shellTextColor, fontSize:18, flex: 3 }]}>{item.peripheralId}</Text>
+                <Text style={[{ marginLeft: 10, color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>{item.peripheralId}</Text>
                 {item.provisioned && <Icon style={{ fontSize: 48, color: themePalette.listItemIconColor }} name='ios-information-circle' />}
                 {!item.provisioned && <Icon style={{ fontSize: 48, color: 'green' }} name='add-circle-outline' />}
               </View>
@@ -323,10 +200,10 @@ export default function ScanPage({ navigation }: IReactPageServices) {
 
     {
       !isScanning && devices.length <= 0 &&
-      <View style={[styles.centeredContent,  {padding:50, backgroundColor: themePalette.background }]}>
+      <View style={[styles.centeredContent, { padding: 50, backgroundColor: themePalette.background }]}>
         <MciIcon name="radar" style={[styles.centeredIcon]}></MciIcon>
         <TouchableOpacity style={[styles.submitButton]} onPress={() => startScan()}>
-          <Text style={[styles.submitButtonText, ]}> Begin Scanning</Text>
+          <Text style={[styles.submitButtonText,]}> Begin Scanning</Text>
         </TouchableOpacity>
       </View>
     }
