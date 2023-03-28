@@ -1,0 +1,41 @@
+1) Login (need to work with OAUTH)
+   - Account Info
+   - Change Organization
+
+2) Provision new device
+   - Select app instance (gets us to device repository)
+   - Possible auto connection
+   - Select network configuration
+     - Manual wifi configuration
+   - Auto configure server connection
+   - Select device type
+   - Select device id (done after type so it can set if auto generated)
+
+3) Search for devices
+   - By instance
+   - By device type
+   - By geo location
+   - By physical location/area
+
+4) View Existing Devices
+   - Is Online
+   - Current data
+   - Power Status/Configuration
+   - View if BLE connection
+     - view console output
+     - raw data from sensors 
+
+5) Configure Existing Devices
+   - Set Properties
+   - Configure Sensors
+   - Configure Connectivity
+
+6) Firmware Updates
+   - Current Version
+   - Perform update1
+   - Choose other firmware
+
+
+
+Creating a new IoT Application
+- 
