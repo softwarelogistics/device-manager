@@ -56,6 +56,8 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
 
       setThemePalette(AppServices.getAppTheme());
 
+      console.log(themePalette.shellNavColor);
+
       loadDevices();
       setInitialCall(false);
     }

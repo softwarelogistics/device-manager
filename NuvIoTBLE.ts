@@ -256,7 +256,8 @@ export class NuvIoTBLE {
     }
     else {
       if (!this.isScanning) {
-        BleManager.checkState();
+        await BleManager.isBLEEnabled();
+        
         console.log('We are starting to scan');
         BleManager.scan([SVC_UUID_NUVIOT], 5, false)
           .then((res) => {

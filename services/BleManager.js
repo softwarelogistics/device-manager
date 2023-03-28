@@ -236,6 +236,11 @@ class BleManager {
     });
   }
 
+  async isBLEEnabled() {
+    let result = await bleManager.checkState();
+    console.log('is enabled: ' + result);
+  }
+
   startAsync(options) {
     return new Promise((fulfill, reject) => {
       if (options == null) {

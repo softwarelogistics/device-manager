@@ -31,6 +31,18 @@ export default function ScanPage({ navigation }: IReactPageServices) {
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
   const [initialCall, setInitialCall] = useState<boolean>(true);
 
+  const requestLocationPermission = async () => {
+    try {
+
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION, {
+        title: 'Location permission for bluetooth scanning',
+        message: 'To scan for NuvIoT devices, the application must have permissions to access course location.',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      },
+      );
 
   const checkPermissions = async () => {
     if (Platform.OS === 'android') {

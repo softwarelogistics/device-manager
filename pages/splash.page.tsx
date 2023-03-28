@@ -4,7 +4,6 @@ import { IReactPageServices } from "../services/react-page-services";
 import { StatusBar } from 'expo-status-bar';
 import { Image, View } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import ViewStylesHelper from "../utils/viewStylesHelper";
 import styles from '../styles';
 import AppServices from "../services/app-services";
 import { ThemePalette } from "../styles.palette.theme";
@@ -45,9 +44,6 @@ export default function SplashPage({ navigation }: IReactPageServices) {
       await checkStartup();
     })();
   });
-
-  const primaryButton = ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonSecondary]);
-  const secondaryButton = ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonPrimary]);
 
   return (
     <Page >

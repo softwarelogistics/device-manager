@@ -6,7 +6,6 @@ import Icon from "react-native-vector-icons/Ionicons";
 
 import AppServices from '../services/app-services';
 
-
 import styles from '../styles';
 import colors from '../styles.colors';
 import fontSizes from '../styles.fontSizes';
