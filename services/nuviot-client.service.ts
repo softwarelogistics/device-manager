@@ -196,6 +196,8 @@ export class NuviotClientService {
     return promise;
   }
 
+
+
   getFormResponse<TModel, TView>(path: string): Promise<Core.FormResult<TModel, TView>> {
     if (path.startsWith('/')) {
       path = path.substring(1);
@@ -217,11 +219,22 @@ export class NuviotClientService {
           }
         },
           (err) => {
+            let result : Core.FormResult<TModel, TView> =  {
+              resultId:'-1',
+              successful:false,
+              model: null as TModel,
+              view: null as TView,
+              title: 'Error',
+              errors: [{message: err.message ?? err}],
+              warnings: [],
+              help:'',
+              formFields:[]              
+            };
+            resolve(result);
             this.networkCallService.endCall();
             this.errorReporter.addMessage(err.message);
-            if (reject) {
-              reject(err.message);
-            }
+
+            //throw err.message ?? err;
           });
     });
 
@@ -239,14 +252,10 @@ export class NuviotClientService {
       this.http.post<Core.InvokeResult>(`${environment.siteUri}/${path}`, model)
         .then((response) => {
           this.networkCallService.endCall();
-          if (response.successful) {
-            resolve(response);
-          } else {
+          if (!response.successful) {
             this.errorReporter.addErrors(response.errors);
-            if (reject) {
-              reject(response.errors[0].message);
-            }
           }
+          resolve(response);          
         },
           (err) => {
             this.networkCallService.endCall();

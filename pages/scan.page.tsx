@@ -10,7 +10,6 @@ import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { IReactPageServices } from "../services/react-page-services";
 import { BLENuvIoTDevice } from "../models/device/device-local";
-import { SysConfig } from "../models/blemodels/sysconfig";
 
 import { ThemePalette } from "../styles.palette.theme";
 import styles from '../styles';
@@ -19,7 +18,7 @@ import { Subscription } from "../utils/NuvIoTEventEmitter";
 import { PermissionsHelper } from "../services/ble-permissions";
 import { scanUtils } from "../services/scan-utils";
 
-export default function ScanPage({ navigation }: IReactPageServices) {
+export default function ScanPage({ navigation, props, route }: IReactPageServices) {
   const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
 
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
@@ -31,18 +30,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
   const [initialCall, setInitialCall] = useState<boolean>(true);
 
-  const requestLocationPermission = async () => {
-    try {
-
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION, {
-        title: 'Location permission for bluetooth scanning',
-        message: 'To scan for NuvIoT devices, the application must have permissions to access course location.',
-        buttonNeutral: 'Ask Me Later',
-        buttonNegative: 'Cancel',
-        buttonPositive: 'OK',
-      },
-      );
+  const deviceRepoId = route.params.repoId;
 
   const checkPermissions = async () => {
     if (Platform.OS === 'android') {
@@ -86,7 +74,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
   }
 
   const startScan = async () => {
-    console.log(isScanning);
+    console.log('Is Scanning: ', isScanning);
     if (isScanning)
       return;
 
@@ -130,7 +118,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
     if (device.provisioned)
       navigation.navigate('liveDevicePage', { id: device.peripheralId });
     else
-      navigation.navigate('provisionPage', { id: device.peripheralId });
+      navigation.navigate('provisionPage', { id: device.peripheralId, repoId: deviceRepoId });
   }
 
   const discovered = async (peripheral: Peripheral) => {

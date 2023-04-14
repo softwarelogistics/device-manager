@@ -4,6 +4,7 @@ import { ReplaySubject } from 'rxjs';
 import { DeviceGroupService } from './device-group.service';
 import { NuviotClientService } from './nuviot-client.service';
 import { Device } from 'react-native-ble-plx';
+import Base64 from '../utils/Base64';
 
 export class DevicesService {
   constructor(private deviceGroupService: DeviceGroupService,
@@ -64,13 +65,13 @@ export class DevicesService {
     /* In some cases the data provided by the service may not be valid for use in the app, this method
      * can be used to initialize invalid properties */
     if (!device.primaryAccessKey) {
-      device.primaryAccessKey = btoa(Math.random().toString(36).substring(2) +
-        (new Date()).getTime().toString(36));
+      let buff = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2) + (new Date()).getTime().toString(36);
+      device.primaryAccessKey = Base64.btoa(buff);
     }
 
     if (!device.secondaryAccessKey) {
-      device.secondaryAccessKey = btoa(Math.random().toString(36).substring(2) +
-        (new Date()).getTime().toString(36));
+      let buff2 = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2) + (new Date()).getTime().toString(36);
+      device.secondaryAccessKey = Base64.btoa(buff2);
     }
 
     if (!device.properties) {
@@ -293,12 +294,12 @@ export class DevicesService {
     this.setDeviceDetail(undefined);
     this._deviceLoading$.next(undefined);
     const uri = `/api/device/${repoId}/${deviceId}/metadata`;
-    console.log(uri);
     let result = await this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(uri);
-
     this.setDeviceDetail(result.model);
-
-    return result.model;
+    if(result.successful)
+      return result.model;
+    else
+      throw result.errors[0].message;
   }
 
 

@@ -42,7 +42,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
   };
 
   const addDevice = () => {
-    navigation.navigate('scanPage');
+    navigation.navigate('scanPage', {repoId: deviceRepoId});
   }
 
   const showDevice= (deviceSummary: Devices.DeviceSummary) => {
@@ -62,7 +62,6 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
       setInitialCall(false);
     }
 
-    
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} >

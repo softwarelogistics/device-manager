@@ -108,7 +108,7 @@ export class HttpClient {
             let result = await fetch(url, options);
 
             if (result.status == 401) {
-                console.log('nope')
+                console.log('failed: Not Authorized');
                 throw 'Not Authorized';
             }
             else {

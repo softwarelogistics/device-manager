@@ -3,19 +3,21 @@ export class RemoteDeviceState {
         if(str) {
             let parts = str.split(',');   
             this.firmwareSku= parts[0];
-            this.firmwareRevision = parts[1];
-            this.hardwareRevision = parts[2];
-            this.commissioned = parts[3] == '1';            
-            this.wifiRSSI = parseInt(parts[5]);
-            this.wifiIPAddress = parts[6];
-            this.cellularConnected = parts[7] == '1';
-            this.cellularRSSI = parseInt(parts[8]),
-            this.cellularIPAddress = parts[9]
-            this.isCloudConnected = parts[10] == '1'
-            this.inputVoltage = parseFloat(parts[11]);
-            this.externalPower = parts[12] == '1';
-            this.otaParam = parts[13];
-            this.otaState = parts[14];
+            this.deviceModelKey = parts[1];
+            this.firmwareRevision = parts[2];
+            this.hardwareRevision = parts[3];
+            // 4 is added below as a enum
+            this.commissioned = parts[5] == '1';            
+            this.wifiRSSI = parseInt(parts[6]);
+            this.wifiIPAddress = parts[7];
+            this.cellularConnected = parts[8] == '1';
+            this.cellularRSSI = parseInt(parts[9]),
+            this.cellularIPAddress = parts[10]
+            this.isCloudConnected = parts[11] == '1'
+            this.inputVoltage = parseFloat(parts[12]);
+            this.externalPower = parts[13] == '1';
+            this.otaParam = parts[14];
+            this.otaState = parts[15];
 
             switch(parts[4])
             {
@@ -31,6 +33,7 @@ export class RemoteDeviceState {
     };
 
     firmwareSku:string = "?";
+    deviceModelKey: string = "?";
     firmwareRevision: string= "?";
     hardwareRevision: string= "?";
     commissioned: boolean = false;

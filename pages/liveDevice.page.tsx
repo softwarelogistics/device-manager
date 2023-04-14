@@ -108,8 +108,13 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         let sysConfig = new SysConfig(sysConfigStr);
         setSysConfig(sysConfig);
 
+        try{
         let device = await appServices.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
         setDeviceDetail(device);
+        }
+        catch(e){
+          alert(e);
+        }
       }
 
       await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);

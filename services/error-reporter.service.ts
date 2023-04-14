@@ -24,6 +24,8 @@ export class ErrorReporterService {
     this._errorMsgs$.next([{
       message: msg
     }]);
+
+    alert(msg);
   }
 
   addMessage(msg: string) {

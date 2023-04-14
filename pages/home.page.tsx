@@ -105,18 +105,7 @@ export default function HomePage({ navigation }: IReactPageServices) {
         </View>
       }
       {!isBusy &&
-        <View style={[
-          styles.container,
-          {
-            flex: 1,
-            width:"100%",
-            padding: 20,
-            // Try setting `flexDirection` to `"row"`.
-            flexDirection: 'column',
-            backgroundColor:'yellow'
-          },
-        ]}>
-          <View style={{ flex: 1, backgroundColor: 'red', width:"100%" }} >
+          <View style={{ width:"100%" }} >
             <FlatList
               contentContainerStyle={{ alignItems: "stretch" }}
               style={{ backgroundColor: themePalette.background, width: "100%" }}
@@ -132,10 +121,6 @@ export default function HomePage({ navigation }: IReactPageServices) {
               }
             />
           </View>
-          <View style={{ flex: 1, backgroundColor: 'green', width:"100%"  }}>
-              
-          </View>
-        </View>
       }
     </Page>
   );

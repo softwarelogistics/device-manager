@@ -93,6 +93,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
     { label: 'DS18B', value: '4' },
     { label: 'DHT11', value: '5' },
     { label: 'DHT22', value: '6' },
+    { label: 'MX711', value: '7' },
   ];
 
   const inputStyleOverride = {
@@ -140,18 +141,24 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
   }
 
   const writeChar = async () => {
-    if (connectionState == CONNECTED) {
-      console.log(value);
+    let setCmd = `setioconfig=${value},${portName},${isDigitalPortSelected ? digitalDeviceType : analogDeviceType},${scaler},${calibration},${zero}`;
+    console.log('write char is called.' + connectionState);
+    console.log('write char is called.' + setCmd);
+
+    if (connectionState == CONNECTED) {    
       await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, `setioview=${value}`);
-      await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, `setioconfig=${value},${portName},1,${scaler},${calibration},${zero}')`);
+      await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, setCmd);
       await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
     }
   }
 
   const readConfig = async (port: string) => {
+    console.log('read char is called.' + connectionState + " port " + port);
+
     if (connectionState == CONNECTED) {
       await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, `setioview=${port}`);
       let str = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
+      console.log(str);
       if (str) {
         let parts = str.split(',');
         if (parts.length > 5) {
@@ -276,15 +283,19 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
           {
             hasAnyPort &&
             <View>
-              <Text style={inputLabelStyle}>Port Name:</Text>
+              <Text style={inputLabelStyle}>Port Name:</Text>              
               <TextInput style={inputStyleWithBottomMargin} placeholder="name" value={portName} onChangeText={e => setPortName(e)} />
+              <Text style={inputLabelStyle}>Raw Scaler:</Text>
               <TextInput style={inputStyleWithBottomMargin} placeholder="scaler" value={scaler} onChangeText={e => setScaler(e)} />
+              <Text style={inputLabelStyle}>Zero Value:</Text>
               <TextInput style={inputStyleWithBottomMargin} placeholder="zero" value={zero} onChangeText={e => setZero(e)} />
+              <Text style={inputLabelStyle}>Calibration:</Text>
               <TextInput style={inputStyleWithBottomMargin} placeholder="calibration" value={calibration} onChangeText={e => setCalibration(e)} />
 
-              <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.accent1.normal }]} onPress={() => resetConfig()}><Text style={primaryButtonTextStyle}> Reset </Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.accent2.normal }]} onPress={() => restartDevice()}><Text style={primaryButtonTextStyle}> Restart </Text></TouchableOpacity>
+              <View style={{ flexDirection: "column" }}>
+                <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.accent1.normal }]} onPress={() => writeChar()}><Text style={primaryButtonTextStyle}> Write </Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.alert.warning }]} onPress={() => resetConfig()}><Text style={primaryButtonTextStyle}> Reset </Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.alert.error}]} onPress={() => restartDevice()}><Text style={primaryButtonTextStyle}> Restart </Text></TouchableOpacity>
               </View>
             </View>
           }
