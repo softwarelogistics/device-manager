@@ -33,7 +33,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   const [repos, setRepos] = useState<Devices.DeviceRepoSummary[]>([]);
   const [deviceTypes, setDeviceTypes] = useState<Devices.DeviceTypeSummary[]>([])
   const [selectedRepo, setSelectedRepo] = useState<Devices.DeviceRepoSummary | undefined>();
-  const [selectedDeviceType, setSelectedDeviceType] = useState<Devices.DeviceTypeSummary | undefined>();
+  const [selectedDeviceModel, setSelectedDeviceModel] = useState<Devices.DeviceTypeSummary | undefined>();
   const [deviceId, setDeviceId] = useState<string>();
   const [deviceName, setDeviceName] = useState<string>();
   const [isBusy, setIsBusy] = useState<boolean>(false);
@@ -54,17 +54,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, { color: AppServices.getAppTheme().shellTextColor, fontWeight: (themePalette.name === 'dark' ? '700' : '400') }]);
   const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);
 
-  const loadReposAsync = async () => {
-    console.log('loading repos.');
-    let repos = await appServices.deviceServices.loadDeviceRepositories();
-    repos.unshift({ id: "-1", key: 'select', name: '-select-', isPublic: false, description: '', repositoryType: '' });
-    setRepos(repos);
-    let deviceTypes = await appServices.deviceServices.getDeviceTypes();
-    deviceTypes.unshift({ id: "-1", key: 'select', name: '-select-', description: '' });
-    setDeviceTypes(deviceTypes);
-  }
-
-  const loadSysConfigAsync = async () => {
+  const loadSysConfigAsync = async (deviceTypes: Devices.DeviceTypeSummary[]) => {
     console.log('loading sys config.');
     if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
       let sysConfigStr = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
@@ -76,8 +66,32 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
         console.log('ID -> ' + sysConfig?.id);
         setSysConfig(sysConfig);
       }
+
+      let sysState = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
+      if(sysState) {
+        let state = new RemoteDeviceState(sysState);
+        if(state){
+          let deviceModel = deviceTypes.find(dvt=>dvt.key == state.deviceModelKey);
+          console.log(deviceModel);
+          setSelectedDeviceModel(deviceModel);
+          console.log('Device Model -> ' + state.deviceModelKey);
+          
+        }
+      }
+
       await ble.disconnectById(peripheralId);
     }
+  }
+
+  const load = async () => {
+    let repos = await appServices.deviceServices.loadDeviceRepositories();
+    setSelectedRepo(repos.find(rep=>rep.id == route.params.repoId));
+    repos.unshift({ id: "-1", key: 'select', name: '-select-', isPublic: false, description: '', repositoryType: '' });
+    setRepos(repos);
+    let deviceTypes = await appServices.deviceServices.getDeviceTypes();
+    deviceTypes.unshift({ id: "-1", key: 'select', name: '-select-', description: '' });
+    setDeviceTypes(deviceTypes);
+    loadSysConfigAsync(deviceTypes);
   }
 
   const factoryReset = async () => {
@@ -102,24 +116,26 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
       return;
     }
 
-    if (!selectedDeviceType || selectedDeviceType.id === "-1") {
+    if (!selectedDeviceModel || selectedDeviceModel.id === "-1") {
       alert('Please select a device type.');
       return;
     }
 
     if (!deviceName) {
       alert('Device name is required.');
+      return;
     }
 
     if (!deviceId) {
       alert('Device id is required.');
+      return;
     }
 
     setIsBusy(true);
     let newDevice = await appServices.deviceServices.createDevice(selectedRepo!.id)
     console.log(deviceName, deviceId);
-    newDevice.deviceType = { id: selectedDeviceType!.id, key: selectedDeviceType!.key, text: selectedDeviceType!.name };
-    newDevice.deviceConfiguration = { id: selectedDeviceType!.defaultDeviceConfigId!, key: '', text: selectedDeviceType!.defaultDeviceConfigName! };
+    newDevice.deviceType = { id: selectedDeviceModel!.id, key: selectedDeviceModel!.key, text: selectedDeviceModel!.name };
+    newDevice.deviceConfiguration = { id: selectedDeviceModel!.defaultDeviceConfigId!, key: '', text: selectedDeviceModel!.defaultDeviceConfigName! };
     newDevice.deviceId = deviceId!;
     newDevice.name = deviceName!;
     
@@ -155,15 +171,14 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) })
     appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) })
 
-    await loadReposAsync();
     setIsBusy(true);
-    await loadSysConfigAsync();
+    await load();    
     setIsBusy(false);
   }
 
   const deviceTypeChanged = async (id: string) => {
     console.log(id)
-    setSelectedDeviceType(deviceTypes.find(dt => dt.id == id));
+    setSelectedDeviceModel(deviceTypes.find(dt => dt.id == id));
   }
 
   const repoChanged = async (id: string) => {
@@ -202,8 +217,8 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
           </Picker>
         </View>
 
-        <Text style={inputLabelStyle}>Device Types:</Text>
-        <Picker selectedValue={selectedDeviceType?.id} onValueChange={deviceTypeChanged} >
+        <Text style={inputLabelStyle}>Device Models:</Text>
+        <Picker selectedValue={selectedDeviceModel?.id} onValueChange={deviceTypeChanged} >
           {deviceTypes.map(itm => <Picker.Item key={itm.id} label={itm.name} value={itm.id} color="black" style={{ backgroundColor: 'white' }} />)}
         </Picker>
 
