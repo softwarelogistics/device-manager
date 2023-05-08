@@ -390,6 +390,16 @@ namespace Deployment {
       newDeployed?: boolean;
     }
   
+    export interface WiFiConnectionProfile {
+      id: string;
+      name: string;
+      key: string;
+      ssid: string;
+      password: string;
+      passwordSecretId: string;
+      description: string;
+    }
+
     export interface Telemetry {
       itemId: string;
       itemType: string;

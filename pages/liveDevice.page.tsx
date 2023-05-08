@@ -109,6 +109,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         setSysConfig(sysConfig);
 
         try{
+
         let device = await appServices.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
         setDeviceDetail(device);
         }

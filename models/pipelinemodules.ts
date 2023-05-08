@@ -185,34 +185,7 @@ namespace PipelineModules {
     qOS: Core.EntityHeaderEx<QOS>;
   }
   
-  export interface ListenerConfiguration extends PipelineModuleConfiguration {
-    messageLengthSize_One: string;
-    messageLengthSize_Two: string;
-    messageLengthSize_Four: string;
-    rESTServerType_HTTP: string;
-    rESTServerType_HTTPS: string;
-    rESTServerType_HTTPorHTTPS: string;
-    listenerTypes_AzureServiceBus: string;
-    listenerTypes_AzureEventHub: string;
-    listenerTypes_RabbitMQ: string;
-    listenerTypes_RabbitMQClient: string;
-    listenerTypes_AzureIoTHub: string;
-    listenerTypes_REST: string;
-    listenerTypes_SharedREST: string;
-    listenerTypes_SOAP: string;
-    listenerTypes_RawTCP: string;
-    listenerTypes_RawUdp: string;
-    listenerTypes_AMQP: string;
-    listenerTypes_REDIS: string;
-    listenerTypes_Kafka: string;
-    listenerTypes_MQTT_Broker: string;
-    listenerTypes_MQTT_Listener: string;
-    listenerTypes_MQTT_Client: string;
-    listenerTypes_POP3Server: string;
-    listenerTypes_Custom: string;
-    listenerTypes_SerialPort: string;
-    listenerTypes_WebSocket: string;
-    listenerTypes_FTP: string;
+  export interface ListenerConfiguration extends PipelineModuleConfiguration {    
     moduleType: string;
     rESTListenerType: RESTListenerTypes;
     listenerType: Core.EntityHeaderEx<ListenerTypes>;

@@ -146,7 +146,14 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     {
         !isBusy && deviceDetail &&
         <View>
+            <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>{deviceDetail.name}</Text>
             <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>{deviceDetail.deviceId}</Text>
+            <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>{deviceDetail.lastContact}</Text>
+            {
+              deviceDetail.properties.map((prop: any, key: string) => {
+                return <Text>{prop.value}</Text>
+              })
+            }
             { deviceInRange && 
               <TouchableOpacity style={[styles.submitButton]} onPress={() => showLiveDevice()}>
                 <Text style={[styles.submitButtonText,]}>Connect</Text>

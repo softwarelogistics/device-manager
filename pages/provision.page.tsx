@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, ScrollView, View, Text, TextInput, ActivityIndicator, TextStyle, ViewStyle, Platform } from "react-native";
+import { TouchableOpacity, ScrollView, View, Text, TextInput, ActivityIndicator, TextStyle, ViewStyle, Platform, Switch } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 import { Device } from "react-native-ble-plx";
 
@@ -18,11 +18,9 @@ import { ThemePalette } from "../styles.palette.theme";
 import colors from "../styles.colors";
 import styles from '../styles';
 import palettes from "../styles.palettes";
-import fontSizes from "../styles.fontSizes";
 import Page from "../mobile-ui-common/page";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
 import EditField from "../mobile-ui-common/edit-field";
-import StdButton from "../mobile-ui-common/std-button";
 
 export default function ProvisionPage({ navigation, route }: IReactPageServices) {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
@@ -38,9 +36,13 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   const [deviceName, setDeviceName] = useState<string>();
   const [isBusy, setIsBusy] = useState<boolean>(false);
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
-
-
   const [sysConfig, setSysConfig] = useState<SysConfig>();
+  const [commissioned, setCommissioned] = useState<boolean>(false);
+
+  const [selectedWiFiConnection, setSelectedWiFiConnection] = useState<string | undefined>(undefined);
+  const [wifiConnections, setWiFiConnections] = useState<Deployment.WiFiConnectionProfile[] | undefined>(undefined);
+  const [defaultListener, setDefaultListener] = useState<PipelineModules.ListenerConfiguration | undefined>(undefined);
+  const [useDefaultListener, setUseDefaultListener] = useState<boolean>(false);
 
   const peripheralId = route.params.id;
 
@@ -68,14 +70,14 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
       }
 
       let sysState = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-      if(sysState) {
+      if (sysState) {
         let state = new RemoteDeviceState(sysState);
-        if(state){
-          let deviceModel = deviceTypes.find(dvt=>dvt.key == state.deviceModelKey);
+        if (state) {
+          let deviceModel = deviceTypes.find(dvt => dvt.key == state.deviceModelKey);
           console.log(deviceModel);
           setSelectedDeviceModel(deviceModel);
           console.log('Device Model -> ' + state.deviceModelKey);
-          
+
         }
       }
 
@@ -85,13 +87,24 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
   const load = async () => {
     let repos = await appServices.deviceServices.loadDeviceRepositories();
-    setSelectedRepo(repos.find(rep=>rep.id == route.params.repoId));
+    setSelectedRepo(repos.find(rep => rep.id == route.params.repoId));
     repos.unshift({ id: "-1", key: 'select', name: '-select-', isPublic: false, description: '', repositoryType: '' });
     setRepos(repos);
     let deviceTypes = await appServices.deviceServices.getDeviceTypes();
     deviceTypes.unshift({ id: "-1", key: 'select', name: '-select-', description: '' });
     setDeviceTypes(deviceTypes);
     loadSysConfigAsync(deviceTypes);
+
+    let result = await appServices.deploymentServices.LoadWiFiConnectionProfiles(route.params.repoId);
+    console.log(result);
+    result.unshift({ id: 'cellular', key: 'cellular', name: 'Cellular', ssid: '', password: '', description: '' });
+    result.unshift({ id: 'none', key: 'none', name: 'No Connection', ssid: '', password: '', description: '' });
+    setWiFiConnections(result);
+
+    let defaultListener = await appServices.deploymentServices.LoadDefaultListenerForRepo(route.params.repoId);
+    if(defaultListener.successful)
+      setDefaultListener(defaultListener.result);
+    console.log(defaultListener.result.userName, defaultListener.result.password, defaultListener.result.hostName, defaultListener.result.connectToPort, defaultListener.result.listenerType.id);
   }
 
   const factoryReset = async () => {
@@ -117,17 +130,17 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     }
 
     if (!selectedDeviceModel || selectedDeviceModel.id === "-1") {
-      alert('Please select a device type.');
+      alert('Please select a device model.');
       return;
     }
 
     if (!deviceName) {
-      alert('Device name is required.');
+      alert('Device Name is required.');
       return;
     }
 
     if (!deviceId) {
-      alert('Device id is required.');
+      alert('Device Id is required.');
       return;
     }
 
@@ -138,11 +151,11 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     newDevice.deviceConfiguration = { id: selectedDeviceModel!.defaultDeviceConfigId!, key: '', text: selectedDeviceModel!.defaultDeviceConfigName! };
     newDevice.deviceId = deviceId!;
     newDevice.name = deviceName!;
-    
-    if(Platform.OS === 'ios') 
+
+    if (Platform.OS === 'ios')
       newDevice.iosBLEAddress = peripheralId;
     else
-      newDevice.macAddress = peripheralId; 
+      newDevice.macAddress = peripheralId;
 
     let result = await appServices.deviceServices.addDevice(newDevice);
     if (result.successful) {
@@ -152,6 +165,34 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
         await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'orgid=' + newDevice.ownerOrganization.id);
         await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'repoid=' + newDevice.deviceRepository.id);
         await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'id=' + newDevice.id);
+        
+
+        if (selectedWiFiConnection && selectedWiFiConnection !== 'cellular' && selectedWiFiConnection !== 'none') {
+          let connection = wifiConnections?.find(wifi => wifi.id == selectedWiFiConnection);
+          if (connection) {
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${connection.ssid}`);
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${connection.password}`);
+          }
+        }
+
+        await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'commissioned=' + (commissioned ? '1' : '0'));
+
+        if (useDefaultListener && defaultListener) {
+          await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `host=${defaultListener.hostName}`);
+          await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `port=${defaultListener.connectToPort}`);
+          if (defaultListener.userName) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `uid=${defaultListener.userName}`);
+          if (defaultListener.password) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `pwd=${defaultListener.password}`);
+
+          if (defaultListener.listenerType.id == 'mqttbroker' ||
+            defaultListener.listenerType.id == 'sharedmqttlistener' ||
+            defaultListener.listenerType.id == 'mqttlistener' ||
+            defaultListener.listenerType.id == 'mqttclient')
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `srvrtype=mqtt`);
+          else if (defaultListener.listenerType.id == 'sharedrest' ||
+            defaultListener.listenerType.id == 'rest')
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `srvrtype=rest`);
+        }
+
         await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'reboot=1');
 
         await ble.disconnectById(peripheralId);
@@ -172,7 +213,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) })
 
     setIsBusy(true);
-    await load();    
+    await load();
     setIsBusy(false);
   }
 
@@ -202,38 +243,68 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   }, []);
 
   return (
-    isBusy ?
-      <View style={[styles.spinnerView, { backgroundColor: AppServices.getAppTheme().background }]}>
-        <Text style={{ color: AppServices.getAppTheme().shellTextColor, fontSize: 25 }}>Please Wait</Text>
-        <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
-      </View>
-      :
-      <View style={[styles.scrollContainer, { backgroundColor: AppServices.getAppTheme().background }]}>
+    <Page>
+      <ScrollView>
         <StatusBar style="auto" />
-        <Text style={inputLabelStyle}>Repositories:</Text>
-        <View>
-          <Picker selectedValue={selectedRepo?.id} onValueChange={repoChanged} >
-            {repos.map(itm => <Picker.Item key={itm.id} label={itm.name} value={itm.id} color="black" style={{ backgroundColor: 'white' }} />)}
-          </Picker>
-        </View>
+        {
+          isBusy &&
+          <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
+            <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Please Wait</Text>
+            <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
+          </View>
+        }
+        {!isBusy &&
+          <View style={[styles.scrollContainer, { backgroundColor: AppServices.getAppTheme().background }]}>
 
-        <Text style={inputLabelStyle}>Device Models:</Text>
-        <Picker selectedValue={selectedDeviceModel?.id} onValueChange={deviceTypeChanged} >
-          {deviceTypes.map(itm => <Picker.Item key={itm.id} label={itm.name} value={itm.id} color="black" style={{ backgroundColor: 'white' }} />)}
-        </Picker>
+            <Text style={inputLabelStyle}>Repositories:</Text>
+            <Picker selectedValue={selectedRepo?.id} onValueChange={repoChanged} style={{ height: 12 }} itemStyle={{ height: 12 }} >
+              {repos.map(itm =>
+                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ height: 12, color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackground }} />
+              )}
+            </Picker>
 
-        <EditField label="Device Name" placeHolder="enter device name" onChangeText={e => setDeviceName(e)} />
-        <EditField label="Device Id" placeHolder="enter device id" onChangeText={e => setDeviceId(e)} />
+            <Text style={inputLabelStyle}>Device Models:</Text>
+            <Picker selectedValue={selectedDeviceModel?.id} onValueChange={deviceTypeChanged} >
+              {deviceTypes.map(itm =>
+                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackground, height: 10 }} />
+              )}
+            </Picker>
 
-        <TouchableOpacity style={[styles.submitButton, { marginTop: 10, backgroundColor: palettes.primary.normal }]} onPress={() => provisionDevice()}>
-          <Text style={primaryButtonTextStyle}> Save </Text>
-        </TouchableOpacity>
+            <EditField label="Device Name" placeHolder="enter device name" onChangeText={e => setDeviceName(e)} />
+            <EditField label="Device Id" placeHolder="enter device id" onChangeText={e => setDeviceId(e)} />
+
+            <Text style={inputLabelStyle}>WiFi Connection:</Text>
+            <Picker selectedValue={selectedWiFiConnection} onValueChange={e => setSelectedWiFiConnection(e)} >
+              {wifiConnections?.map(itm =>
+                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackground, height: 10 }} />
+              )}
+            </Picker>
 
 
-        <TouchableOpacity style={[styles.submitButton, { marginTop: 50, backgroundColor: palettes.alert.error }]} onPress={() => factoryReset()}>
-          <Text style={primaryButtonTextStyle}> Factory Reset </Text>
-        </TouchableOpacity>
+            <View style={styles.flex_toggle_row}>
+              <Text style={inputLabelStyle}>Use Default Listener:</Text>
+              <Switch onValueChange={e => setUseDefaultListener(e)} value={useDefaultListener}
+                thumbColor={(colors.primaryColor)}
+                trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+            </View>
 
-      </View>
-  );
+            <View style={styles.flex_toggle_row}>
+              <Text style={inputLabelStyle}>Commissioned:</Text>
+              <Switch onValueChange={e => setCommissioned(e)} value={commissioned}
+                thumbColor={(colors.primaryColor)}
+                trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+            </View>
+
+            <TouchableOpacity style={[styles.submitButton, { marginTop: 10, backgroundColor: palettes.primary.normal }]} onPress={() => provisionDevice()}>
+              <Text style={primaryButtonTextStyle}> Save </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.submitButton, { marginTop: 50, backgroundColor: palettes.alert.error }]} onPress={() => factoryReset()}>
+              <Text style={primaryButtonTextStyle}> Factory Reset </Text>
+            </TouchableOpacity>
+          </View>
+        }
+      </ScrollView>
+    </Page>
+  )
 }

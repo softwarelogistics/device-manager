@@ -2,6 +2,7 @@ import palettes from "./styles.palettes";
 
 export class ThemePalette {
   background: string;
+  border: string;
   buttonPrimary: string;
   buttonPrimaryBorderColor;
   buttonPrimaryText: string;
@@ -17,11 +18,13 @@ export class ThemePalette {
   shell: string;
   shellNavColor: string;
   shellTextColor: string;
+  inputBackground: string;
   toggleColor: string;
   name: string;
 
   constructor() {
     this.background = '';
+    this.border = '' ,
     this.buttonPrimary = '';
     this.buttonPrimaryBorderColor = '';
     this.buttonPrimaryText = '';
@@ -39,6 +42,7 @@ export class ThemePalette {
     this.shellTextColor = '';
     this.toggleColor = '';
     this.name = '?'
+    this.inputBackground = ''
   }
 }
 

@@ -80,4 +80,11 @@ export class DeploymentService {
     return this.nuviotClient.getListResponse(`/api/telemetry/${recordType}/${viewType}/${id}`, pagination)
   }
 
+  public LoadWiFiConnectionProfiles(repositoryId: string) : Promise<Deployment.WiFiConnectionProfile[]> {
+    return this.nuviotClient.request(`/api/device/repo/${repositoryId}/wifiprofiles`);
+  }
+
+  public LoadDefaultListenerForRepo(repositoryId: string): Promise<Core.InvokeResultEx<PipelineModules.ListenerConfiguration>> {
+    return this.nuviotClient.request(`/api/device/repo/${repositoryId}/defaultlistener`);    
+  }
 }

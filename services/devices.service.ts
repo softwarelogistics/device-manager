@@ -222,7 +222,7 @@ export class DevicesService {
   }
 
   public requestFirmwareUpdate(repoId: string, deviceId: string, firmwareId: string, revisionId: string) : Promise<Core.InvokeResultEx<string>> {
-    const uri = `/api/device/remoteconfig/${repoId}/${deviceId}/firmware/${firmwareId}/revision/${revisionId}`;
+    const uri = `/api/device/remoteconfig/${repoId}/${deviceId}/firmware/${firmwareId}/revision/${revisionId}?`;
     return this.nuviotClient.request(uri);
   }
 
