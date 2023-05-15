@@ -5,9 +5,9 @@ export class RemoteDeviceState {
             this.firmwareSku= parts[0];
             this.deviceModelKey = parts[1];
             this.firmwareRevision = parts[2];
-            this.hardwareRevision = parts[3];
-            // 4 is added below as a enum
-            this.commissioned = parts[5] == '1';            
+            this.hardwareRevision = parts[3];            
+            this.commissioned = parts[4] == '1';            
+            // 5 is added below as a enum
             this.wifiRSSI = parseInt(parts[6]);
             this.wifiIPAddress = parts[7];
             this.cellularConnected = parts[8] == '1';
@@ -19,7 +19,7 @@ export class RemoteDeviceState {
             this.otaParam = parts[14];
             this.otaState = parts[15];
 
-            switch(parts[4])
+            switch(parts[5])
             {
                 case '0': this.wifiStatus = 'Idle'; break;
                 case '1': this.wifiStatus = 'Not Commissioned'; break;
@@ -29,6 +29,8 @@ export class RemoteDeviceState {
                 case '5': this.wifiStatus = 'Connected'; break;
                 case '6': this.wifiStatus = 'Disconnected'; break;
             }
+
+            console.log(this.wifiStatus);
         }
     };
 

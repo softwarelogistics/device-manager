@@ -134,7 +134,7 @@ const App = () => {
         <Stack.Screen name="settingsPage" component={ConnectivityPage} options={{ title: 'Configure Device: Connectivity' }} />
         <Stack.Screen name="splashPage" component={SplashPage} options={{ title: 'Welcome' }} />
         <Stack.Screen name="tempSensorsPage" component={TempSensorPage} options={{ title: 'Sensors' }} />
-        <Stack.Screen name="instancePage" component={InstancePage} options={{ title: 'Instance - Devices' }} />
+        <Stack.Screen name="instancePage" component={InstancePage} options={{ title: 'Devices' }} />
         <Stack.Screen name="devicesPage" component={DevicesPage} options={{ title: 'Devices' }} />
         <Stack.Screen name="profilePage" component={ProfilePage} options={{ title: 'Profile' }} />
       </Stack.Navigator>

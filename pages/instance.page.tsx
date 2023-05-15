@@ -12,6 +12,7 @@ import { ActivityIndicator, FlatList, Pressable, ScrollView, Text, View } from "
 import styles from '../styles';
 import colors from "../styles.colors";
 import { Picker } from "@react-native-picker/picker";
+import SLIcon from "../mobile-ui-common/sl-icon";
 
 
 export const InstancePage = ({ navigation, props, route }: IReactPageServices) => {
@@ -30,6 +31,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
 
   const instanceId = route.params.instanceId;
   const deviceRepoId = route.params.repoId;
+  const instanceName = route.params.instanceName
 
   const loadDevices = async () => {
     let result = await appServices.deviceServices.getDevicesForRepoAsync(deviceRepoId)
@@ -59,7 +61,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
 
 
   const addDevice = () => {
-    navigation.navigate('scanPage', { repoId: deviceRepoId });
+    navigation.navigate('scanPage', { repoId: deviceRepoId, instanceId: instanceId });
   }
 
   const showDevice = (deviceSummary: Devices.DeviceSummary) => {
@@ -80,15 +82,17 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
   }
 
   useEffect(() => {
-    setThemePalette(AppServices.getAppTheme());
+    let palette = AppServices.getAppTheme()
+    setThemePalette(palette);
       
+
     navigation.setOptions({
       headerRight: () => (
-        <View style={{ flexDirection: 'row' }} >
-          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={addDevice} name='add-outline' />
-        </View>),
+        <View style={{ flexDirection: 'column' }} >
+          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor}  onPress={() => addDevice()} name='add-outline' />
+        </View>
+      ),
     });
-    
 
     if (initialCall) {
       
@@ -119,7 +123,6 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
 
   return (
     <Page>
-      <View>
         <StatusBar style="auto" />
         {
           isBusy &&
@@ -129,17 +132,18 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
           </View>
         }
         {!isBusy &&
-          <View style={{ width: "100%" }}>
-            <Picker selectedValue={deviceModelFilter} onValueChange={deviceTypeChanged} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
+          <View style={{ width: "100%", flexDirection:'column' }}>
+            <Text style={[{ margin: 3, color: themePalette.shellTextColor, fontSize: 24}]}>{instanceName}</Text>
+            <Picker selectedValue={deviceModelFilter} onValueChange={deviceTypeChanged} style={{ flex:1, backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
               {deviceModels.map(itm => <Picker.Item key={itm.id} label={itm.text} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />)}
             </Picker>
-
-            <ScrollView>
+            <ScrollView style={{flexGrow:1}} >
               <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', backgroundColor: themePalette.background, width: "100%" }}>
                 {devices && devices.map((item, key) => {
                   return <Pressable onPress={() => showDevice(item)} key={item.id} >
-                    <View style={[{ height: 90, width: 90, borderWidth: 1, backgroundColor: themePalette.shell, borderRadius: 8, margin: 3, borderColor: themePalette.shellTextColor }]}  >
-                      <Text style={[{ margin: 3, color: themePalette.shellTextColor, fontSize: 14 }]}>{item.deviceName}</Text>
+                    <View  style={[{ flex:1, flexDirection:'row', padding:10, height: 90, width: 180, borderWidth: 1, backgroundColor: themePalette.inputBackgroundColor, borderRadius: 8, margin: 5, borderColor: themePalette.border }]}  >
+                      <SLIcon icon={item.icon} />
+                      <Text style={[{ margin: 3, color: themePalette.shellTextColor, fontSize: 16, width:130 }]}>{item.deviceName}</Text>
                     </View>
                   </Pressable>
                 })
@@ -147,9 +151,8 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
 
               </View>
             </ScrollView>
-          </View>
+            </View>          
         }
-      </View>
     </Page>
   )
 }

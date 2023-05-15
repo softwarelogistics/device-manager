@@ -381,6 +381,7 @@ namespace Deployment {
       deviceRepoName: string;
       orgName: string;
       orgId: string;
+      icon: string;
     }
   
     export interface StateChangeNotification {
@@ -396,7 +397,7 @@ namespace Deployment {
       key: string;
       ssid: string;
       password: string;
-      passwordSecretId: string;
+      passwordSecretId?: string;
       description: string;
     }
 

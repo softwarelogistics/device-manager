@@ -241,7 +241,7 @@ export class NuviotClientService {
     return promise;
   }
 
-  insert<TModel>(path: string, model: TModel): Promise<Core.InvokeResult> {
+  insert<TModel>(path: string, model: TModel, reportError: boolean = true): Promise<Core.InvokeResult> {
     if (path.startsWith('/')) {
       path = path.substring(1);
     }
@@ -252,13 +252,14 @@ export class NuviotClientService {
       this.http.post<Core.InvokeResult>(`${environment.siteUri}/${path}`, model)
         .then((response) => {
           this.networkCallService.endCall();
-          if (!response.successful) {
+          if (!response.successful && reportError) {
             this.errorReporter.addErrors(response.errors);
           }
           resolve(response);          
         },
           (err) => {
             this.networkCallService.endCall();
+
             this.errorReporter.addMessage(err.message);
             if (reject) {
               reject(err.message);
@@ -269,18 +270,41 @@ export class NuviotClientService {
     return promise;
   }
 
-  post<TModel, TResponse>(path: string, model: TModel): Promise<Core.InvokeResultEx<TResponse>> {
+  post<TModel, TResponse>(path: string, model: TModel, reportError: boolean = true): Promise<Core.InvokeResultEx<TResponse>> {
     return this.postWithResponse(path, model);
   }
 
-  async postWithResponse<TModel, TResponse>(path: string, model: TModel): Promise<Core.InvokeResultEx<TResponse>> {
+  async postWithResponse<TModel, TResponse>(path: string, model: TModel, reportError: boolean = true): Promise<Core.InvokeResultEx<TResponse>> {
     if (path.startsWith('/')) {
       path = path.substring(1);
     }
 
     this.networkCallService.beginCall();
 
-    return await this.http.post(`${environment.siteUri}/${path}`, model);
+    const promise = new Promise<Core.InvokeResultEx<TResponse>>((resolve, reject) => {
+    this.http.post<Core.InvokeResultEx<TResponse>>(`${environment.siteUri}/${path}`, model)
+      .then((response) => {
+      this.networkCallService.endCall();
+      if (!response.successful && reportError) {
+        console.log('adding error...why?')
+        this.errorReporter.addErrors(response.errors);
+      }
+      resolve(response);          
+    },
+      (err) => {
+        this.networkCallService.endCall();
+
+        if(reportError){
+          this.errorReporter.addMessage(err.message);
+        }
+        if (reject) {
+          reject(err.message);
+        }
+      });
+    });
+
+    return promise;
+
   }
 
   postForListResponse<TModel, TResponse>(path: string, model: TModel): Promise<Core.ListResponse<TResponse>> {

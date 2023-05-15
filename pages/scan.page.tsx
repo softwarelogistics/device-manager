@@ -118,7 +118,7 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
     if (device.provisioned)
       navigation.navigate('liveDevicePage', { id: device.peripheralId });
     else
-      navigation.navigate('provisionPage', { id: device.peripheralId, repoId: deviceRepoId });
+      navigation.navigate('provisionPage', { id: device.peripheralId, repoId: deviceRepoId, instanceId: route.params.instanceId });
   }
 
   const discovered = async (peripheral: Peripheral) => {
@@ -146,7 +146,7 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} >
-          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color="#1976D2" onPress={() => startScan()} name='refresh-outline' />
+          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor}  onPress={() => startScan()} name='refresh-outline' />
         </View>
       ),
     });

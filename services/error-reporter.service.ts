@@ -25,6 +25,8 @@ export class ErrorReporterService {
       message: msg
     }]);
 
+    console.log('adding error message: ' + msg);
+
     alert(msg);
   }
 

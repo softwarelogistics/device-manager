@@ -138,14 +138,13 @@ const palettes = {
     buttonTertiaryBorderColor: '#061D34',
     buttonTertiaryText: '#FFFFFF',
     currentOrganizationBackgroundColor: '#0C3B69',
-    inputBackgroundColor: '#0C3B69',
+    inputBackgroundColor: standardColors.primaryBlue125,
     listItemIconColor: '#D1E4F6',
     shell: '#0C3B69',
     shellNavColor: '#D1E4F6',
     shellTextColor: '#FFFFFF',
     toggleColor: '#F3F3F3',
     name: 'dark',
-    inputBackground: standardColors.primaryBlue125
   },
 
   light: {
@@ -161,14 +160,13 @@ const palettes = {
     buttonTertiaryBorderColor: '#454545',
     buttonTertiaryText: '#000000',
     currentOrganizationBackgroundColor: '#1976D2',
-    inputBackgroundColor: '#FFFFFF',
+    inputBackgroundColor: standardColors.primaryBlue20,
     listItemIconColor: '#1976D2',
     shell: '#FFFFFF',
     shellNavColor: '#D48D17',
     shellTextColor: '#000000',
     toggleColor: '#000000',
     name: 'light',
-    inputBackground: standardColors.primaryBlue20
   },
 };
 

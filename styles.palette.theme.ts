@@ -18,7 +18,6 @@ export class ThemePalette {
   shell: string;
   shellNavColor: string;
   shellTextColor: string;
-  inputBackground: string;
   toggleColor: string;
   name: string;
 
@@ -41,8 +40,7 @@ export class ThemePalette {
     this.shellNavColor = '';
     this.shellTextColor = '';
     this.toggleColor = '';
-    this.name = '?'
-    this.inputBackground = ''
+    this.name = '?'    
   }
 }
 

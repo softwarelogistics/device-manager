@@ -192,6 +192,7 @@ namespace Devices {
     deviceTypeId: string;
     deviceId: string;
     serialNumber: string;
+    icon: string;
     status: string;
     macAddress: string;
     iosBLEAddress: string;

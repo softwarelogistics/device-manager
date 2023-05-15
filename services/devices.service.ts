@@ -100,6 +100,15 @@ export class DevicesService {
     return promise;
   }
 
+  getDeviceTypesForInstance(instanceId: string): Promise<Devices.DeviceTypeSummary[]> {
+    const promise = new Promise<Devices.DeviceTypeSummary[]>((resolve, reject) => {
+      this.nuviotClient.getListResponse<Devices.DeviceTypeSummary>(`/api/deployment/instance/${instanceId}/devicetypes`)
+        .then(resp => { resolve(resp.model); })
+    });
+
+    return promise;
+  }  
+
   getFirmwares(): Promise<Devices.FirmwareSummary[]> {
     const promise = new Promise<Devices.FirmwareSummary[]>((resolve, reject) => {
       this.nuviotClient.request<Core.ListResponse<Devices.FirmwareSummary>>(`/api/firmwares`)
@@ -294,6 +303,7 @@ export class DevicesService {
     this.setDeviceDetail(undefined);
     this._deviceLoading$.next(undefined);
     const uri = `/api/device/${repoId}/${deviceId}/metadata`;
+    console.log(uri);
     let result = await this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(uri);
     this.setDeviceDetail(result.model);
     if(result.successful)
@@ -345,8 +355,10 @@ export class DevicesService {
     return promise;
   }
 
-  public async addDevice(device: Devices.DeviceDetail): Promise<Core.InvokeResult> {
-    return await this.nuviotClient.insert(`/api/device/${device.deviceRepository.id}`, device);
+  public async addDevice(device: Devices.DeviceDetail, replace: boolean = false, reportError: boolean = true): Promise<Core.InvokeResultEx<Devices.DeviceDetail>> {
+    console.log('should we replace?', replace, 'report error', reportError);
+
+     return await this.nuviotClient.postWithResponse(`/api/device/${device.deviceRepository.id}?reassign=${replace}`, device, reportError);
   }
 
   public addUserDevice(user: Devices.DeviceUser): Promise<Core.InvokeResult> {

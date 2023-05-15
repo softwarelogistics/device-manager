@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, ScrollView, View, Text, TextInput, ActivityIndicator, TextStyle, ViewStyle, Platform, Switch } from "react-native";
+import { TouchableOpacity, ScrollView, View, Text, TextInput, ActivityIndicator, TextStyle, ViewStyle, Platform, Switch, Alert } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 import { Device } from "react-native-ble-plx";
 
@@ -34,9 +34,10 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   const [selectedDeviceModel, setSelectedDeviceModel] = useState<Devices.DeviceTypeSummary | undefined>();
   const [deviceId, setDeviceId] = useState<string>();
   const [deviceName, setDeviceName] = useState<string>();
-  const [isBusy, setIsBusy] = useState<boolean>(false);
+  const [isBusy, setIsBusy] = useState<boolean>(true);
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [sysConfig, setSysConfig] = useState<SysConfig>();
+  const [busyMessage, setBusyMessage] = useState<String>("Is Busy");
   const [commissioned, setCommissioned] = useState<boolean>(false);
 
   const [selectedWiFiConnection, setSelectedWiFiConnection] = useState<string | undefined>(undefined);
@@ -57,7 +58,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);
 
   const loadSysConfigAsync = async (deviceTypes: Devices.DeviceTypeSummary[]) => {
-    console.log('loading sys config.');
+    
     if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
       let sysConfigStr = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
       if (sysConfigStr) {
@@ -86,23 +87,30 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   }
 
   const load = async () => {
+    setBusyMessage("Loading Repositories");
     let repos = await appServices.deviceServices.loadDeviceRepositories();
     setSelectedRepo(repos.find(rep => rep.id == route.params.repoId));
     repos.unshift({ id: "-1", key: 'select', name: '-select-', isPublic: false, description: '', repositoryType: '' });
     setRepos(repos);
-    let deviceTypes = await appServices.deviceServices.getDeviceTypes();
+
+    setBusyMessage("Loading Device Models");
+    let deviceTypes = await appServices.deviceServices.getDeviceTypesForInstance(route.params.instanceId);
     deviceTypes.unshift({ id: "-1", key: 'select', name: '-select-', description: '' });
     setDeviceTypes(deviceTypes);
+
+    setBusyMessage("Loading System Configuration.");
     loadSysConfigAsync(deviceTypes);
 
+    setBusyMessage("Loading Connection Profiles");
     let result = await appServices.deploymentServices.LoadWiFiConnectionProfiles(route.params.repoId);
     console.log(result);
     result.unshift({ id: 'cellular', key: 'cellular', name: 'Cellular', ssid: '', password: '', description: '' });
     result.unshift({ id: 'none', key: 'none', name: 'No Connection', ssid: '', password: '', description: '' });
     setWiFiConnections(result);
 
+    setBusyMessage("Loading Server Information");
     let defaultListener = await appServices.deploymentServices.LoadDefaultListenerForRepo(route.params.repoId);
-    if(defaultListener.successful)
+    if (defaultListener.successful)
       setDefaultListener(defaultListener.result);
     console.log(defaultListener.result.userName, defaultListener.result.password, defaultListener.result.hostName, defaultListener.result.connectToPort, defaultListener.result.listenerType.id);
   }
@@ -123,27 +131,28 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     }
   }
 
-  const provisionDevice = async () => {
+  const provisionDevice = async (replace: boolean): Promise<String> => {
     if (!selectedRepo || selectedRepo.id === "-1") {
       alert('Please select a device repository.');
-      return;
+      return "VALIDATION";
     }
 
     if (!selectedDeviceModel || selectedDeviceModel.id === "-1") {
       alert('Please select a device model.');
-      return;
+      return "VALIDATION";
     }
 
     if (!deviceName) {
       alert('Device Name is required.');
-      return;
+      return "VALIDATION";
     }
 
     if (!deviceId) {
       alert('Device Id is required.');
-      return;
+      return "VALIDATION";
     }
 
+    setBusyMessage('Provisioning device on the server.');
     setIsBusy(true);
     let newDevice = await appServices.deviceServices.createDevice(selectedRepo!.id)
     console.log(deviceName, deviceId);
@@ -157,21 +166,31 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     else
       newDevice.macAddress = peripheralId;
 
-    let result = await appServices.deviceServices.addDevice(newDevice);
+    let result = await appServices.deviceServices.addDevice(newDevice, replace, false);
     if (result.successful) {
+      newDevice = result.result;
       setIsBusy(true);
+
       if (await ble.connectById(peripheralId)) {
         await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'deviceid=' + deviceId);
         await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'orgid=' + newDevice.ownerOrganization.id);
         await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'repoid=' + newDevice.deviceRepository.id);
         await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'id=' + newDevice.id);
-        
 
-        if (selectedWiFiConnection && selectedWiFiConnection !== 'cellular' && selectedWiFiConnection !== 'none') {
-          let connection = wifiConnections?.find(wifi => wifi.id == selectedWiFiConnection);
-          if (connection) {
-            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${connection.ssid}`);
-            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${connection.password}`);
+
+        if (selectedWiFiConnection && selectedWiFiConnection !== 'none') {
+          if (selectedWiFiConnection == 'cellular') {
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'cell=1');
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'wifi=0');
+          }
+          else {
+            let connection = wifiConnections?.find(wifi => wifi.id == selectedWiFiConnection);
+            if (connection) {
+              await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'wifi=1');
+              await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'cell=0');
+              await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${connection.ssid}`);
+              await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${connection.password}`);
+            }
           }
         }
 
@@ -199,13 +218,41 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
       }
       setIsBusy(false);
 
-      alert('Success provisioning device.');
-      navigation.goBack();
+      return "OK";
+
+
     }
     else {
       setIsBusy(false);
       alert(`Could not provision device: ${result.errors[0].message}`);
+      return result.errors[0].errorCode!;
     }
+  }
+
+  const callProvisionDevice = async () => {
+    let result = await provisionDevice(false);
+    if (result == "DM1001") {
+      Alert.alert(`Device Exists`, `A device with the id ${deviceId} already exists, would you like to replace it?`,
+      [{
+        text:'YES', onPress: async () => {
+          let result = await provisionDevice(true);
+          if (result === 'OK') {
+            alert('Success provisioning device.');
+            navigation.goBack();
+          }  
+        }
+      },
+      {
+        text:'NO'
+      }]);      
+    }
+    else {
+      if (result === 'OK') {
+        alert('Success provisioning device.');
+        navigation.goBack();
+      }
+    }
+
   }
 
   const init = async () => {
@@ -244,39 +291,40 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
   return (
     <Page>
+
+      <StatusBar style="auto" />
+      {
+        isBusy &&
+        <View style={[styles.spinnerView, { backgroundColor: AppServices.getAppTheme().background }]}>
+          <Text style={{ color: AppServices.getAppTheme().shellTextColor, fontSize: 25 }}>{busyMessage}</Text>
+          <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
+        </View>
+      }
       <ScrollView>
-        <StatusBar style="auto" />
-        {
-          isBusy &&
-          <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-            <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Please Wait</Text>
-            <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
-          </View>
-        }
         {!isBusy &&
           <View style={[styles.scrollContainer, { backgroundColor: AppServices.getAppTheme().background }]}>
 
             <Text style={inputLabelStyle}>Repositories:</Text>
             <Picker selectedValue={selectedRepo?.id} onValueChange={repoChanged} style={{ height: 12 }} itemStyle={{ height: 12 }} >
               {repos.map(itm =>
-                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ height: 12, color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackground }} />
+                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ height: 12, color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor }} />
               )}
             </Picker>
 
             <Text style={inputLabelStyle}>Device Models:</Text>
             <Picker selectedValue={selectedDeviceModel?.id} onValueChange={deviceTypeChanged} >
               {deviceTypes.map(itm =>
-                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackground, height: 10 }} />
+                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, height: 10 }} />
               )}
             </Picker>
 
-            <EditField label="Device Name" placeHolder="enter device name" onChangeText={e => setDeviceName(e)} />
-            <EditField label="Device Id" placeHolder="enter device id" onChangeText={e => setDeviceId(e)} />
+            <EditField label="Device Name" value={deviceName} placeHolder="enter device name" onChangeText={e => setDeviceName(e)} />
+            <EditField label="Device Id" value={deviceId} placeHolder="enter device id" onChangeText={e => setDeviceId(e)} />
 
             <Text style={inputLabelStyle}>WiFi Connection:</Text>
             <Picker selectedValue={selectedWiFiConnection} onValueChange={e => setSelectedWiFiConnection(e)} >
               {wifiConnections?.map(itm =>
-                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackground, height: 10 }} />
+                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, height: 10 }} />
               )}
             </Picker>
 
@@ -295,12 +343,8 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
                 trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
             </View>
 
-            <TouchableOpacity style={[styles.submitButton, { marginTop: 10, backgroundColor: palettes.primary.normal }]} onPress={() => provisionDevice()}>
-              <Text style={primaryButtonTextStyle}> Save </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.submitButton, { marginTop: 50, backgroundColor: palettes.alert.error }]} onPress={() => factoryReset()}>
-              <Text style={primaryButtonTextStyle}> Factory Reset </Text>
+            <TouchableOpacity style={[styles.submitButton, { marginTop: 10, backgroundColor: palettes.primary.normal }]} onPress={() => callProvisionDevice()}>
+              <Text style={primaryButtonTextStyle}> Provision </Text>
             </TouchableOpacity>
           </View>
         }

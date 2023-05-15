@@ -38,6 +38,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const [connectionState, setConnectionState] = useState<number>(IDLE);
   const [sysConfig, setSysConfig] = useState<SysConfig>();
   const [isBusy, setIsBusy] = useState<boolean>(true);
+  const [busyMessage, setBusyMessage] = useState<String>("Retrieving Device");
 
 
   const peripheralId = route.params.id;
@@ -64,6 +65,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   }
 
   const disconnectHandler = (id: string) => {
+    console.log(`Disconnected from device on live device page: ${id}`)
     setConnectionState(DISCONNECTED);
     setRemoteDeviceState(undefined);
     setSensorValues(undefined);
@@ -71,7 +73,51 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     ble.removeAllListeners('receive');
     ble.removeAllListeners('disconnected');
     ble.unsubscribe();
+
+    window.setTimeout(() => connectToBLE(), 1000);
   }
+
+  const connectToBLE = async () => {
+    setIsBusy(true);
+    setConnectionState(CONNECTING);
+    setBusyMessage("Connecting to Device.");
+    if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
+      setConnectionState(CONNECTED);
+      await ble.subscribe(ble);
+
+      let sysConfigStr = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
+      if (sysConfigStr) {
+        let sysConfig = new SysConfig(sysConfigStr);
+        setSysConfig(sysConfig);
+
+        try{
+          setBusyMessage("Loading Device Details.");
+          let device = await appServices.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
+          setDeviceDetail(device);
+        }
+        catch(e){
+          alert(e);
+        }
+      }
+
+      await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
+      await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
+
+      ble.removeAllListeners('receive');
+      ble.removeAllListeners('disconnected');
+
+      ble.addListener('receive', charHandler);
+      ble.addListener('disconnected', disconnectHandler);
+    }
+    else {
+      setBusyMessage("Not Connected.");
+      setIsBusy(false);
+      setConnectionState(DISCONNECTED);
+      window.setTimeout(() => connectToBLE(), 1000);
+    }
+  }
+
+
 
   const showConfigurePage = async () => {
     if (connectionState == CONNECTED) {
@@ -97,36 +143,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       return;
     }
 
-    setConnectionState(CONNECTING);
-
-    if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
-      setConnectionState(CONNECTED);
-      await ble.subscribe(ble);
-
-      let sysConfigStr = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
-      if (sysConfigStr) {
-        let sysConfig = new SysConfig(sysConfigStr);
-        setSysConfig(sysConfig);
-
-        try{
-
-        let device = await appServices.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
-        setDeviceDetail(device);
-        }
-        catch(e){
-          alert(e);
-        }
-      }
-
-      await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-      await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-
-      ble.removeAllListeners('receive');
-      ble.removeAllListeners('disconnected');
-
-      ble.addListener('receive', charHandler);
-      ble.addListener('disconnected', disconnectHandler);
-    }
+    await connectToBLE();
   }
 
   useEffect(() => {
@@ -235,7 +252,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     {
       isBusy &&
       <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-        <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Retrieving Device</Text>
+        <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>{busyMessage}</Text>
         <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
       </View>
     }
