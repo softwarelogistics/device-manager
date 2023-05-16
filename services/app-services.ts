@@ -10,6 +10,7 @@ import { DeviceGroupService } from './device-group.service';
 import { ThemePalette, ThemePaletteService } from '../styles.palette.theme';
 import { NuvIoTEventEmitter } from '../utils/NuvIoTEventEmitter';
 import { DeploymentService } from './deployment.service';
+import WssService from './wss.service';
 
 let devEnv = (process.env.NODE_ENV == "development");
 devEnv = false;
@@ -31,6 +32,7 @@ class AppServices {
         this.deploymentServices = new DeploymentService(this.client);
         this.deviceGroupsServices = new DeviceGroupService(this.client);
         this.deviceServices = new DevicesService(this.deviceGroupsServices, this.client);
+        this.wssService = new WssService(this.client);
 
         this.userServices = new UserService(this.httpClient, this.client, this.errorReporter, this.storage);
     }
@@ -70,6 +72,7 @@ class AppServices {
     deviceGroupsServices: DeviceGroupService;
     deviceServices: DevicesService;
     userServices: UserService;
+    wssService: WssService;
 }
 
 export default AppServices;

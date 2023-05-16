@@ -224,7 +224,6 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     }
     else {
       setIsBusy(false);
-      alert(`Could not provision device: ${result.errors[0].message}`);
       return result.errors[0].errorCode!;
     }
   }
