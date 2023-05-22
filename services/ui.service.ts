@@ -11,7 +11,7 @@ export class UiService {
   public apps: UI.IoTApp[];
   private _currentAppsList$ = new ReplaySubject<UI.IoTApp[]>();
 
-  public currentApp: UI.IoTApp;
+  public currentApp: UI.IoTApp | undefined | null;
   private _currentApp$ = new ReplaySubject<UI.IoTApp>();
 
   private _dashboards: UI.Dashboard[];

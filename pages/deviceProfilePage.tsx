@@ -1,15 +1,21 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Platform, View, Text, TouchableOpacity } from "react-native";
+import { ActivityIndicator, Platform, View, Text, TextStyle, TouchableOpacity, ScrollView, ViewStyle } from "react-native";
 import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
 import { ThemePalette } from "../styles.palette.theme";
 import colors from "../styles.colors";
 import styles from '../styles';
-import Page from "../mobile-ui-common/page";
+import palettes from "../styles.palettes";
+import ViewStylesHelper from "../utils/viewStylesHelper";
+import fontSizes from "../styles.fontSizes";
+import Icon from "react-native-vector-icons/Ionicons";
 import { PermissionsHelper } from "../services/ble-permissions";
-import { ble } from '../NuvIoTBLE'
+import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { BLENuvIoTDevice } from "../models/device/device-local";
 import { Peripheral } from "react-native-ble-manager";
+import { StatusBar } from "expo-status-bar";
+import { RemoteDeviceState } from "../models/blemodels/state";
+import { IOValues } from "../models/blemodels/iovalues";
 
 const IDLE = 0;
 const CONNECTING = 1;
@@ -22,52 +28,46 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
 
   const [isBusy, setIsBusy] = useState<boolean>(true);
-  const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [discoveredPeripherals, setDiscoveredPeripherals] = useState<Peripheral[]>([]);
+  const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined>(undefined);
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [deviceDetail, setDeviceDetail] = useState<Devices.DeviceDetail | undefined | any>();
+  const [sensorValues, setSensorValues] = useState<IOValues | undefined>(undefined);
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
   const [busyMessage, setIsBusyMessage] = useState<String>('Busy');
   const [deviceInRange, setDeviceInRange] = useState<boolean>(false);
-  const [wss, setWss] = useState<WebSocket | undefined>(undefined);
   const [connectionState, setConnectionState] = useState<number>(IDLE);
   const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
 
   const repoId = route.params.repoId;
   const id = route.params.id;
 
+  const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
+  const chevronBarVerticalStyle: ViewStyle = ViewStylesHelper.combineViewStyles([{ height: 39 }]);
+  const chevronBarColorTick: ViewStyle = ViewStylesHelper.combineViewStyles([chevronBarVerticalStyle, { width: 8 }]);
+  const barGreyChevronRightStyle: TextStyle = ViewStylesHelper.combineTextStyles([chevronBarVerticalStyle, { backgroundColor: palettes.gray.v20, fontSize: 18, paddingLeft: 4, paddingRight: 4, width: '98%', textAlignVertical: 'center' }]);
+  const barGreyChevronRightLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([{ fontWeight: '700' }]);
+  const labelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
+
   const loadDevice = async () => {
-    let device = await appServices.deviceServices.getDevice(repoId, id);
-    setDeviceDetail(device);
-    console.log(device);
-    connectToDevice(device);
+    let fullDevice = await appServices.deviceServices.getDevice(repoId, id);
+    setDeviceDetail(fullDevice);
+    console.log(fullDevice);
+    connectToDevice(fullDevice);
 
-    let wsResult = await appServices.wssService.getWSSUrl('device', device.id)
-
-    var ws = new WebSocket(wsResult.result);
-    setWss(ws);
-    ws.onopen = () => {
-      console.log('i open');
-    };
-
-    ws.onmessage = (e) => {
+    await appServices.wssService.init('device', fullDevice.id);
+    appServices.wssService.onmessage = (e) => {
       let json = e.data;
       let wssMessage = JSON.parse(json);
       let wssPayload = wssMessage.payloadJSON;
-      let device = JSON.parse(wssPayload);
+      let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
       console.log(device);
 
-      console.log('message', e);
-    };
-
-    ws.onclose = () => {
-      console.log('closed web socket');
-    }
-
-    ws.onerror = () => {
-
-    };
-
+      if(device){
+        fullDevice.sensorCollection = device.sensorCollection;
+        fullDevice.lastContact = device.lastContact;
+        setDeviceDetail(fullDevice);
+      }
+    }  
   }
 
   const checkPermissions = async (): Promise<boolean> => {
@@ -84,10 +84,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     }
   }
 
-  const discovered = async (peripheral: Peripheral) => {
-    discoveredPeripherals.push(peripheral);
-  }
-
   const connectToDevice = async (device: Devices.DeviceDetail) => {
     setDevices([]);
 
@@ -95,8 +91,8 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
     let hasPermissions = await checkPermissions();
     if (hasPermissions) {
-      setDiscoveredPeripherals([]);
       if (device!.macAddress) {
+        setPeripheralId(device!.macAddress);
         if (await ble.connectById(device!.macAddress)) {
           console.log('connected - android');
           await ble.disconnectById(device!.macAddress)
@@ -109,6 +105,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       }
 
       if (device!.iosBLEAddress) {
+        setPeripheralId(device!.iosBLEAddress);
         if (await ble.connectById(device!.iosBLEAddress)) {
           console.log('connected - ios');
           setPeripheralId(device!.iosBLEAddress);
@@ -119,39 +116,25 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
           setDeviceInRange(false);
         }
       }
-
-      ble.addListener('connected', (device) => discovered(device))
-      ble.addListener('scanning', (isScanning) => { scanningStatusChanged(isScanning); });
-      await ble.startScan();
     }
     else {
       console.log('does not have permissions.');
     }
   }
 
-  const showLiveDevice = () => {
-    let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
-    navigation.replace('liveDevicePage', { id: peripheralId });
-  }
-
-  const stopScanning = () => {
-    if (isScanning) {
-      if (!ble.simulatedBLE()) {
-        ble.removeAllListeners('connected');
-        ble.removeAllListeners('scanning');
-        ble.stopScan();
-      }
+  const showConfigurePage = async () => {
+    if (connectionState == CONNECTED) {
+      ble.removeAllListeners('receive');
+      ble.removeAllListeners('disconnected');
+      ble.unsubscribe();
+      let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
+      await ble.disconnectById(peripheralId);
+      setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
     }
-  }
 
+    appServices.wssService.close();
 
-  const scanningStatusChanged = async (isScanning: boolean) => {
-    console.log('scanningStatusChanged=>' + isScanning);
-
-    console.log(deviceDetail);
-    console.log(deviceDetail?.macAddress);
-    console.log(deviceDetail?.iosBLEAddress);
-    setIsScanning(isScanning);
+    navigation.navigate('configureDevice', { id: peripheralId, repoId: deviceDetail?.deviceRepository.id, deviceId: deviceDetail?.id, peripheralId: peripheralId });
   }
 
   useEffect(() => {
@@ -159,9 +142,17 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) });
       appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) });
 
-      setThemePalette(AppServices.getAppTheme());
+      let palette = AppServices.getAppTheme()
+      setThemePalette(palette);
+  
 
-      loadDevice();
+      navigation.setOptions({
+        headerRight: () => (
+          <View style={{ flexDirection: 'row' }} >
+            <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor} onPress={showConfigurePage} name='ios-settings-sharp' />
+          </View>),
+      });
+            loadDevice();
       setInitialCall(false);
       ble.peripherals = [];
     }
@@ -183,43 +174,156 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
         ble.unsubscribe();
         await ble.disconnectById(peripheralId!);
       }
-    });
 
+      appServices.wssService.close();
+    });
 
     return (() => {
       focusSubscription();
-      blurSubscription();
-      wss?.close();
+      blurSubscription();      
     });
-  });
+  }, []);
 
 
-  return <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
+  const sectionHeader = (sectionHeader: string) => {
+    return (<View>
+      <Text style={headerStyle}>{sectionHeader}</Text>
+    </View>)
+  }
+
+  const panelDetail = (color: string, label: string, value: string | null | undefined) => {
+    return (
+      deviceDetail&&
+      <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
+        <View style={[chevronBarColorTick, { backgroundColor: color, borderBottomLeftRadius: 6, borderTopLeftRadius: 6 }]}>
+          <Text> </Text>
+        </View>
+        <View style={[barGreyChevronRightStyle, { flexDirection: 'row', alignItems: 'center', borderTopRightRadius: 6, borderBottomRightRadius: 6 }]}>
+          <Text style={[barGreyChevronRightLabelStyle, { flex: 1, textAlignVertical: 'center', fontSize: 16 }]}>{label}:</Text>
+          <Text style={{ flex: 2, textAlign: 'right', textAlignVertical: 'center', marginRight: 5, fontSize: 16 }}>{value}</Text>
+        </View>
+      </View>
+    )
+  }
+
+  const connectionBlock = (color: string, icon: string, label: string, status: boolean) => {
+    return <View style={[{ flex: 1,  margin: 2, justifyContent: 'center', }]}>
+      {status &&
+        <View style={{backgroundColor: color,  borderRadius: 8}}>
+          <Text  style={{ fontSize:20, textAlign: "center", color: 'white' }}>{label}</Text>
+          <View >
+            <Icon style={{ textAlign: 'center', }} size={64} color="white" onPress={showConfigurePage} name={icon} />
+          </View>
+          <Text style={{ textAlign: "center", color: 'white' }}>Connected</Text>
+        </View>
+      }
+      {!status &&
+        <View style={{backgroundColor: '#e0e0e0', borderRadius: 8}}>
+          <Text style={{ fontSize:20, textAlign: "center", color: 'black' }}>{label}</Text>
+          <View >
+            <Icon style={{ textAlign: 'center', }} size={64} color="gray" onPress={showConfigurePage} name={icon} />
+          </View>
+          <Text style={{ textAlign: "center", fontWeight:'500', color: 'black' }}>Not Connected</Text>
+        </View>
+      }
+    </View>
+  }
+
+  const sensorBlock = (idx: number, sensors: Devices.Sensor[], icon: string) => {
+    let sensor = sensors.find(snsr=>snsr.portIndex == idx);
+
+    return (
+      <View style={[{ flex: 1, width:100, backgroundColor: sensor ?  'green': '#d0d0d0', margin: 5, justifyContent: 'center', borderRadius: 8 }]}>
+        <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ?  'white' : 'black' }}>Sensor {idx + 1}</Text>
+        <View >
+          <Icon style={{ textAlign: 'center', color: sensor ? 'white' : '#a0a0a0' }} size={64}  onPress={showConfigurePage} name={icon} />
+        </View>
+        <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : '#d0d0d0' }}>{sensor?.value ?? '-'}</Text>
+      </View>)
+  }
+
+  return <View style={[styles.container, { backgroundColor: themePalette.background }]}>
     {
       isBusy &&
       <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-        <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Retrieving Device</Text>
+        <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>{busyMessage}</Text>
         <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
       </View>
     }
-    {
-      !isBusy && deviceDetail &&
-      <View>
-        <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>{deviceDetail.name}</Text>
-        <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>{deviceDetail.deviceId}</Text>
-        <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>{deviceDetail.lastContact}</Text>
-        {
-          deviceDetail.properties.map((prop: any, key: string) => {
-            return <Text>{prop.value}</Text>
-          })
-        }
-        {deviceInRange &&
-          <TouchableOpacity style={[styles.submitButton]} onPress={() => showLiveDevice()}>
-            <Text style={[styles.submitButtonText,]}>Connect</Text>
-          </TouchableOpacity>
-        }
-      </View>
-    }
-  </Page>;
 
+    {
+      !isBusy &&
+      <ScrollView style={styles.scrollContainer}>
+        <StatusBar style="auto" />
+        {
+          deviceDetail  &&
+          <View style={{marginBottom:30}}>                 
+            {
+              deviceDetail &&
+              <View>
+                {sectionHeader('Device Info and Connectivity')}
+                {panelDetail('purple', 'Device Name', deviceDetail?.name)}
+                {panelDetail('purple', 'Repository', deviceDetail.deviceRepository.text)}
+                {panelDetail('purple', deviceDetail.deviceTypeLabel, deviceDetail.deviceType.text)}
+                {panelDetail('purple', 'Last Contact', deviceDetail.lastContact)}
+              </View>
+            }
+            {
+              deviceInRange &&
+              <View>
+                <Text>In Range</Text>
+                </View>
+            }
+            {
+              <View style={{ marginTop: 20 }}>
+                {sectionHeader('Current Device Status')}
+                {panelDetail('green', 'Firmware SKU', deviceDetail.actualFirmware)}
+                {panelDetail('green', 'Firmware Rev', deviceDetail.actualFirmwareRevision)}
+                {panelDetail('green', 'Commissioned', deviceDetail.commissioned ? 'Yes' : 'No')}
+              </View>
+            }
+            {
+              remoteDeviceState &&
+              <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >
+                {connectionBlock('orange', 'wifi-outline', 'WiFi', remoteDeviceState.wifiStatus == 'Connected')}
+                {connectionBlock('orange', 'cellular-outline', 'Cellular', remoteDeviceState.cellularConnected)}
+                {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
+
+              </View>
+            }
+            {
+              deviceDetail.sensorCollection &&
+              <View style={{ marginTop: 20 }}>
+                {sectionHeader('Live Sensor Data')}
+                <Text style={labelStyle}>ADC Sensors</Text>
+                <ScrollView horizontal={true}>                  
+                  {sensorBlock(8, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(9, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(10, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(11, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(12, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(13, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(14, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(15, deviceDetail.sensorCollection,'radio-outline')}
+                </ScrollView>
+                <Text style={ labelStyle }>IO Sensors</Text>
+                <ScrollView horizontal={true}>                  
+                  {sensorBlock(0, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(1, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(2, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(3, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(4, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(5, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(6, deviceDetail.sensorCollection,'radio-outline')}
+                  {sensorBlock(7, deviceDetail.sensorCollection,'radio-outline')}
+                </ScrollView>
+              
+
+              </View>
+            }
+          </View>
+        }
+      </ScrollView>
+    }
+  </View>
 }

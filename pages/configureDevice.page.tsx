@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, ScrollView, View, Text, TextInput, TextStyle, ViewStyle, ActivityIndicator } from "react-native";
+import { TouchableOpacity, ScrollView, View, Text, TextInput, TextStyle, ViewStyle, ActivityIndicator, Platform } from "react-native";
 
 import AppServices from "../services/app-services";
 
@@ -17,6 +17,7 @@ import palettes from "../styles.palettes";
 import Page from "../mobile-ui-common/page";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
 import colors from "../styles.colors";
+import { PermissionsHelper } from "../services/ble-permissions";
 
 let simData = new SimulatedData();
 
@@ -24,10 +25,11 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   const [isBusy, setIsBusy] = useState<boolean>(false);
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
+  const [deviceInRange, setDeviceInRange] = useState<boolean>(false);
+  const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
 
   const [initialCall, setInitialCall] = useState<boolean>(true);
 
-  const peripheralId = route.params.id;
   const deviceId = route.params.deviceId;
   const repoId = route.params.repoId;
 
@@ -46,9 +48,9 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
 
   const restartDevice = async () => {
     setIsBusy(true);
-    if (await ble.connectById(peripheralId)) {
-      await ble.writeNoResponseCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
-      await ble.disconnectById(peripheralId);
+    if (await ble.connectById(peripheralId!)) {
+      await ble.writeNoResponseCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
+      await ble.disconnectById(peripheralId!);
       setIsBusy(false);
       await alert('Success resetting device.');
     }
@@ -58,11 +60,25 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
     }
   }
 
+  const checkPermissions = async (): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+      if (Platform.Version >= 23) {
+        if (!await PermissionsHelper.requestLocationPermissions())
+          return false;
+      }
+
+      return await PermissionsHelper.requestBLEPermission();
+    }
+    else {
+      return true;
+    }
+  }
+
   const factoryReset = async () => {
     setIsBusy(true);
-    if (await ble.connectById(peripheralId)) {
-      await ble.writeNoResponseCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `factoryreset=1`);
-      await ble.disconnectById(peripheralId);      
+    if (await ble.connectById(peripheralId!)) {
+      await ble.writeNoResponseCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `factoryreset=1`);
+      await ble.disconnectById(peripheralId!);      
       setIsBusy(false);
       await alert('Success resetting device to factory defaults.');
       navigation.replace('homePage');

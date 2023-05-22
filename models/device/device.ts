@@ -104,8 +104,8 @@ namespace Devices {
     Dedicated,
     ClusteredMongoDB
   }
-  
-  export interface DeviceRepository  {
+
+  export interface DeviceRepository {
     id: string;
     creationDate: string;
     createdBy: Core.EntityHeader;
@@ -156,7 +156,7 @@ namespace Devices {
     userOwnedDevicesOnly: boolean;
     secureUserOwnedDevices: boolean;
   }
-  
+
 
   export interface DeviceUpdate {
     deviceId: string;
@@ -407,22 +407,22 @@ namespace Devices {
     bomItemResources: DeviceTypeResource[];
   }
 
-  export interface DeviceType  {
-  id: string;
-  name: string;
-  key: string;
-  description: string;
-  manufacturer: string;
-  modelNumber: string;
-  defaultDeviceConfiguration: Core.EntityHeader;
-  billOfMaterial: FSLite.BOMItem[];
-  resources: Core.EntityHeader[];
-  associatedEquipment: Core.EntityHeaderEx<FSLite.Equipment>[];
-  firmware: Core.EntityHeader;
-  firmwareRevision: Core.EntityHeader;
-}
+  export interface DeviceType {
+    id: string;
+    name: string;
+    key: string;
+    description: string;
+    manufacturer: string;
+    modelNumber: string;
+    defaultDeviceConfiguration: Core.EntityHeader;
+    billOfMaterial: FSLite.BOMItem[];
+    resources: Core.EntityHeader[];
+    associatedEquipment: Core.EntityHeaderEx<FSLite.Equipment>[];
+    firmware: Core.EntityHeader;
+    firmwareRevision: Core.EntityHeader;
+  }
 
-  export interface DeviceTypeView  {
+  export interface DeviceTypeView {
     name: Core.FormField;
     key: Core.FormField;
     description: Core.FormField
@@ -556,6 +556,29 @@ namespace Devices {
     notes: DeviceNote[];
     errors: DeviceError[];
     macAddress: string;
-    iosBLEAddress: string;}
+    iosBLEAddress: string;
+  }
+
+  export interface DeviceForNotification {
+    deviceId: string;
+    name: string;
+    id: string;
+    geoLocation: Geolocation;
+    heading: number;
+    serialNumber: string;
+    lastContact: string;
+    status: Core.EntityHeader;
+    customStatus: Core.EntityHeader;
+    actualFirmware: string;
+    actualFirmwareRevision: string;
+    propertyBag: { [key: string]: any; };
+    attributes: Core.AttributeValue[];
+    states: Core.AttributeValue[];
+    properties: Core.AttributeValue[];
+    notes: DeviceNote[];
+    deviceTwinDetails: DeviceTwinDetail[];
+    sensorCollection: Sensor[];
+  }
+
 }
 

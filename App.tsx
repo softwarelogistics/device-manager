@@ -30,6 +30,7 @@ import { DevicesPage } from './pages/devices.page';
 import { InstancePage } from './pages/instance.page';
 import { ProfilePage } from './pages/profilePage';
 import { DeviceProfilePage } from './pages/deviceProfilePage';
+import { WelcomePage } from './pages/welcomePage';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,10 +39,18 @@ const App = () => {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
   const [initialPage, setInitialPage] = useState<string>('splashPage');
   const [initialCall, setInitialCall] = useState<boolean>(true);
+  const [launchUrl, setLaunchUrl] = useState<string|undefined>(undefined);
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
-
-  const url = Linking.useURL();
+  
+  const url = Linking.useURL();  
+  if(launchUrl != url){
+    if(url) {
+      setLaunchUrl(url);
+    }
+    else 
+      console.log('nope');
+  }
 
   const linking = {
     prefixes: ['exp://', 'nuviot://', 'exp://127.0.0.1:19000/--/'],
@@ -51,7 +60,7 @@ const App = () => {
       },
     },
   };
-  
+
   const handleThemeChange = () => {
     let current = AppServices.getAppTheme();
     setThemePalette(current)
@@ -64,11 +73,30 @@ const App = () => {
         text: current.shellTextColor
       }
     };
-   
-    setNavigationTheme(navTheme);  
+
+    setNavigationTheme(navTheme);
+  }
+
+  const parseSchemeUrl = async (url:string) => {
+    console.log('parse scheme url');
+    const { hostname, path, queryParams } = Linking.parse(url);
+    console.log(url);
+    console.log(`app startup with url: ${hostname}, path: ${path} and data: ${JSON.stringify(queryParams)}`);
+
+    if (queryParams && queryParams.userid && queryParams.token) {
+      
+      await AsyncStorage.setItem('oauth_user', queryParams.userid.toString());
+      await AsyncStorage.setItem('oauth_token', queryParams.token.toString());
+      await AsyncStorage.setItem('oauth_path', hostname!);
+      await AsyncStorage.setItem('oauth_launch', 'true');
+      await console.log('setting new initial page');
+      setInitialPage('oauthHandlerPage');
+    }
   }
 
   const initialLoad = async () => {
+    console.log('initial load');
+
     let themeName = (await AsyncStorage.getItem("active_theme")) ?? "light";
     let theme = ThemePaletteService.getThemePalette(themeName);
     AppServices.setAppTheme(theme);
@@ -83,36 +111,26 @@ const App = () => {
     };
 
     setNavigationTheme(navTheme);
-    setInitialCall(false);    
+    setInitialCall(false);
+  }
 
-    if(url) {
-      const { hostname, path, queryParams } = Linking.parse(url);
-      console.log(`app startup with url: ${hostname}, path: ${path} and data: ${JSON.stringify(queryParams)}`);
-
-      if (queryParams && queryParams.userid && queryParams.token) {      
-        await AsyncStorage.setItem('oauth_launch', 'true');
-        await AsyncStorage.setItem('oauth_user', queryParams.userid.toString());
-        await AsyncStorage.setItem('oauth_token', queryParams.token.toString());
-        await AsyncStorage.setItem('oauth_path', path!);
-        await console.log('setting new initial page');
-        setInitialPage('oauthHandlerPage');
-      }
+  useEffect(() => {
+    if (url) {
+      parseSchemeUrl(url)
     }
     else {
-      console.log('normal app startup')
+      console.log('no url');
     }
-  }
 
- useEffect(() => {
-  if(initialCall){
-    initialLoad();                 
-  }
+    if (initialCall) {
+      initialLoad();
+    }
 
-  let changed = AppServices.themeChangeSubscription.addListener('changed', () => handleThemeChange())
-  setSubscription(changed);
+    let changed = AppServices.themeChangeSubscription.addListener('changed', () => handleThemeChange())
+    setSubscription(changed);
 
-  return (() => {if (subscription)AppServices.themeChangeSubscription.remove(subscription);})
-}, []);
+    return (() => { if (subscription) AppServices.themeChangeSubscription.remove(subscription); })
+  },[url]);
 
   return (
     <NavigationContainer theme={navigationTheme} linking={linking}>
@@ -127,6 +145,7 @@ const App = () => {
         <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
         <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
         <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home' }} />
+        <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />
         <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
         <Stack.Screen name="registerPage" component={RegisterPage} options={{ title: ' ' }} />
         <Stack.Screen name="scanPage" component={ScanPage} options={{ title: 'Scan for Devices' }} />

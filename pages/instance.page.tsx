@@ -99,8 +99,6 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
       appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) });
       appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) });
 
-      
-
       console.log(themePalette.shellNavColor);
 
       loadDevices();

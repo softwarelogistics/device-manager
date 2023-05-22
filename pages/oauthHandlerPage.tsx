@@ -1,8 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, Image, View, TouchableOpacity } from 'react-native';
-import { AppState } from 'react-native';
-import { finalize, retry } from "rxjs";
+import * as Linking from 'expo-linking';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import AppServices from "../services/app-services";
@@ -30,7 +29,10 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
   const submitButtonWhiteTextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, styles.submitButtonTextBlack, { color: themePalette.buttonPrimaryText }]);
 
   const checkStartup = async () => {
-    console.log('checking startup' + retryAttempt);
+
+    console.log('checking startup: ' + retryAttempt);
+
+
     let ola = await AsyncStorage.getItem('oauth_launch');
     if (ola == 'true') {
       console.log('found expected values')
@@ -70,6 +72,9 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
       let loginResponse = await AuthenticationHelper.login(request)
       console.log('loginResponse', loginResponse);
 
+      let user = await appServices.userServices.loadCurrentUser();
+      console.log(user);
+
       if (loginResponse.isSuccess) {
         let path = loginResponse.navigationTarget!;
         navigation.replace(path);
@@ -93,6 +98,7 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
     await AsyncStorage.removeItem("refreshtokenExpires");
     await AsyncStorage.removeItem("jwtExpires");
     await AsyncStorage.removeItem("userInitials");
+    await AsyncStorage.removeItem("app_user");
     setAllDone(true);
     navigation.replace('authPage');
   };

@@ -40,7 +40,6 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const [isBusy, setIsBusy] = useState<boolean>(true);
   const [busyMessage, setBusyMessage] = useState<String>("Retrieving Device");
 
-
   const peripheralId = route.params.id;
 
   const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
@@ -116,8 +115,6 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       window.setTimeout(() => connectToBLE(), 1000);
     }
   }
-
-
 
   const showConfigurePage = async () => {
     if (connectionState == CONNECTED) {

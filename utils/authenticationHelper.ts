@@ -41,10 +41,7 @@ const AuthenticationHelper = {
     let appServices = new AppServices();
 
     let authUrl = `${appServices.getApiUrl()}/api/v1/auth`;
-    console.log('attempt to login at:' + authUrl);
-    console.log('Request Body');
-    console.log(postOptions);
-
+  
     const fetched = await fetch(authUrl, postOptions)
       .catch(err => {
         console.log(err);

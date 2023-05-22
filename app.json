@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "nuviot",
     "name": "device-mgr",
     "owner": "kevindwolf",
     "slug": "device-mgr",
@@ -46,8 +47,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "scheme": "nuviot",
+    },    
     "extra": {
       "eas": {
         "projectId": "60332f43-00fd-4a35-8b33-c269770169e9"
