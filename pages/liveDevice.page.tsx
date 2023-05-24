@@ -103,14 +103,21 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         setErrorMessage(`Could not get sys config for ${peripheralId}`)
       }
 
-      await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-      await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-
       ble.removeAllListeners('receive');
       ble.removeAllListeners('disconnected');
 
       ble.addListener('receive', charHandler);
       ble.addListener('disconnected', disconnectHandler);
+
+      let success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
+      if(!success){
+        setErrorMessage('Could not listen for notifications.');        
+      }
+
+      success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
+      if(!success){
+        setErrorMessage('Could not listen for notifications.');        
+      }
     }
     else {
       setErrorMessage(`Could not establish BLE connection to ${peripheralId}`);
