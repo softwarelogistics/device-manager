@@ -39,6 +39,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const [sysConfig, setSysConfig] = useState<SysConfig>();
   const [isBusy, setIsBusy] = useState<boolean>(true);
   const [busyMessage, setBusyMessage] = useState<String>("Retrieving Device");
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
   const peripheralId = route.params.id;
 
@@ -71,15 +72,15 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
 
     ble.removeAllListeners('receive');
     ble.removeAllListeners('disconnected');
-    ble.unsubscribe();
 
     window.setTimeout(() => connectToBLE(), 1000);
   }
 
   const connectToBLE = async () => {
+    setErrorMessage(undefined);
     setIsBusy(true);
     setConnectionState(CONNECTING);
-    setBusyMessage("Connecting to Device.");
+    setBusyMessage("Establishing BLE Connection to Device.");
     if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
       setConnectionState(CONNECTED);
       await ble.subscribe(ble);
@@ -89,14 +90,17 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         let sysConfig = new SysConfig(sysConfigStr);
         setSysConfig(sysConfig);
 
-        try{
-          setBusyMessage("Loading Device Details.");
+        try {
+          setBusyMessage("Loading Device Details From Server");
           let device = await appServices.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
           setDeviceDetail(device);
         }
-        catch(e){
+        catch (e) {
           alert(e);
         }
+      }
+      else {
+        setErrorMessage(`Could not get sys config for ${peripheralId}`)
       }
 
       await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
@@ -109,6 +113,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       ble.addListener('disconnected', disconnectHandler);
     }
     else {
+      setErrorMessage(`Could not establish BLE connection to ${peripheralId}`);
       setBusyMessage("Not Connected.");
       setIsBusy(false);
       setConnectionState(DISCONNECTED);
@@ -120,7 +125,6 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     if (connectionState == CONNECTED) {
       ble.removeAllListeners('receive');
       ble.removeAllListeners('disconnected');
-      ble.unsubscribe();
       await ble.disconnectById(peripheralId);
       setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
     }
@@ -141,7 +145,6 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     }
 
     await connectToBLE();
-    //setIsBusy(false);
   }
 
   useEffect(() => {
@@ -150,7 +153,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) });
 
       setThemePalette(AppServices.getAppTheme());
-    
+
       loadDevice();
       setInitialCall(false);
     }
@@ -167,7 +170,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       }
       else if (connectionState == CONNECTED) {
         console.log('DevicePage_BeforeRemove.');
-        ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);        
+        ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
         ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
         ble.removeAllListeners('receive');
         ble.removeAllListeners('disconnected');
@@ -214,10 +217,10 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   }
 
   const connectionBlock = (color: string, icon: string, label: string, status: boolean) => {
-    return <View style={[{ flex: 1,  margin: 2, justifyContent: 'center', }]}>
+    return <View style={[{ flex: 1, margin: 2, justifyContent: 'center', }]}>
       {status &&
-        <View style={{backgroundColor: color,  borderRadius: 8}}>
-          <Text  style={{ fontSize:20, textAlign: "center", color: 'white' }}>{label}</Text>
+        <View style={{ backgroundColor: color, borderRadius: 8 }}>
+          <Text style={{ fontSize: 20, textAlign: "center", color: 'white' }}>{label}</Text>
           <View >
             <Icon style={{ textAlign: 'center', }} size={64} color="white" onPress={showConfigurePage} name={icon} />
           </View>
@@ -225,12 +228,12 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         </View>
       }
       {!status &&
-        <View style={{backgroundColor: '#e0e0e0', borderRadius: 8}}>
-          <Text style={{ fontSize:20, textAlign: "center", color: 'black' }}>{label}</Text>
+        <View style={{ backgroundColor: '#e0e0e0', borderRadius: 8 }}>
+          <Text style={{ fontSize: 20, textAlign: "center", color: 'black' }}>{label}</Text>
           <View >
             <Icon style={{ textAlign: 'center', }} size={64} color="gray" onPress={showConfigurePage} name={icon} />
           </View>
-          <Text style={{ textAlign: "center", fontWeight:'500', color: 'black' }}>Not Connected</Text>
+          <Text style={{ textAlign: "center", fontWeight: '500', color: 'black' }}>Not Connected</Text>
         </View>
       }
     </View>
@@ -238,16 +241,22 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
 
   const sensorBlock = (idx: number, value: any, icon: string) => {
     return (
-      <View style={[{ flex: 1, width:100, backgroundColor: value ?  'green': '#d0d0d0', margin: 5, justifyContent: 'center', borderRadius: 8 }]}>
-        <Text style={{ textAlign: "center", textAlignVertical: "center", color: value ?  'white' : 'black' }}>Sensor {idx + 1}</Text>
+      <View style={[{ flex: 1, width: 100, backgroundColor: value ? 'green' : '#d0d0d0', margin: 5, justifyContent: 'center', borderRadius: 8 }]}>
+        <Text style={{ textAlign: "center", textAlignVertical: "center", color: value ? 'white' : 'black' }}>Sensor {idx + 1}</Text>
         <View >
-          <Icon style={{ textAlign: 'center', color: value ? 'white' : '#a0a0a0' }} size={64}  onPress={showConfigurePage} name={icon} />
+          <Icon style={{ textAlign: 'center', color: value ? 'white' : '#a0a0a0' }} size={64} onPress={showConfigurePage} name={icon} />
         </View>
         <Text style={{ textAlign: "center", textAlignVertical: "center", color: value ? 'white' : '#d0d0d0' }}>{value ?? '-'}</Text>
       </View>)
   }
 
   return <View style={[styles.container, { backgroundColor: themePalette.background }]}>
+    {
+      errorMessage &&
+      <View style={{ marginBottom: 30 }}>
+        <Text>{{ errorMessage }}</Text>
+      </View>
+    }
     {
       isBusy &&
       <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
@@ -262,7 +271,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         <StatusBar style="auto" />
         {
           connectionState == CONNECTED &&
-          <View style={{marginBottom:30}}>
+          <View style={{ marginBottom: 30 }}>
             {
               deviceDetail &&
               <View>
@@ -295,28 +304,28 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
               <View style={{ marginTop: 20 }}>
                 {sectionHeader('Live Sensor Data')}
                 <Text style={labelStyle}>ADC Sensors</Text>
-                <ScrollView horizontal={true}>                  
-                  {sensorBlock(0, sensorValues.adcValues[0],'radio-outline')}
-                  {sensorBlock(1, sensorValues.adcValues[1],'radio-outline')}
-                  {sensorBlock(2, sensorValues.adcValues[2],'radio-outline')}
-                  {sensorBlock(3, sensorValues.adcValues[3],'radio-outline')}
-                  {sensorBlock(4, sensorValues.adcValues[4],'radio-outline')}
-                  {sensorBlock(5, sensorValues.adcValues[5],'radio-outline')}
-                  {sensorBlock(6, sensorValues.adcValues[6],'radio-outline')}
-                  {sensorBlock(7, sensorValues.adcValues[7],'radio-outline')}
+                <ScrollView horizontal={true}>
+                  {sensorBlock(0, sensorValues.adcValues[0], 'radio-outline')}
+                  {sensorBlock(1, sensorValues.adcValues[1], 'radio-outline')}
+                  {sensorBlock(2, sensorValues.adcValues[2], 'radio-outline')}
+                  {sensorBlock(3, sensorValues.adcValues[3], 'radio-outline')}
+                  {sensorBlock(4, sensorValues.adcValues[4], 'radio-outline')}
+                  {sensorBlock(5, sensorValues.adcValues[5], 'radio-outline')}
+                  {sensorBlock(6, sensorValues.adcValues[6], 'radio-outline')}
+                  {sensorBlock(7, sensorValues.adcValues[7], 'radio-outline')}
                 </ScrollView>
-                <Text style={ labelStyle }>IO Sensors</Text>
-                <ScrollView horizontal={true}>                  
-                  {sensorBlock(0, sensorValues.ioValues[0],'radio-outline')}
-                  {sensorBlock(1, sensorValues.ioValues[1],'radio-outline')}
-                  {sensorBlock(2, sensorValues.ioValues[2],'radio-outline')}
-                  {sensorBlock(3, sensorValues.ioValues[3],'radio-outline')}
-                  {sensorBlock(4, sensorValues.ioValues[4],'radio-outline')}
-                  {sensorBlock(5, sensorValues.ioValues[5],'radio-outline')}
-                  {sensorBlock(6, sensorValues.ioValues[6],'radio-outline')}
-                  {sensorBlock(7, sensorValues.ioValues[7],'radio-outline')}
+                <Text style={labelStyle}>IO Sensors</Text>
+                <ScrollView horizontal={true}>
+                  {sensorBlock(0, sensorValues.ioValues[0], 'radio-outline')}
+                  {sensorBlock(1, sensorValues.ioValues[1], 'radio-outline')}
+                  {sensorBlock(2, sensorValues.ioValues[2], 'radio-outline')}
+                  {sensorBlock(3, sensorValues.ioValues[3], 'radio-outline')}
+                  {sensorBlock(4, sensorValues.ioValues[4], 'radio-outline')}
+                  {sensorBlock(5, sensorValues.ioValues[5], 'radio-outline')}
+                  {sensorBlock(6, sensorValues.ioValues[6], 'radio-outline')}
+                  {sensorBlock(7, sensorValues.ioValues[7], 'radio-outline')}
                 </ScrollView>
-              
+
 
               </View>
 
@@ -329,7 +338,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
             <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Connecting to BLE</Text>
             <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
           </View>
-          }
+        }
         {
           connectionState == DISCONNECTED &&
           <View>
