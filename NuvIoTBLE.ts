@@ -269,6 +269,9 @@ export class NuvIoTBLE {
             console.log(err);
           });
       }
+      else {
+        console.log('already scanning.');
+      }
     }
   }
 

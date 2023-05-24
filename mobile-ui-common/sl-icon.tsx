@@ -18,8 +18,6 @@ export default function SLIcon(props: SLIconProperties) {
     if (props.width)
         width = props.width;
 
-    console.log(height, width);
-
     return (
         <Image style={[{ height: height, width: width }]} source={resolveIcon(props.icon)} />
     )

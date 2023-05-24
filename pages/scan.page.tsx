@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Text, PermissionsAndroid, Platform, View, TouchableOpacity, FlatList, ActivityIndicator, Pressable, BackHandler, Alert, TextStyle, } from 'react-native';
+import { Text, Platform, View, TouchableOpacity, FlatList, ActivityIndicator, Pressable } from 'react-native';
 import { Peripheral } from 'react-native-ble-manager'
 import { ble, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 
@@ -48,7 +48,6 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
   }
 
   const scanningStatusChanged = async (isScanning: boolean) => {
-    console.log('scanningStatusChanged=>' + isScanning);
     setIsScanning(isScanning);
 
     if (!isScanning) {
@@ -74,13 +73,18 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
   }
 
   const startScan = async () => {
-    console.log('Is Scanning: ', isScanning);
-    if (isScanning)
+    ble.peripherals = [];
+
+    if (isScanning){
+      console.log('is already scanning, do not restart.');
       return;
+    }
 
     setDevices([]);
 
     let newDevices: BLENuvIoTDevice[] = [];
+
+    console.log('start scan');
 
     if (hasPermissions) {
       setDiscoveredPeripherals([]);
@@ -88,6 +92,7 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
       ble.addListener('connected', (device) => discovered(device))
       ble.addListener('scanning', (isScanning) => { scanningStatusChanged(isScanning); });
       await ble.startScan();
+      console.log('start scaned');
 
       if (ble.simulatedBLE()) {
         setIsBusyMessage('Scanning for local devices.');
@@ -105,8 +110,11 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
   }
 
   const stopScanning = () => {
+    console.log('call to stop scanning.');
     if (isScanning) {
+      console.log('call to stop scanning - is not.');
       if (!ble.simulatedBLE()) {
+        console.log('call to stop scanning - is not simulated.');
         ble.removeAllListeners('connected');
         ble.removeAllListeners('scanning');
         ble.stopScan();
@@ -122,7 +130,9 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
   }
 
   const discovered = async (peripheral: Peripheral) => {
-    discoveredPeripherals.push(peripheral);
+    let existing = discoveredPeripherals.find(per=>per.id == peripheral.id);
+    if(!existing)
+      discoveredPeripherals.push(peripheral);
   }
 
   const myItemSeparator = () => { return <View style={{ height: 1, backgroundColor: "#c0c0c0git ", marginHorizontal: 6 }} />; };
@@ -136,17 +146,16 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
   };
 
   useEffect(() => {
-
     ble.peripherals = [];
-
     let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     setSubscription(changed);
-    setThemePalette(AppServices.getAppTheme());
+    var palette = AppServices.getAppTheme()
+    setThemePalette(palette);
 
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} >
-          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor}  onPress={() => startScan()} name='refresh-outline' />
+          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor}  onPress={() => startScan()} name='refresh-outline' />
         </View>
       ),
     });

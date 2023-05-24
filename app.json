@@ -1,7 +1,7 @@
 {
   "expo": {
     "scheme": "nuviot",
-    "name": "device-mgr",
+    "name": "NuvIoT",
     "owner": "kevindwolf",
     "slug": "device-mgr",
     "version": "1.0.0",

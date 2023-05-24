@@ -26,15 +26,12 @@ export default function HomePage({ navigation }: IReactPageServices) {
   const [user, setUser] = useState<Users.AppUser>();
   const [isBusy, setIsBusy] = useState<boolean>(true);
 
-
   const loadInstances = async () => {
     let user = await appServices.userServices.getUser();
     setUser(user);
 
     let instances = await appServices.deploymentServices.GetInstances();
-    console.log(instances);
     setInstances(instances.model);
-
   }
 
   useEffect(() => {

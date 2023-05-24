@@ -295,7 +295,8 @@ class BleManager {
         allowDuplicates,
         scanningOptions,
         error => {
-          console.log('got it');
+          console.log('result is returned.');
+          console.log(error)
           if (error) {
             reject(error);
           } else {

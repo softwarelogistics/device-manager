@@ -51,7 +51,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const loadDevice = async () => {
     let fullDevice = await appServices.deviceServices.getDevice(repoId, id);
     setDeviceDetail(fullDevice);
-    console.log(fullDevice);
     connectToDevice(fullDevice);
 
     await appServices.wssService.init('device', fullDevice.id);
@@ -60,7 +59,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       let wssMessage = JSON.parse(json);
       let wssPayload = wssMessage.payloadJSON;
       let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
-      console.log(device);
 
       if(device){
         fullDevice.sensorCollection = device.sensorCollection;

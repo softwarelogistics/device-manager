@@ -49,7 +49,7 @@ const App = () => {
       setLaunchUrl(url);
     }
     else 
-      console.log('nope');
+      console.log('no url passed in');
   }
 
   const linking = {
@@ -78,9 +78,7 @@ const App = () => {
   }
 
   const parseSchemeUrl = async (url:string) => {
-    console.log('parse scheme url');
     const { hostname, path, queryParams } = Linking.parse(url);
-    console.log(url);
     console.log(`app startup with url: ${hostname}, path: ${path} and data: ${JSON.stringify(queryParams)}`);
 
     if (queryParams && queryParams.userid && queryParams.token) {
@@ -89,14 +87,11 @@ const App = () => {
       await AsyncStorage.setItem('oauth_token', queryParams.token.toString());
       await AsyncStorage.setItem('oauth_path', hostname!);
       await AsyncStorage.setItem('oauth_launch', 'true');
-      await console.log('setting new initial page');
       setInitialPage('oauthHandlerPage');
     }
   }
 
   const initialLoad = async () => {
-    console.log('initial load');
-
     let themeName = (await AsyncStorage.getItem("active_theme")) ?? "light";
     let theme = ThemePaletteService.getThemePalette(themeName);
     AppServices.setAppTheme(theme);
@@ -118,10 +113,7 @@ const App = () => {
     if (url) {
       parseSchemeUrl(url)
     }
-    else {
-      console.log('no url');
-    }
-
+    
     if (initialCall) {
       initialLoad();
     }

@@ -54,8 +54,6 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     setAllDevices(devices);
 
     setDeviceModels(uniqueDeviceModels);
-
-    console.log(uniqueDeviceModels);
   }
 
 
@@ -75,7 +73,6 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     if (id === 'all')
       setDevices(allDevices);
     else {
-      console.log(id);
       let deviceModels = allDevices?.filter(dev => dev.deviceTypeId == id);
       setDevices(deviceModels);
     }
@@ -99,14 +96,9 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
       appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) });
       appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) });
 
-      console.log(themePalette.shellNavColor);
-
       loadDevices();
       setInitialCall(false);
     }
-
-
-
 
     let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     setSubscription(changed);

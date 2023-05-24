@@ -29,8 +29,6 @@ export class RemoteDeviceState {
                 case '5': this.wifiStatus = 'Connected'; break;
                 case '6': this.wifiStatus = 'Disconnected'; break;
             }
-
-            console.log(this.wifiStatus);
         }
     };
 

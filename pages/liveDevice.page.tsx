@@ -141,6 +141,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     }
 
     await connectToBLE();
+    //setIsBusy(false);
   }
 
   useEffect(() => {
@@ -166,9 +167,10 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       }
       else if (connectionState == CONNECTED) {
         console.log('DevicePage_BeforeRemove.');
+        ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);        
+        ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
         ble.removeAllListeners('receive');
         ble.removeAllListeners('disconnected');
-        ble.unsubscribe();
         await ble.disconnectById(peripheralId);
       }
     });
