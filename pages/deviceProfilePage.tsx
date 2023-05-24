@@ -35,6 +35,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
   const [busyMessage, setIsBusyMessage] = useState<String>('Busy');
   const [deviceInRange, setDeviceInRange] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [connectionState, setConnectionState] = useState<number>(IDLE);
   const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
 
@@ -124,7 +125,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     if (connectionState == CONNECTED) {
       ble.removeAllListeners('receive');
       ble.removeAllListeners('disconnected');
-      ble.unsubscribe();
       let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
       await ble.disconnectById(peripheralId);
       setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
@@ -169,7 +169,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
         console.log('DevicePage_BeforeRemove.');
         ble.removeAllListeners('receive');
         ble.removeAllListeners('disconnected');
-        ble.unsubscribe();
         await ble.disconnectById(peripheralId!);
       }
 
@@ -253,8 +252,12 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       !isBusy &&
       <ScrollView style={styles.scrollContainer}>
         <StatusBar style="auto" />
+        errorMessage && 
+            <View style={{marginBottom:30}}>                 
+              <Text>{{errorMessage}}</Text>
+            </View>  
         {
-          deviceDetail  &&
+          deviceDetail  && !errorMessage &&
           <View style={{marginBottom:30}}>                 
             {
               deviceDetail &&
