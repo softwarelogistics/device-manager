@@ -86,7 +86,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'column' }} >
-          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor}  onPress={() => addDevice()} name='add-outline' />
+          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor} onPress={() => addDevice()} name='add-outline' />
         </View>
       ),
     });

@@ -26,10 +26,10 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
 
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [busyMessage, setIsBusyMessage] = useState<String>('Busy');
+  const [busyMessage, setBusyMessage] = useState<String>('Busy');
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
   const [initialCall, setInitialCall] = useState<boolean>(true);
-
+  
   const deviceRepoId = route.params.repoId;
 
   const checkPermissions = async () => {
@@ -51,18 +51,17 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
     setIsScanning(isScanning);
 
     if (!isScanning) {
-      console.log('scanning finished');
-      ble.removeAllListeners('connected');
-      ble.removeAllListeners('scanning');
       setIsScanning(true);
-      setIsBusyMessage('Loading devices');
+      setBusyMessage(`Loading ${discoveredPeripherals.length} Devices`);
       let newDevices = await scanUtils.getNuvIoTDevices(discoveredPeripherals, devices.length);
       setDevices([...newDevices]);
-
+      ble.removeAllListeners('connecting');
+      ble.removeAllListeners('connected');
+      ble.removeAllListeners('scanning');
       setIsScanning(false);
     }
     else {
-      setIsBusyMessage('Scanning for local devices.');
+      setBusyMessage('Scanning for local devices.');
     }
   }
 
@@ -76,7 +75,7 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
     ble.peripherals = [];
 
     if (isScanning){
-      console.log('is already scanning, do not restart.');
+      console.log('[ScanPage__StartScan] Already Scanning;');
       return;
     }
 
@@ -84,18 +83,19 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
 
     let newDevices: BLENuvIoTDevice[] = [];
 
-    console.log('start scan');
-
     if (hasPermissions) {
+      console.log('[ScanPage__StartScan] BLE Permissions Enabled;');
+
       setDiscoveredPeripherals([]);
 
       ble.addListener('connected', (device) => discovered(device))
+      ble.addListener('connecting', (msg) => { setBusyMessage(msg); console.log(msg);});
       ble.addListener('scanning', (isScanning) => { scanningStatusChanged(isScanning); });
+
       await ble.startScan();
-      console.log('start scaned');
 
       if (ble.simulatedBLE()) {
-        setIsBusyMessage('Scanning for local devices.');
+        setBusyMessage('Scanning for Local Devices');
         setIsScanning(true);
         window.setTimeout(() => {
           let idx = newDevices.length;
@@ -110,11 +110,11 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
   }
 
   const stopScanning = () => {
-    console.log('call to stop scanning.');
+    console.log('[ScanPage__StopScanning];');
     if (isScanning) {
-      console.log('call to stop scanning - is not.');
+      console.log('[ScanPage__StopScanning] Is Scanning;');
       if (!ble.simulatedBLE()) {
-        console.log('call to stop scanning - is not simulated.');
+        ble.removeAllListeners('connecting');
         ble.removeAllListeners('connected');
         ble.removeAllListeners('scanning');
         ble.stopScan();
@@ -133,6 +133,11 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
     let existing = discoveredPeripherals.find(per=>per.id == peripheral.id);
     if(!existing)
       discoveredPeripherals.push(peripheral);
+
+      if(discoveredPeripherals.length > 1)
+      setBusyMessage(`Scanning - Found ${discoveredPeripherals.length} Devices`);
+    else
+      setBusyMessage(`Scanning - Found ${discoveredPeripherals.length} Device`);
   }
 
   const myItemSeparator = () => { return <View style={{ height: 1, backgroundColor: "#c0c0c0git ", marginHorizontal: 6 }} />; };

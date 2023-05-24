@@ -406,6 +406,8 @@ export class NuvIoTBLE {
 
   async connectById(id: string, characteristicId: string | undefined = undefined): Promise<boolean> {
     let retryCount = 5;
+
+    ble.btEmitter?.emit('connecting', `Connecting to ${id}`);
     while (!this._cancelConnect) {
       if (this.simulatedBLE()) {
         return true;
@@ -438,8 +440,6 @@ export class NuvIoTBLE {
                 console.log(chr.characteristic, characteristicId);
               }
 
-
-
               console.log('BLEManager__connectById: Not NuvIoT Device, id=' + id);
               await this.disconnectById(id);
               return false;
@@ -450,8 +450,11 @@ export class NuvIoTBLE {
           }
           catch (e) {
             console.log('BLEManager__connectById: Error - ' + e + ' id=' + id + ' retry count ' + retryCount);
+            
             if (retryCount-- == 0)
               return false;
+
+              ble.btEmitter?.emit('connecting', `Connecting to ${id} - Attempt ${5 - retryCount}`);
           }
         }
       }
