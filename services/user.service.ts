@@ -10,6 +10,7 @@ import { ErrorReporterService } from './error-reporter.service';
 import { NuviotClientService } from './nuviot-client.service';
 import { NativeStorageService } from '../core/utils';
 import { ThemePalette, ThemePaletteService } from '../styles.palette.theme';
+import AppServices from './app-services';
 
 
 export class UserService {
@@ -17,7 +18,7 @@ export class UserService {
   queryParams: any;
 
   constructor(private http: HttpClient,
-    private clientService: NuviotClientService,
+    private clientService: NuviotClientService,    
     private errorReporter: ErrorReporterService,
     private nativeStorage: NativeStorageService,
   ) {
@@ -43,6 +44,7 @@ export class UserService {
   protected _users$ = new ReplaySubject<Core.ListResponse<Users.AppUserSummary | undefined>>(undefined);
 
   async loadCurrentUser(): Promise<Users.AppUser> {
+    console.log('load current user');
     const response = await this.clientService.request<Core.FormResult<Users.AppUser, Users.AppUserView>>('/api/user');
     if (response?.model?.firstName) {
       let userInitials = `${response?.model?.firstName.substring(0, 1)}`;
@@ -71,12 +73,13 @@ export class UserService {
   }
 
   public async logout(): Promise<boolean> {
-    await this.http.get(`${environment.siteUri}/api/account/logout`);
+    await this.http.get(`${this.appServices.getWebUrl()}/api/account/logout`);
     this.setUser(undefined);
     return await this.setIsLoggedIn(false);
   }
 
   public getOrgsForCurrentUser(): Promise<Core.ListResponse<Users.OrgUser>> {
+    console.log('get orgs')
     return this.clientService.getListResponse<Users.OrgUser>(`/api/user/orgs`);
   }
 

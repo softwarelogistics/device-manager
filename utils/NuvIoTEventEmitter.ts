@@ -10,8 +10,6 @@ export class NuvIoTEventEmitter {
     static eventId: number = 1;
 
     emit(name: string, data: any) {        
-        console.log('emit=>' + name + ' - ', data);
-        console.log(this.subscriptions);
         for(let subscription of this.subscriptions ){
             console.log(subscription.name + ' := ' + name);
             if(subscription.name == name) {                

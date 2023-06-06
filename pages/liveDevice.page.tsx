@@ -136,7 +136,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
     }
 
-    navigation.navigate('configureDevice', { id: peripheralId, repoId: deviceDetail?.deviceRepository.id, deviceId: deviceDetail?.id });
+    navigation.navigate('configureDevice', { peripheralId: peripheralId, repoId: deviceDetail?.deviceRepository.id, deviceId: deviceDetail?.id });
   }
 
   const loadDevice = async () => {
@@ -210,7 +210,6 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
 
   const panelDetail = (color: string, label: string, value: string | null | undefined) => {
     return (
-      remoteDeviceState &&
       <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
         <View style={[chevronBarColorTick, { backgroundColor: color, borderBottomLeftRadius: 6, borderTopLeftRadius: 6 }]}>
           <Text> </Text>

@@ -1,7 +1,7 @@
 import { Observable } from "rxjs";
 import fetch from 'node-fetch';
+import { CommonSettings } from '../settings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 
 export class ActivatedRoute {
     snapshot: any;
@@ -14,9 +14,26 @@ export class Router {
 };
 
 export class HttpClient {
-    constructor(private storage: NativeStorageService) {
+    constructor(
+        private storage: NativeStorageService,
+        ) {
 
     }
+
+    getIsDevEnv() {
+        return Constants.expoConfig?.extra?.environment == "development";
+    }
+
+    getApiUrl() {
+        const API_URL = this.getIsDevEnv() ? "https://dev-api.nuviot.com" : "https://api.nuviot.com";
+        return API_URL;
+    }
+
+    getWebUrl() {
+        const API_URL = this.getIsDevEnv() ? "https://dev.nuviot.com" : "https://www.nuviot.com";
+        return API_URL;
+    }    
+  
 
     getAuthHeaders(): any {
 
@@ -49,7 +66,7 @@ export class HttpClient {
         }
 
         try {
-            let fetchResult = await fetch('https://api.nuviot.com/api/v1/auth',
+            let fetchResult = await fetch(`${this.getApiUrl()}/api/v1/auth`,
                 {
                     method: 'POST',
                     headers: {
@@ -68,7 +85,7 @@ export class HttpClient {
             await AsyncStorage.setItem("jwtExpires", refreshResult.result.accessTokenExpiresUTC);
             console.log('refreshed with new JWT');
 
-            let currentUserResult = await this.get<Core.FormResult<Users.AppUser, Users.AppUserView>>('https://api.nuviot.com/api/user');
+            let currentUserResult = await this.get<Core.FormResult<Users.AppUser, Users.AppUserView>>(`${this.getApiUrl()}/api/user`);
             console.log(currentUserResult.model);
             await AsyncStorage.setItem("app_user", JSON.stringify(currentUserResult.model));
 
@@ -189,7 +206,6 @@ export class HttpClient {
     }
 }
 
-
 export class NativeStorageService {
     public async getItemAsync(key: string): Promise<string | null> {
         return await AsyncStorage.getItem(key)
@@ -228,7 +244,7 @@ export const environment = {
     appInstanceid: "",
     siteUri: 'https://api.nuviot.com'
     // siteUri: 'https://localhost:5001'
-    //siteUri: 'http://dev.nuviot.com'
+    //siteUri: 'https://dev-api.nuviot.com'
 };
 
 export class CookieService {

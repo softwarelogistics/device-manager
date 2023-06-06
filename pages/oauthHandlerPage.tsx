@@ -25,13 +25,12 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
   const [allDone, setAllDone] = useState<boolean>(false);
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [retryAttempt, setRetryAttempt] = useState<number>(0);
+  const [timerId, setTimerId] = useState<number>(-1);
 
   const submitButtonWhiteTextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, styles.submitButtonTextBlack, { color: themePalette.buttonPrimaryText }]);
 
   const checkStartup = async () => {
-
-    console.log('checking startup: ' + retryAttempt);
-
+    console.log('checking startup: ' + retryAttempt + "  " + timerId);
 
     let ola = await AsyncStorage.getItem('oauth_launch');
     if (ola == 'true') {
@@ -44,13 +43,11 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
       await AsyncStorage.removeItem('oauth_user');
       await AsyncStorage.removeItem('oauth_token');
       await AsyncStorage.removeItem('oauth_path');
-      window.setTimeout(() => finalizeLogin(oAuthUser!, oAuthToken!, initialPath!));
+      clearInterval(timerId);
+      setTimeout(() => finalizeLogin(oAuthUser!, oAuthToken!, initialPath!));
     }
     else {
-      if (retryAttempt < 100) {
-        setTimeout(checkStartup, 100);
-        setRetryAttempt(retryAttempt + 1);
-      }
+      setRetryAttempt(retryAttempt + 1);
     }
   }
 
@@ -110,11 +107,15 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
       AsyncStorage.removeItem('oauth_token');
       AsyncStorage.removeItem('oauth_path');
 
-      checkStartup();
+      let timerId = window.setInterval(() => {
+        checkStartup();
+      }, 1000);
+      
+      setTimerId(timerId);
 
       setInitialCall(false);
     }
-  });
+  }, []);
 
   return (
     <View style={styles.scrollContainer}>

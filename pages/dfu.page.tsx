@@ -33,14 +33,18 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
   const [firmware, setFirmware] = useState<Devices.FirmwareDetail>();
   const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined>(undefined);
   const [connectionState, setConnectionState] = useState<number>(IDLE);
+  const [busyMessage, setBusyMessage] = useState<string>("Please Wait");
+  const [firmwareUpdateStatus, setFirmwareUpdateStatus] = useState<Devices.FirmwareDownloadRequest | undefined>(undefined);
 
-  const peripheralId = route.params.id;
+  const peripheralId = route.params.peripheralId;
   const deviceId = route.params.deviceId;
   const repoId = route.params.repoId;
 
   const initializePage = async () => {
+    setBusyMessage('Connecting to device');
     if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
       setConnectionState(CONNECTED);
+      setBusyMessage('Subscribing to events');
       await ble.subscribe(ble);
 
       let deviceStateStr = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
@@ -50,9 +54,12 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
       }
     }
 
+    setBusyMessage('Getting Device');
     let device = await appServices.deviceServices.getDevice(repoId, deviceId);
+    setBusyMessage('Getting Device Model');
     let deviceType = await appServices.deviceServices.getDeviceType(device.deviceType.id);
     if (deviceType.model.firmware) {
+      setBusyMessage('Getting Current Firmware Version');
       let firmware = await appServices.deviceServices.getFirmware(deviceType.model.firmware.id);
       setFirmware(firmware);
     }
@@ -74,7 +81,14 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
 
     ble.btEmitter?.removeAllListeners('receive');
     ble.btEmitter?.removeAllListeners('disconnected');
-    ble.unsubscribe();
+  }
+
+  const getFirmwareUpdateStatus = async () => {
+    let result = await appServices.deviceServices.getFirmwareHistory(repoId, deviceId);
+    if(result.length > 0)
+    {
+      setFirmwareUpdateStatus(result[0]);
+    }
   }
 
   const updateFirmware = async () => {
@@ -112,7 +126,7 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
   return (
     isBusy ?
       <View style={[styles.spinnerView, { backgroundColor: AppServices.getAppTheme().background }]}>
-        <Text style={{ color: AppServices.getAppTheme().shellTextColor, fontSize: 25 }}>Please Wait</Text>
+        <Text style={{ color: AppServices.getAppTheme().shellTextColor, fontSize: 25 }}>{busyMessage}</Text>
         <ActivityIndicator size="large" color={colors.primaryColor} animating={isBusy} />
       </View>
       :
@@ -130,12 +144,20 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
                 <Text style={[{ color: AppServices.getAppTheme().shellTextColor }]}>Device Revision: {remoteDeviceState.firmwareRevision}</Text>
               </View>}
 
+              {firmwareUpdateStatus && 
+                <View>
+                  <Text style={[{ color: AppServices.getAppTheme().shellTextColor }]}>Percent Requested: {firmwareUpdateStatus.percentRequested}</Text>
+                </View>
+
+              }
+
             <TouchableOpacity style={[styles.submitButton, { backgroundColor: AppServices.getAppTheme().buttonPrimary, borderColor: AppServices.getAppTheme().buttonPrimaryBorderColor }]} onPress={() => updateFirmware()}>
               <Text style={[styles.submitButtonText, { color: AppServices.getAppTheme().buttonPrimaryText }]}> Update to Revision </Text>
             </TouchableOpacity>
+            <TouchableOpacity style={[styles.submitButton, { backgroundColor: AppServices.getAppTheme().buttonPrimary, borderColor: AppServices.getAppTheme().buttonPrimaryBorderColor }]} onPress={() => getFirmwareUpdateStatus()}>
+              <Text style={[styles.submitButtonText, { color: AppServices.getAppTheme().buttonPrimaryText }]}> Refresh</Text>
+            </TouchableOpacity>
           </View>
-
-
           :
           <View style={[styles.container, { backgroundColor: AppServices.getAppTheme().background }]}>
             <Text style={[{ color: AppServices.getAppTheme().shellTextColor, fontSize: fontSizes.medium }]}>Device does not have default firmware.</Text>

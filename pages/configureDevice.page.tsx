@@ -26,12 +26,12 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [deviceInRange, setDeviceInRange] = useState<boolean>(false);
-  const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
 
   const [initialCall, setInitialCall] = useState<boolean>(true);
 
   const deviceId = route.params.deviceId;
   const repoId = route.params.repoId;
+  const peripheralId = route.params.peripheralId;
 
   const primaryButtonStyle: ViewStyle = ViewStylesHelper.combineViewStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
   const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);
@@ -43,7 +43,7 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   }
 
   const showPage = async (pageName: string) => {
-    await safeNavigate(pageName, { id: peripheralId, repoId: repoId, deviceId: deviceId });
+    await safeNavigate(pageName, { peripheralId: peripheralId, repoId: repoId, deviceId: deviceId });
   }
 
   const restartDevice = async () => {

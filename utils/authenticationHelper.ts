@@ -38,10 +38,9 @@ const AuthenticationHelper = {
       body: JSON.stringify(request)
     };
 
-    let appServices = new AppServices();
-
-    let authUrl = `${appServices.getApiUrl()}/api/v1/auth`;
-  
+    let authUrl = `${AppServices.getApiUrl()}/api/v1/auth`;
+    console.log(authUrl);
+    console.log(request);
     const fetched = await fetch(authUrl, postOptions)
       .catch(err => {
         console.log(err);
@@ -50,7 +49,7 @@ const AuthenticationHelper = {
       });
 
     const fetchedJson = await fetched?.json();
-    // console.log('auth result', fetchedJson);
+    console.log('auth result', fetchedJson);
 
     response.isSuccess = fetchedJson?.successful ?? false;
 

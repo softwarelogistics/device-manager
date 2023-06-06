@@ -11,9 +11,8 @@ import { ThemePalette, ThemePaletteService } from '../styles.palette.theme';
 import { NuvIoTEventEmitter } from '../utils/NuvIoTEventEmitter';
 import { DeploymentService } from './deployment.service';
 import WssService from './wss.service';
+import { CommonSettings } from '../settings';
 
-let devEnv = (process.env.NODE_ENV == "development");
-devEnv = false;
 class AppServices {
     private static _hostName: string | null;
     private static _appTheme: ThemePalette;
@@ -37,17 +36,17 @@ class AppServices {
         this.userServices = new UserService(this.httpClient, this.client, this.errorReporter, this.storage);
     }
 
-    getIsDevEnv() {
-        return devEnv;
+    static getIsDevEnv() : boolean {
+        return CommonSettings.environment == "development";
     }
 
-    getApiUrl() {
-        const API_URL = devEnv ? "https://api.dev.nuviot.com" : "https://api.nuviot.com";
+    static getApiUrl() {
+        const API_URL = AppServices.getIsDevEnv() ? "https://dev-api.nuviot.com" : "https://api.nuviot.com";
         return API_URL;
     }
 
-    getWebUrl() {
-        const API_URL = devEnv ? "https://dev.nuviot.com" : "https://www.nuviot.com";
+    static getWebUrl() {
+        const API_URL = AppServices.getIsDevEnv() ? "https://dev.nuviot.com" : "https://www.nuviot.com";
         return API_URL;
     }    
 

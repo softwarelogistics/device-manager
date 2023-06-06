@@ -235,7 +235,7 @@ export class DevicesService {
     return this.nuviotClient.request(uri);
   }
 
-  public getFirmareHistory(repoId: string, deviceId: string): Promise<Devices.FirmwareDownloadRequest[]> {
+  public getFirmwareHistory(repoId: string, deviceId: string): Promise<Devices.FirmwareDownloadRequest[]> {
     const promise = new Promise<Devices.FirmwareDownloadRequest[]>((resolve, reject) => {
       this.nuviotClient.getListResponse<Devices.FirmwareDownloadRequest>(`/api/firmware/history/${repoId}/${deviceId}`)
         .then(requests => {

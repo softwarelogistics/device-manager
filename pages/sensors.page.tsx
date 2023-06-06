@@ -121,7 +121,6 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
 
     ble.removeAllListeners('receive');
     ble.removeAllListeners('disconnected');
-    ble.unsubscribe();
   }
 
   const loadDevice = async () => {
@@ -194,7 +193,6 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
 
   const restartDevice = async () => {
     if (connectionState == CONNECTED) {
-      ble.unsubscribe();
       ble.removeAllListeners('receive');
       ble.removeAllListeners('disconnected');
       await ble.writeNoResponseCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
@@ -231,7 +229,6 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
       console.log('[Sensors__useEffect__beforeRemove] ' + peripheralId);
       if (connectionState == CONNECTED) {
-        ble.unsubscribe();
         ble.removeAllListeners('receive');
         ble.removeAllListeners('disconnected');
         await ble.disconnectById(peripheralId);

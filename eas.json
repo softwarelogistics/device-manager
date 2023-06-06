@@ -2,6 +2,16 @@
   "cli": {
     "version": ">= 3.4.1"
   },
+  "production": {
+    "env": {
+      "environment": "production"
+    }
+  },
+  "development": {
+    "env": {
+      "environment": "development"
+    }
+  },
   "build": {
     "development": {
       "distribution": "internal",
