@@ -1,3 +1,3 @@
 export const CommonSettings = {
-    environment: 'development'
+    environment: 'production'
 }
