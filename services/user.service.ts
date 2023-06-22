@@ -10,8 +10,6 @@ import { ErrorReporterService } from './error-reporter.service';
 import { NuviotClientService } from './nuviot-client.service';
 import { NativeStorageService } from '../core/utils';
 import { ThemePalette, ThemePaletteService } from '../styles.palette.theme';
-import AppServices from './app-services';
-
 
 export class UserService {
   paramOptions: any;
@@ -73,7 +71,7 @@ export class UserService {
   }
 
   public async logout(): Promise<boolean> {
-    await this.http.get(`${this.appServices.getWebUrl()}/api/account/logout`);
+    await this.http.get(`${HttpClient.getWebUrl()}/api/account/logout`);
     this.setUser(undefined);
     return await this.setIsLoggedIn(false);
   }

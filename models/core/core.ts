@@ -245,7 +245,7 @@ namespace Core {
         title?: string;
         help?: any;
         columns?: ListResponseColumn[];
-        model: TModel[];
+        model?: TModel[];
         pageSize?: number;
         pageIndex?: number;
         pageCount?: number;

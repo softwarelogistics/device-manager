@@ -14,7 +14,6 @@ import WssService from './wss.service';
 import { CommonSettings } from '../settings';
 
 class AppServices {
-    private static _hostName: string | null;
     private static _appTheme: ThemePalette;
 
     public static themeChangeSubscription: NuvIoTEventEmitter = new  NuvIoTEventEmitter();
@@ -26,7 +25,7 @@ class AppServices {
 
         this.httpClient = new HttpClient(this.storage);
 
-        this.client = new NuviotClientService(this.httpClient, this.networkCallStatusService, this.errorReporter);
+        this.client = new NuviotClientService(this.httpClient,  this.errorReporter);
         
         this.deploymentServices = new DeploymentService(this.client);
         this.deviceGroupsServices = new DeviceGroupService(this.client);
@@ -35,20 +34,6 @@ class AppServices {
 
         this.userServices = new UserService(this.httpClient, this.client, this.errorReporter, this.storage);
     }
-
-    static getIsDevEnv() : boolean {
-        return CommonSettings.environment == "development";
-    }
-
-    static getApiUrl() {
-        const API_URL = AppServices.getIsDevEnv() ? "https://dev-api.nuviot.com" : "https://api.nuviot.com";
-        return API_URL;
-    }
-
-    static getWebUrl() {
-        const API_URL = AppServices.getIsDevEnv() ? "https://dev.nuviot.com" : "https://www.nuviot.com";
-        return API_URL;
-    }    
 
     static getAppTheme(): ThemePalette {
         if(!this._appTheme) {

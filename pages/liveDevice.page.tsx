@@ -110,13 +110,13 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       ble.addListener('disconnected', disconnectHandler);
 
       let success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-      if(!success){
-        setErrorMessage('Could not listen for notifications.');        
+      if (!success) {
+        setErrorMessage('Could not listen for notifications.');
       }
 
       success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-      if(!success){
-        setErrorMessage('Could not listen for notifications.');        
+      if (!success) {
+        setErrorMessage('Could not listen for notifications.');
       }
     }
     else {
@@ -156,9 +156,6 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
 
   useEffect(() => {
     if (initialCall) {
-      appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) });
-      appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) });
-
       setThemePalette(AppServices.getAppTheme());
 
       loadDevice();
@@ -263,107 +260,97 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         <Text>{{ errorMessage }}</Text>
       </View>
     }
-    {
-      isBusy &&
-      <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-        <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>{busyMessage}</Text>
-        <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
-      </View>
-    }
 
-    {
-      !isBusy &&
-      <ScrollView style={styles.scrollContainer}>
-        <StatusBar style="auto" />
-        {
-          connectionState == CONNECTED &&
-          <View style={{ marginBottom: 30 }}>
-            {
-              deviceDetail &&
-              <View>
-                {sectionHeader('Device Info and Connectivity')}
-                {panelDetail('purple', 'Device Name', deviceDetail?.name)}
-                {panelDetail('purple', 'Repository', deviceDetail.deviceRepository.text)}
-                {panelDetail('purple', deviceDetail.deviceTypeLabel, deviceDetail.deviceType.text)}
-              </View>
-            }
-            {
-              remoteDeviceState &&
-              <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >
-                {connectionBlock('orange', 'wifi-outline', 'WiFi', remoteDeviceState.wifiStatus == 'Connected')}
-                {connectionBlock('orange', 'cellular-outline', 'Cellular', remoteDeviceState.cellularConnected)}
-                {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
+    <ScrollView style={styles.scrollContainer}>
+      <StatusBar style="auto" />
+      {
+        connectionState == CONNECTED &&
+        <View style={{ marginBottom: 30 }}>
+          {
+            deviceDetail &&
+            <View>
+              {sectionHeader('Device Info and Connectivity')}
+              {panelDetail('purple', 'Device Name', deviceDetail?.name)}
+              {panelDetail('purple', 'Repository', deviceDetail.deviceRepository.text)}
+              {panelDetail('purple', deviceDetail.deviceTypeLabel, deviceDetail.deviceType.text)}
+            </View>
+          }
+          {
+            remoteDeviceState &&
+            <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >
+              {connectionBlock('orange', 'wifi-outline', 'WiFi', remoteDeviceState.wifiStatus == 'Connected')}
+              {connectionBlock('orange', 'cellular-outline', 'Cellular', remoteDeviceState.cellularConnected)}
+              {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
 
-              </View>
-            }
-            {
-              remoteDeviceState &&
-              <View style={{ marginTop: 20 }}>
-                {sectionHeader('Current Device Status')}
-                {panelDetail('green', 'Firmware SKU', remoteDeviceState.firmwareSku)}
-                {panelDetail('green', 'Firmware Rev', remoteDeviceState.firmwareRevision)}
-                {panelDetail('green', 'Commissioned', remoteDeviceState.commissioned ? 'Yes' : 'No')}
-              </View>
-            }
-            {
-              sensorValues &&
-              <View style={{ marginTop: 20 }}>
-                {sectionHeader('Live Sensor Data')}
-                <Text style={labelStyle}>ADC Sensors</Text>
-                <ScrollView horizontal={true}>
-                  {sensorBlock(0, sensorValues.adcValues[0], 'radio-outline')}
-                  {sensorBlock(1, sensorValues.adcValues[1], 'radio-outline')}
-                  {sensorBlock(2, sensorValues.adcValues[2], 'radio-outline')}
-                  {sensorBlock(3, sensorValues.adcValues[3], 'radio-outline')}
-                  {sensorBlock(4, sensorValues.adcValues[4], 'radio-outline')}
-                  {sensorBlock(5, sensorValues.adcValues[5], 'radio-outline')}
-                  {sensorBlock(6, sensorValues.adcValues[6], 'radio-outline')}
-                  {sensorBlock(7, sensorValues.adcValues[7], 'radio-outline')}
-                </ScrollView>
-                <Text style={labelStyle}>IO Sensors</Text>
-                <ScrollView horizontal={true}>
-                  {sensorBlock(0, sensorValues.ioValues[0], 'radio-outline')}
-                  {sensorBlock(1, sensorValues.ioValues[1], 'radio-outline')}
-                  {sensorBlock(2, sensorValues.ioValues[2], 'radio-outline')}
-                  {sensorBlock(3, sensorValues.ioValues[3], 'radio-outline')}
-                  {sensorBlock(4, sensorValues.ioValues[4], 'radio-outline')}
-                  {sensorBlock(5, sensorValues.ioValues[5], 'radio-outline')}
-                  {sensorBlock(6, sensorValues.ioValues[6], 'radio-outline')}
-                  {sensorBlock(7, sensorValues.ioValues[7], 'radio-outline')}
-                </ScrollView>
+            </View>
+          }
+          {
+            remoteDeviceState &&
+            <View style={{ marginTop: 20 }}>
+              {sectionHeader('Current Device Status')}
+              {panelDetail('green', 'Firmware SKU', remoteDeviceState.firmwareSku)}
+              {panelDetail('green', 'Firmware Rev', remoteDeviceState.firmwareRevision)}
+              {panelDetail('green', 'Commissioned', remoteDeviceState.commissioned ? 'Yes' : 'No')}
+            </View>
+          }
+          {
+            sensorValues &&
+            <View style={{ marginTop: 20 }}>
+              {sectionHeader('Live Sensor Data')}
+              <Text style={labelStyle}>ADC Sensors</Text>
+              <ScrollView horizontal={true}>
+                {sensorBlock(0, sensorValues.adcValues[0], 'radio-outline')}
+                {sensorBlock(1, sensorValues.adcValues[1], 'radio-outline')}
+                {sensorBlock(2, sensorValues.adcValues[2], 'radio-outline')}
+                {sensorBlock(3, sensorValues.adcValues[3], 'radio-outline')}
+                {sensorBlock(4, sensorValues.adcValues[4], 'radio-outline')}
+                {sensorBlock(5, sensorValues.adcValues[5], 'radio-outline')}
+                {sensorBlock(6, sensorValues.adcValues[6], 'radio-outline')}
+                {sensorBlock(7, sensorValues.adcValues[7], 'radio-outline')}
+              </ScrollView>
+              <Text style={labelStyle}>IO Sensors</Text>
+              <ScrollView horizontal={true}>
+                {sensorBlock(0, sensorValues.ioValues[0], 'radio-outline')}
+                {sensorBlock(1, sensorValues.ioValues[1], 'radio-outline')}
+                {sensorBlock(2, sensorValues.ioValues[2], 'radio-outline')}
+                {sensorBlock(3, sensorValues.ioValues[3], 'radio-outline')}
+                {sensorBlock(4, sensorValues.ioValues[4], 'radio-outline')}
+                {sensorBlock(5, sensorValues.ioValues[5], 'radio-outline')}
+                {sensorBlock(6, sensorValues.ioValues[6], 'radio-outline')}
+                {sensorBlock(7, sensorValues.ioValues[7], 'radio-outline')}
+              </ScrollView>
 
 
-              </View>
+            </View>
 
-            }
-          </View>
-        }
-        {
-          connectionState == CONNECTING &&
-          <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-            <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Connecting to BLE</Text>
-            <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
-          </View>
-        }
-        {
-          connectionState == DISCONNECTED &&
-          <View>
-            <Text style={{ color: themePalette.shellTextColor }}>Disconnected</Text>
-            <TouchableOpacity style={[styles.submitButton]} onPress={() => loadDevice()}>
-              <Text style={[styles.submitButtonText, { color: 'white' }]}> Re-Connect </Text>
-            </TouchableOpacity>
-          </View>
-        }
-        {
-          connectionState == IDLE &&
-          <Text style={{ color: themePalette.shellTextColor }}>Please wait</Text>
-        }
-        {
-          connectionState == DISCONNECTED_PAGE_SUSPENDED &&
-          <Text style={{ color: themePalette.shellTextColor }}>Please Wait Reconnecting</Text>
-        }
-      </ScrollView>
-    }
+          }
+        </View>
+      }
+      {
+        connectionState == CONNECTING &&
+        <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
+          <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Connecting to BLE</Text>
+          <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
+        </View>
+      }
+      {
+        connectionState == DISCONNECTED &&
+        <View>
+          <Text style={{ color: themePalette.shellTextColor }}>Disconnected</Text>
+          <TouchableOpacity style={[styles.submitButton]} onPress={() => loadDevice()}>
+            <Text style={[styles.submitButtonText, { color: 'white' }]}> Re-Connect </Text>
+          </TouchableOpacity>
+        </View>
+      }
+      {
+        connectionState == IDLE &&
+        <Text style={{ color: themePalette.shellTextColor }}>Please wait</Text>
+      }
+      {
+        connectionState == DISCONNECTED_PAGE_SUSPENDED &&
+        <Text style={{ color: themePalette.shellTextColor }}>Please Wait Reconnecting</Text>
+      }
+    </ScrollView>
   </View>
 
 }

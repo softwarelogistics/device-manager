@@ -24,30 +24,25 @@ export default function HomePage({ navigation }: IReactPageServices) {
   const [userInitials, setUserInitials] = useState<string>('?');
   const [instances, setInstances] = useState<Deployment.DeploymentInstanceSummary[]>([]);
   const [user, setUser] = useState<Users.AppUser>();
-  const [isBusy, setIsBusy] = useState<boolean>(true);
 
   const loadInstances = async () => {
     let user = await appServices.userServices.getUser();
     setUser(user);
+    console.log('got user');
 
     let instances = await appServices.deploymentServices.GetInstances();
-    setInstances(instances.model);
+      setInstances(instances!.model!);
   }
 
   useEffect(() => {
     if (initialCall) {
       loadInstances();
-
-      appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) });
-      appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) });
-
     }
 
     let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     setSubscription(changed);
     return (() => {
       if (subscription) AppServices.themeChangeSubscription.remove(subscription);
-
     });
   }, []);
 
@@ -86,44 +81,35 @@ export default function HomePage({ navigation }: IReactPageServices) {
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <View style={{ flexDirection: 'row' }}  onTouchStart={() => showPage('profilePage')}>
-          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor}  name='cog-outline' />
+        <View style={{ flexDirection: 'row' }} onTouchStart={() => showPage('profilePage')}>
+          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} name='cog-outline' />
         </View>
       )
     });
   });
 
   return (
-    <Page>
+    <Page >
       <StatusBar style="auto" />
-      {
-        isBusy &&
-        <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-          <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Please Wait</Text>
-          <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
-        </View>
-      }
-      {!isBusy &&
-          <View style={{ width:"100%" }} >
-            <Image style={[{marginTop:30, marginBottom:30, alignSelf: "center"}]} source={require('../assets/app-icon.png')} />
-            <Text style={[{ textAlign:'center', marginBottom:5, color: themePalette.shellTextColor, fontSize: 24}]}>{user?.currentOrganization.text} Instances</Text>     
-            <FlatList
-              contentContainerStyle={{ alignItems: "stretch" }}
-              style={{ backgroundColor: themePalette.background, width: "100%" , flexGrow:1 }}
-              ItemSeparatorComponent={myItemSeparator}
-              ListEmptyComponent={myListEmpty}
-              data={instances}
-              renderItem={({ item }) =>
-                <Pressable onPress={() => showInstance(item)} key={item.id} >
-                  <View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 60, backgroundColor: themePalette.inputBackgroundColor, }]}  >
-                    <SLIcon icon={item.icon} />
-                    <Text style={[{ marginLeft: 3, marginTop:3, color: themePalette.shellTextColor, fontSize: 24, flex: 3 }]}>{item.name}</Text>
-                  </View>
-                </Pressable>
-              }
-            />
-          </View>
-      }
+      <View style={{ width: "100%" }} >
+        <Image style={[{ marginTop: 30, marginBottom: 30, alignSelf: "center" }]} source={require('../assets/app-icon.png')} />
+        <Text style={[{ textAlign: 'center', marginBottom: 5, color: themePalette.shellTextColor, fontSize: 24 }]}>{user?.currentOrganization.text} Instances</Text>
+        <FlatList
+          contentContainerStyle={{ alignItems: "stretch" }}
+          style={{ backgroundColor: themePalette.background, width: "100%", flexGrow: 1 }}
+          ItemSeparatorComponent={myItemSeparator}
+          ListEmptyComponent={myListEmpty}
+          data={instances}
+          renderItem={({ item }) =>
+            <Pressable onPress={() => showInstance(item)} key={item.id} >
+              <View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 60, backgroundColor: themePalette.inputBackgroundColor, }]}  >
+                <SLIcon icon={item.icon} />
+                <Text style={[{ marginLeft: 3, marginTop: 3, color: themePalette.shellTextColor, fontSize: 24, flex: 3 }]}>{item.name}</Text>
+              </View>
+            </Pressable>
+          }
+        />
+      </View>
     </Page>
   );
 }

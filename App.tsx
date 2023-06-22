@@ -129,7 +129,7 @@ const App = () => {
     <NavigationContainer theme={navigationTheme} linking={linking}>
       <Stack.Navigator initialRouteName={initialPage} screenOptions={{ headerBackTitleVisible: false }}>
         <Stack.Screen name="accountPage" component={AccountPage} options={{ title: 'Settings' }} />
-        <Stack.Screen name="oauthHandlerPage" component={OAuthHandlerPage} options={{ title: 'Settings' }} />
+        <Stack.Screen name="oauthHandlerPage" component={OAuthHandlerPage} options={{ title: 'Third Party Login' }} />
         <Stack.Screen name="authPage" component={AuthPage} options={{ title: ' ' }} />
         <Stack.Screen name="blePropertiesPage" component={BlePropertiesPage} options={{ title: 'Device Properties' }} />
         <Stack.Screen name="changeOrgsPage" component={ChangeOrgPage} options={{ title: 'Organizations' }} />

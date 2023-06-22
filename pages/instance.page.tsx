@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
 
-
 import Icon from "react-native-vector-icons/Ionicons";
 import Page from "../mobile-ui-common/page";
 import AppServices from "../services/app-services";
@@ -9,8 +8,6 @@ import { IReactPageServices } from "../services/react-page-services";
 import { ThemePalette } from "../styles.palette.theme";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
 import { ActivityIndicator, FlatList, Pressable, ScrollView, Text, View } from "react-native";
-import styles from '../styles';
-import colors from "../styles.colors";
 import { Picker } from "@react-native-picker/picker";
 import SLIcon from "../mobile-ui-common/sl-icon";
 
@@ -26,8 +23,6 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
   const [devices, setDevices] = useState<Devices.DeviceSummary[] | undefined>(undefined);
 
   const [deviceModels, setDeviceModels] = useState<Core.EntityHeader[]>([]);
-
-  const [isBusy, setIsBusy] = useState<boolean>(true);
 
   const instanceId = route.params.instanceId;
   const deviceRepoId = route.params.repoId;
@@ -81,7 +76,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
   useEffect(() => {
     let palette = AppServices.getAppTheme()
     setThemePalette(palette);
-      
+
 
     navigation.setOptions({
       headerRight: () => (
@@ -92,10 +87,6 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     });
 
     if (initialCall) {
-      
-      appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) });
-      appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) });
-
       loadDevices();
       setInitialCall(false);
     }
@@ -109,40 +100,29 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
 
   }, []);
 
-
-
   return (
     <Page>
-        <StatusBar style="auto" />
-        {
-          isBusy &&
-          <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-            <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Please Wait</Text>
-            <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
-          </View>
-        }
-        {!isBusy &&
-          <View style={{ width: "100%", flexDirection:'column' }}>
-            <Text style={[{ margin: 3, color: themePalette.shellTextColor, fontSize: 24}]}>{instanceName}</Text>
-            <Picker selectedValue={deviceModelFilter} onValueChange={deviceTypeChanged} style={{ flex:1, backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
-              {deviceModels.map(itm => <Picker.Item key={itm.id} label={itm.text} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />)}
-            </Picker>
-            <ScrollView style={{flexGrow:1}} >
-              <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', backgroundColor: themePalette.background, width: "100%" }}>
-                {devices && devices.map((item, key) => {
-                  return <Pressable onPress={() => showDevice(item)} key={item.id} >
-                    <View  style={[{ flex:1, flexDirection:'row', padding:10, height: 90, width: 180, borderWidth: 1, backgroundColor: themePalette.inputBackgroundColor, borderRadius: 8, margin: 5, borderColor: themePalette.border }]}  >
-                      <SLIcon icon={item.icon} />
-                      <Text style={[{ margin: 3, color: themePalette.shellTextColor, fontSize: 16, width:130 }]}>{item.deviceName}</Text>
-                    </View>
-                  </Pressable>
-                })
-                }
+      <StatusBar style="auto" />
+      <View style={{ width: "100%", flexDirection: 'column' }}>
+        <Text style={[{ margin: 3, color: themePalette.shellTextColor, fontSize: 24 }]}>{instanceName}</Text>
+        <Picker selectedValue={deviceModelFilter} onValueChange={deviceTypeChanged} style={{ flex: 1, backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
+          {deviceModels.map(itm => <Picker.Item key={itm.id} label={itm.text} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />)}
+        </Picker>
+        <ScrollView style={{ flexGrow: 1 }} >
+          <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', backgroundColor: themePalette.background, width: "100%" }}>
+            {devices && devices.map((item, key) => {
+              return <Pressable onPress={() => showDevice(item)} key={item.id} >
+                <View style={[{ flex: 1, flexDirection: 'row', padding: 10, height: 90, width: 180, borderWidth: 1, backgroundColor: themePalette.inputBackgroundColor, borderRadius: 8, margin: 5, borderColor: themePalette.border }]}  >
+                  <SLIcon icon={item.icon} />
+                  <Text style={[{ margin: 3, color: themePalette.shellTextColor, fontSize: 16, width: 130 }]}>{item.deviceName}</Text>
+                </View>
+              </Pressable>
+            })
+            }
 
-              </View>
-            </ScrollView>
-            </View>          
-        }
+          </View>
+        </ScrollView>
+      </View>
     </Page>
   )
 }

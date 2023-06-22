@@ -18,6 +18,7 @@ import Page from "../mobile-ui-common/page";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
 import Icon from "react-native-vector-icons/Ionicons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { HttpClient } from "../core/utils";
 
 export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
@@ -78,12 +79,12 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
 
   const loginExternal = async (provider: string) => {
     setIsBusy(true);
-    let url = `${AppServices.getWebUrl()}/mobile/login/oauth/${provider}?mobile_app_scheme=nuviot`;
+    let url = `${HttpClient.getWebUrl()}/mobile/login/oauth/${provider}?mobile_app_scheme=nuviot`;
     if (Constants.manifest?.hostUri && false) {
       let hostName = Constants.manifest?.hostUri?.split(':')[0] as string;
       let localIp = hostName.replace('.', '-').replace('.', '-').replace('.', '-').replace('.', '-');
 
-      url = `${AppServices.getWebUrl()}/mobile/login/oauth/${provider}?expo_dev_ip_addr=${localIp}&mobile_app_scheme=nuviot`;      
+      url = `${HttpClient.getWebUrl()}/mobile/login/oauth/${provider}?expo_dev_ip_addr=${localIp}&mobile_app_scheme=nuviot`;      
     }
 
     console.log('login with: ' + url);

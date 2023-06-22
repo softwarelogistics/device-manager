@@ -1,7 +1,6 @@
-
 import { useEffect, useState } from "react";
+import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, Image, View, TouchableOpacity } from 'react-native';
-import * as Linking from 'expo-linking';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import AppServices from "../services/app-services";
@@ -14,40 +13,34 @@ import ViewStylesHelper from "../utils/viewStylesHelper";
 import { ThemePalette } from "../styles.palette.theme";
 import colors from "../styles.colors";
 import styles from '../styles';
+import Page from "../mobile-ui-common/page";
 
 export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageServices) => {
-
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-  const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
-  const [theme, setTheme] = useState<string>('');
+  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
 
-  const [isBusy, setIsBusy] = useState<boolean>(true);
-  const [allDone, setAllDone] = useState<boolean>(false);
+  const [timer, setTimer] = useState<NodeJS.Timer | null>(null)
+  const [failedAuth, setFailedAuth] = useState<boolean>(false);
   const [initialCall, setInitialCall] = useState<boolean>(true);
-  const [retryAttempt, setRetryAttempt] = useState<number>(0);
-  const [timerId, setTimerId] = useState<number>(-1);
 
   const submitButtonWhiteTextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, styles.submitButtonTextBlack, { color: themePalette.buttonPrimaryText }]);
 
   const checkStartup = async () => {
-    console.log('checking startup: ' + retryAttempt + "  " + timerId);
-
+    console.log('check startup called.');
     let ola = await AsyncStorage.getItem('oauth_launch');
     if (ola == 'true') {
-      console.log('found expected values')
+      console.log('ola is true, calling next chunk of code.');
+      await AsyncStorage.removeItem('oauth_launch');
+      clearTimeout(timer!);
+      setTimer(null)
       let oAuthUser = await AsyncStorage.getItem('oauth_user');
       let oAuthToken = await AsyncStorage.getItem('oauth_token');
       let initialPath = await AsyncStorage.getItem('oauth_path');
-      console.log(oAuthUser, oAuthToken, initialPath);
       await AsyncStorage.removeItem('oauth_launch');
       await AsyncStorage.removeItem('oauth_user');
       await AsyncStorage.removeItem('oauth_token');
       await AsyncStorage.removeItem('oauth_path');
-      clearInterval(timerId);
-      setTimeout(() => finalizeLogin(oAuthUser!, oAuthToken!, initialPath!));
-    }
-    else {
-      setRetryAttempt(retryAttempt + 1);
+      finalizeLogin(oAuthUser!, oAuthToken!, initialPath!);
     }
   }
 
@@ -67,16 +60,14 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
       console.log('attempting external login with request', request);
 
       let loginResponse = await AuthenticationHelper.login(request)
-      console.log('loginResponse', loginResponse);
-
-      let user = await appServices.userServices.loadCurrentUser();
-      console.log(user);
-
+      await appServices.userServices.loadCurrentUser();
       if (loginResponse.isSuccess) {
+        console.log('GTG - Navigate home.');
         let path = loginResponse.navigationTarget!;
         navigation.replace(path);
       }
       else {
+        setFailedAuth(true);
         if (loginResponse.errorMessage) {
           alert(loginResponse.errorMessage);
         }
@@ -96,38 +87,66 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
     await AsyncStorage.removeItem("jwtExpires");
     await AsyncStorage.removeItem("userInitials");
     await AsyncStorage.removeItem("app_user");
-    setAllDone(true);
     navigation.replace('authPage');
   };
 
   useEffect(() => {
+    console.log('use effect called')
+~
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'oauthHandlerPage'}],
+    });
+
+    console.log('navigation was reset.')
+
+    let changedSubscription = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
+
+
     if (initialCall) {
       AsyncStorage.removeItem('oauth_launch');
       AsyncStorage.removeItem('oauth_user');
       AsyncStorage.removeItem('oauth_token');
       AsyncStorage.removeItem('oauth_path');
 
-      let timerId = window.setInterval(() => {
+      setInitialCall(false);
+
+      let timer = setInterval(() => {
         checkStartup();
       }, 1000);
-      
-      setTimerId(timerId);
 
-      setInitialCall(false);
+      setTimer(timer);
+
+      return () => {
+        clearTimeout(timer);
+        AppServices.themeChangeSubscription.remove(changedSubscription);
+      }
     }
   }, []);
 
   return (
+    <Page>
+    <StatusBar style="auto" />
     <View style={styles.scrollContainer}>
-      <MciIcon.Button
-        name="logout"
-        style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
-        color={colors.white}
-        backgroundColor={colors.transparent}
-        onPress={() => logOut()}>
-        <Text style={submitButtonWhiteTextStyle}> Log Out </Text>
-      </MciIcon.Button>
+      {failedAuth &&
+        <View>
+          <Text></Text>
+
+          <MciIcon.Button
+            name="logout"
+            style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
+            color={colors.white}
+            backgroundColor={colors.transparent}
+            onPress={() => logOut()}>
+            <Text style={submitButtonWhiteTextStyle}> Log Out </Text>
+          </MciIcon.Button>
+        </View>
+      }
+      {!failedAuth && 
+        <Text style={{color:themePalette.shellTextColor}}>Please Wait</Text>
+      }
     </View>
+    </Page>
   )
 };
 

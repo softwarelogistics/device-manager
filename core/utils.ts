@@ -2,6 +2,7 @@ import { Observable } from "rxjs";
 import fetch from 'node-fetch';
 import { CommonSettings } from '../settings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NuvIoTEventEmitter } from "../utils/NuvIoTEventEmitter";
 
 export class ActivatedRoute {
     snapshot: any;
@@ -14,26 +15,28 @@ export class Router {
 };
 
 export class HttpClient {
+    public static logoutSubscription: NuvIoTEventEmitter = new NuvIoTEventEmitter();
+
     constructor(
         private storage: NativeStorageService,
-        ) {
+    ) {
 
     }
 
-    getIsDevEnv() {
-        return Constants.expoConfig?.extra?.environment == "development";
+    static getIsDevEnv() {
+        return CommonSettings.environment == "development";
     }
 
-    getApiUrl() {
+    static getApiUrl() {
         const API_URL = this.getIsDevEnv() ? "https://dev-api.nuviot.com" : "https://api.nuviot.com";
         return API_URL;
     }
 
-    getWebUrl() {
+    static getWebUrl() {
         const API_URL = this.getIsDevEnv() ? "https://dev.nuviot.com" : "https://www.nuviot.com";
         return API_URL;
-    }    
-  
+    }
+
 
     getAuthHeaders(): any {
 
@@ -48,11 +51,11 @@ export class HttpClient {
                 return await this.renewToken();
             }
         }
-        
+
         return true;
     }
 
-    async renewToken(): Promise<boolean>{
+    async renewToken(): Promise<boolean> {
         let refreshToken = await this.storage.getItemAsync('refreshtoken');
 
         let request = {
@@ -66,7 +69,7 @@ export class HttpClient {
         }
 
         try {
-            let fetchResult = await fetch(`${this.getApiUrl()}/api/v1/auth`,
+            let fetchResult = await fetch(`${HttpClient.getApiUrl()}/api/v1/auth`,
                 {
                     method: 'POST',
                     headers: {
@@ -76,23 +79,30 @@ export class HttpClient {
                     body: JSON.stringify(request)
                 });
             let refreshResult = await fetchResult.json();
-                console.log(refreshResult);
-            await AsyncStorage.setItem("isLoggedIn", "true");
 
-            await AsyncStorage.setItem("jwt", refreshResult.result.accessToken);
-            await AsyncStorage.setItem("refreshtoken", refreshResult.result.refreshToken);
-            await AsyncStorage.setItem("refreshtokenExpires", refreshResult.result.refreshTokenExpiresUTC);
-            await AsyncStorage.setItem("jwtExpires", refreshResult.result.accessTokenExpiresUTC);
-            console.log('refreshed with new JWT');
+            if (refreshResult.successful === true) {
+                await AsyncStorage.setItem("isLoggedIn", "true");
 
-            let currentUserResult = await this.get<Core.FormResult<Users.AppUser, Users.AppUserView>>(`${this.getApiUrl()}/api/user`);
-            console.log(currentUserResult.model);
-            await AsyncStorage.setItem("app_user", JSON.stringify(currentUserResult.model));
+                await AsyncStorage.setItem("jwt", refreshResult.result.accessToken);
+                await AsyncStorage.setItem("refreshtoken", refreshResult.result.refreshToken);
+                await AsyncStorage.setItem("refreshtokenExpires", refreshResult.result.refreshTokenExpiresUTC);
+                await AsyncStorage.setItem("jwtExpires", refreshResult.result.accessTokenExpiresUTC);
+                console.log('refreshed with new JWT');
 
-            return true;
+                let currentUserResult = await this.get<Core.FormResult<Users.AppUser, Users.AppUserView>>(`${HttpClient.getApiUrl()}/api/user`);
+                console.log(currentUserResult!.model);
+                await AsyncStorage.setItem("app_user", JSON.stringify(currentUserResult!.model));
+                return true;
+            }
+            else {
+                HttpClient.logoutSubscription?.emit('logout', 'could not refresh token');
+                return false;
+            }
+
         }
         catch (err: any) {
-            console.log('could not get refresh', err);
+            HttpClient.logoutSubscription?.emit('logout', 'could not refresh token');
+            console.log('could not get refresh');
             return false;
         };
     }
@@ -111,22 +121,22 @@ export class HttpClient {
         withCredentials?: boolean;
     }): Promise<T> {
 
-        await this.checkJWTExpire();
-        let jwt = await this.storage.getItemAsync("jwt");
+        if (await this.checkJWTExpire()) {
+            let jwt = await this.storage.getItemAsync("jwt");
 
-        if (!options) {
-            options = { method: 'GET' };
-        }
+            if (!options) {
+                options = { method: 'GET' };
+            }
 
-        options!.headers = { Authorization: "Bearer " + jwt };
-        options!.withCredentials = true;
+            options!.headers = { Authorization: "Bearer " + jwt };
+            options!.withCredentials = true;
 
-        try {
             let result = await fetch(url, options);
 
             if (result.status == 401) {
                 console.log('failed: Not Authorized');
-                throw 'Not Authorized';
+                alert('Sorry, you have been logged out.');
+                throw new Error('could not renew token');
             }
             else {
 
@@ -134,9 +144,8 @@ export class HttpClient {
                 return json as T
             }
         }
-        catch (e) {
-            throw e;
-        }
+
+        throw new Error('could not renew token');
     };
 
     async put<T>(url: string, body: any | null, options?: {
@@ -236,16 +245,6 @@ export class HttpParams {
         return this;
     }
 }
-
-export const environment = {
-    production: false,
-    appId: "1C114B00D8014BD988BF61D74672F9D2",
-    deviceId: 'mobileApp',
-    appInstanceid: "",
-    siteUri: 'https://api.nuviot.com'
-    // siteUri: 'https://localhost:5001'
-    //siteUri: 'https://dev-api.nuviot.com'
-};
 
 export class CookieService {
     get(name: string): string {

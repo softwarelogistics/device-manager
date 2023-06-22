@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import AppServices from "../services/app-services";
+import { HttpClient } from "../core/utils";
 
 
 interface NuvIotAuthResponse {
@@ -38,7 +38,7 @@ const AuthenticationHelper = {
       body: JSON.stringify(request)
     };
 
-    let authUrl = `${AppServices.getApiUrl()}/api/v1/auth`;
+    let authUrl = `${HttpClient.getApiUrl()}/api/v1/auth`;
     console.log(authUrl);
     console.log(request);
     const fetched = await fetch(authUrl, postOptions)

@@ -21,6 +21,8 @@ import palettes from "../styles.palettes";
 import Page from "../mobile-ui-common/page";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
 import EditField from "../mobile-ui-common/edit-field";
+import { HttpClient } from "../core/utils";
+import { NetworkCallStatusService } from "../services/network-call-status-service";
 
 export default function ProvisionPage({ navigation, route }: IReactPageServices) {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
@@ -34,7 +36,6 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   const [selectedDeviceModel, setSelectedDeviceModel] = useState<Devices.DeviceTypeSummary | undefined>();
   const [deviceId, setDeviceId] = useState<string>();
   const [deviceName, setDeviceName] = useState<string>();
-  const [isBusy, setIsBusy] = useState<boolean>(true);
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [sysConfig, setSysConfig] = useState<SysConfig>();
   const [busyMessage, setBusyMessage] = useState<String>("Is Busy");
@@ -58,7 +59,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);
 
   const loadSysConfigAsync = async (deviceTypes: Devices.DeviceTypeSummary[]) => {
-    
+
     if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
       let sysConfigStr = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
       if (sysConfigStr) {
@@ -84,6 +85,13 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
       await ble.disconnectById(peripheralId);
     }
+  }
+
+  const setIsBusy = (value: boolean) => {
+    if (value)
+      NetworkCallStatusService.beginCall(busyMessage);
+    else
+      NetworkCallStatusService.endCall();
   }
 
   const load = async () => {
@@ -232,18 +240,18 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     let result = await provisionDevice(false);
     if (result == "DM1001") {
       Alert.alert(`Device Exists`, `A device with the id ${deviceId} already exists, would you like to replace it?`,
-      [{
-        text:'YES', onPress: async () => {
-          let result = await provisionDevice(true);
-          if (result === 'OK') {
-            alert('Success provisioning device.');
-            navigation.goBack();
-          }  
-        }
-      },
-      {
-        text:'NO'
-      }]);      
+        [{
+          text: 'YES', onPress: async () => {
+            let result = await provisionDevice(true);
+            if (result === 'OK') {
+              alert('Success provisioning device.');
+              navigation.goBack();
+            }
+          }
+        },
+        {
+          text: 'NO'
+        }]);
     }
     else {
       if (result === 'OK') {
@@ -255,9 +263,6 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   }
 
   const init = async () => {
-    appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) })
-    appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) })
-
     setIsBusy(true);
     await load();
     setIsBusy(false);
@@ -290,63 +295,52 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
   return (
     <Page>
-
       <StatusBar style="auto" />
-      {
-        isBusy &&
-        <View style={[styles.spinnerView, { backgroundColor: AppServices.getAppTheme().background }]}>
-          <Text style={{ color: AppServices.getAppTheme().shellTextColor, fontSize: 25 }}>{busyMessage}</Text>
-          <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
-        </View>
-      }
       <ScrollView>
-        {!isBusy &&
-          <View style={[styles.scrollContainer, { backgroundColor: AppServices.getAppTheme().background }]}>
+        <View style={[styles.scrollContainer, { backgroundColor: AppServices.getAppTheme().background }]}>
 
-            <Text style={inputLabelStyle}>Repositories:</Text>
-            <Picker selectedValue={selectedRepo?.id} onValueChange={repoChanged} style={{ height: 12 }} itemStyle={{ height: 12 }} >
-              {repos.map(itm =>
-                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ height: 12, color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor }} />
-              )}
-            </Picker>
+          <Text style={inputLabelStyle}>Repositories:</Text>
+          <Picker selectedValue={selectedRepo?.id} onValueChange={repoChanged} style={{ height: 12 }} itemStyle={{ height: 12 }} >
+            {repos.map(itm =>
+              <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ height: 12, color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor }} />
+            )}
+          </Picker>
 
-            <Text style={inputLabelStyle}>Device Models:</Text>
-            <Picker selectedValue={selectedDeviceModel?.id} onValueChange={deviceTypeChanged} >
-              {deviceTypes.map(itm =>
-                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, height: 10 }} />
-              )}
-            </Picker>
+          <Text style={inputLabelStyle}>Device Models:</Text>
+          <Picker selectedValue={selectedDeviceModel?.id} onValueChange={deviceTypeChanged} >
+            {deviceTypes.map(itm =>
+              <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, height: 10 }} />
+            )}
+          </Picker>
 
-            <EditField label="Device Name" value={deviceName} placeHolder="enter device name" onChangeText={e => setDeviceName(e)} />
-            <EditField label="Device Id" value={deviceId} placeHolder="enter device id" onChangeText={e => setDeviceId(e)} />
+          <EditField label="Device Name" value={deviceName} placeHolder="enter device name" onChangeText={e => setDeviceName(e)} />
+          <EditField label="Device Id" value={deviceId} placeHolder="enter device id" onChangeText={e => setDeviceId(e)} />
 
-            <Text style={inputLabelStyle}>WiFi Connection:</Text>
-            <Picker selectedValue={selectedWiFiConnection} onValueChange={e => setSelectedWiFiConnection(e)} >
-              {wifiConnections?.map(itm =>
-                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, height: 10 }} />
-              )}
-            </Picker>
+          <Text style={inputLabelStyle}>WiFi Connection:</Text>
+          <Picker selectedValue={selectedWiFiConnection} onValueChange={e => setSelectedWiFiConnection(e)} >
+            {wifiConnections?.map(itm =>
+              <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, height: 10 }} />
+            )}
+          </Picker>
 
-
-            <View style={styles.flex_toggle_row}>
-              <Text style={inputLabelStyle}>Use Default Listener:</Text>
-              <Switch onValueChange={e => setUseDefaultListener(e)} value={useDefaultListener}
-                thumbColor={(colors.primaryColor)}
-                trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
-            </View>
-
-            <View style={styles.flex_toggle_row}>
-              <Text style={inputLabelStyle}>Commissioned:</Text>
-              <Switch onValueChange={e => setCommissioned(e)} value={commissioned}
-                thumbColor={(colors.primaryColor)}
-                trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
-            </View>
-
-            <TouchableOpacity style={[styles.submitButton, { marginTop: 10, backgroundColor: palettes.primary.normal }]} onPress={() => callProvisionDevice()}>
-              <Text style={primaryButtonTextStyle}> Provision </Text>
-            </TouchableOpacity>
+          <View style={styles.flex_toggle_row}>
+            <Text style={inputLabelStyle}>Use Default Listener:</Text>
+            <Switch onValueChange={e => setUseDefaultListener(e)} value={useDefaultListener}
+              thumbColor={(colors.primaryColor)}
+              trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
           </View>
-        }
+
+          <View style={styles.flex_toggle_row}>
+            <Text style={inputLabelStyle}>Commissioned:</Text>
+            <Switch onValueChange={e => setCommissioned(e)} value={commissioned}
+              thumbColor={(colors.primaryColor)}
+              trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+          </View>
+
+          <TouchableOpacity style={[styles.submitButton, { marginTop: 10, backgroundColor: palettes.primary.normal }]} onPress={() => callProvisionDevice()}>
+            <Text style={primaryButtonTextStyle}> Provision </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </Page>
   )

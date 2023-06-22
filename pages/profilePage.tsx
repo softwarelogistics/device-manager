@@ -7,17 +7,14 @@ import AppServices from "../services/app-services";
 import styles from '../styles';
 import { IReactPageServices } from "../services/react-page-services";
 import { ThemePalette } from "../styles.palette.theme";
-import { Subscription } from "../utils/NuvIoTEventEmitter";
+import Page from "../mobile-ui-common/page";
 
 export const ProfilePage = ({ navigation, props, route }: IReactPageServices) => {
     const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
-    const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
-
     
     const showPage = (pageName: string) => {
         navigation.navigate(pageName);
     };
-
 
     const logOut = async () => {
         await AsyncStorage.setItem("isLoggedIn", "false");
@@ -26,10 +23,11 @@ export const ProfilePage = ({ navigation, props, route }: IReactPageServices) =>
         await AsyncStorage.removeItem("refreshtoken");
         await AsyncStorage.removeItem("refreshtokenExpires");
         await AsyncStorage.removeItem("jwtExpires");
+        navigation.popToTop();
         navigation.replace('authPage');
       };
     
-    return (<View>
+    return (<Page>
       <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
       <View style={styles.formGroup}>
         <IconButton color={themePalette.buttonPrimaryText} label="Switch Organization" icon="podium-outline" iconType="ion" onPress={() => showPage('changeOrgsPage')} ></IconButton>
@@ -37,6 +35,6 @@ export const ProfilePage = ({ navigation, props, route }: IReactPageServices) =>
         <IconButton color={themePalette.buttonPrimaryText} label="Log Out" icon="log-out-outline" iconType="ion" onPress={() => logOut()} ></IconButton>        
         <IconButton color={themePalette.buttonPrimaryText} label="About" icon="log-out-outline" iconType="ion" onPress={() => showPage('aboutPage')} ></IconButton>        
       </View>
-    </View>
+    </Page>
     )
 }

@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 
 import { IReactPageServices } from "../services/react-page-services";
-import { TouchableOpacity, ScrollView, View, Text, TextInput, FlatList, ActivityIndicator, Pressable, Alert, ViewStyle, TextStyle } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
+import { View, Text, FlatList, ActivityIndicator, Pressable, Alert, ViewStyle, TextStyle } from "react-native";
 import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import OctIcon from "react-native-vector-icons/Octicons";
-import { StatusBar } from 'expo-status-bar';
 
 import AppServices from '../services/app-services';
 
@@ -21,7 +19,6 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [orgs, setOrgs] = useState<Users.OrgUser[]>();
   const [user, setUser] = useState<Users.AppUser>();
-  const [isBusy, setIsBusy] = useState<boolean>(true);
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
   const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
 
@@ -64,8 +61,6 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
 
   useEffect(() => {
     if (initialCall) {
-      appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) })
-      appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) })
       setInitialCall(false);
       loadUserOrgs();
     }
@@ -94,12 +89,6 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
 
   let idx: number = 0;
   return (
-    isBusy ?
-      <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-        <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Please Wait</Text>
-        <ActivityIndicator size="large" color={palettes.accent.normal} animating={isBusy} />
-      </View>
-      :
       <View style={{flex:1, flexDirection:'column', backgroundColor: themePalette.background }}>
         {
           orgs && user && 
