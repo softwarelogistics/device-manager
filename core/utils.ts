@@ -1,5 +1,4 @@
 import { Observable } from "rxjs";
-import fetch from 'node-fetch';
 import { CommonSettings } from '../settings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NuvIoTEventEmitter } from "../utils/NuvIoTEventEmitter";

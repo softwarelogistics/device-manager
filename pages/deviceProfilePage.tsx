@@ -3,7 +3,6 @@ import { ActivityIndicator, Platform, View, Text, TextStyle, TouchableOpacity, S
 import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
 import { ThemePalette } from "../styles.palette.theme";
-import colors from "../styles.colors";
 import styles from '../styles';
 import palettes from "../styles.palettes";
 import ViewStylesHelper from "../utils/viewStylesHelper";
@@ -12,10 +11,8 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { PermissionsHelper } from "../services/ble-permissions";
 import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { BLENuvIoTDevice } from "../models/device/device-local";
-import { Peripheral } from "react-native-ble-manager";
 import { StatusBar } from "expo-status-bar";
 import { RemoteDeviceState } from "../models/blemodels/state";
-import { IOValues } from "../models/blemodels/iovalues";
 
 const IDLE = 0;
 const CONNECTING = 1;
@@ -118,36 +115,39 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   }
 
   const showConfigurePage = async () => {
-    if (connectionState == CONNECTED) {
+  if (connectionState == CONNECTED) {
+      console.log('was connected...');
       ble.removeAllListeners('receive');
       ble.removeAllListeners('disconnected');
-      let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
+      let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;  
       await ble.disconnectById(peripheralId);
       setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
     }
 
     appServices.wssService.close();
+    let params = { peripheralId: peripheralId, repoId: repoId, deviceId: id}
+    console.log('launch config page')
+    console.log(params);
 
-    navigation.navigate('configureDevice', { id: peripheralId, repoId: deviceDetail?.deviceRepository.id, deviceId: deviceDetail?.id, peripheralId: peripheralId });
+    navigation.navigate('configureDevice', params);
   }
 
   useEffect(() => {
     if (initialCall) {
-
-      let palette = AppServices.getAppTheme()
-      setThemePalette(palette);
-
-
-      navigation.setOptions({
-        headerRight: () => (
-          <View style={{ flexDirection: 'row' }} >
-            <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor} onPress={showConfigurePage} name='ios-settings-sharp' />
-          </View>),
-      });
       loadDevice();
       setInitialCall(false);
       ble.peripherals = [];
     }
+
+    let palette = AppServices.getAppTheme()
+    setThemePalette(palette);
+
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ flexDirection: 'row' }} >
+          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor} onPress={showConfigurePage} name='ios-settings-sharp' />
+        </View>),
+    });
 
     const focusSubscription = navigation.addListener('focus', () => {
       if (connectionState == DISCONNECTED_PAGE_SUSPENDED) {
@@ -237,10 +237,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
     <ScrollView style={styles.scrollContainer}>
       <StatusBar style="auto" />
-      errorMessage &&
-      <View style={{ marginBottom: 30 }}>
-        <Text>{{ errorMessage }}</Text>
-      </View>
       {
         deviceDetail && !errorMessage &&
         <View style={{ marginBottom: 30 }}>

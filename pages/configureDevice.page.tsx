@@ -25,13 +25,17 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   const [isBusy, setIsBusy] = useState<boolean>(false);
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
-  const [deviceInRange, setDeviceInRange] = useState<boolean>(false);
 
   const [initialCall, setInitialCall] = useState<boolean>(true);
 
   const deviceId = route.params.deviceId;
   const repoId = route.params.repoId;
   const peripheralId = route.params.peripheralId;
+
+  if(!peripheralId) {
+    console.log(route.params);
+    throw 'Must provide peripheralId in the route'
+  }
 
   const primaryButtonStyle: ViewStyle = ViewStylesHelper.combineViewStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
   const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);

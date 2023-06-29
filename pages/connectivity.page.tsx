@@ -10,22 +10,20 @@ import { RemoteDeviceState } from "../models/blemodels/state";
 import { IReactPageServices } from "../services/react-page-services";
 
 import Icon from "react-native-vector-icons/Ionicons";
-import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
-import FaIcon from "react-native-vector-icons/FontAwesome5";
 
 import { ThemePalette, ThemePaletteService } from "../styles.palette.theme";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import styles from '../styles';
 import palettes from "../styles.palettes";
 import colors from "../styles.colors";
-import Tabbar from "@mindinventory/react-native-tab-bar-interaction";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 
 export const ConnectivityPage = ({ props, navigation, route }: IReactPageServices) => {
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
 
-  const peripheralId = route.params.id;
+  const peripheralId = route.params.peripheralId;
+
   const [initialCall, setInitialCall] = useState<boolean>(true);
 
   const [deviceId, setDeviceId] = useState<string>();
@@ -54,9 +52,6 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
   const inputStyleWithBottomMargin: TextStyle = ViewStylesHelper.combineTextStyles([styles.inputStyle, inputStyleOverride]);
   const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, { color: themePalette.shellTextColor, fontWeight: (AppServices.getAppTheme().name === 'dark' ? '700' : '400') }]);
   const placeholderTextColor: string = AppServices.getAppTheme().name === 'dark' ? themePalette.shellNavColor : palettes.gray.v50;
-  const switchThumbColorOffSetting: string = AppServices.getAppTheme().name === 'dark' ? palettes.gray.v5 : colors.black;
-  const switchThumbColorOnSetting: string = AppServices.getAppTheme().name === 'dark' ? themePalette.background : colors.white;
-  const switchTrackColorSetting: any = { false: colors.transparent, true: AppServices.getAppTheme().name === 'dark' ? themePalette.shellNavColor : palettes.gray.v20 };
 
   const writeChar = async () => {
     if (!peripheralId) {
@@ -93,7 +88,9 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
   const getData = async () => {
     setIsBusy(true);
+    console.log('get device data.');
     if (await ble.connectById(peripheralId)) {
+      console.log('got device data.');
       let deviceStateCSV = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
 
       let deviceState = new RemoteDeviceState(deviceStateCSV!);
@@ -113,6 +110,8 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
       await ble.disconnectById(peripheralId);
       setViewReady(true);
+
+      console.log('got device data.');
     }
     else {
       console.warn('could not connect.');
@@ -150,6 +149,8 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
     if (peripheralId) {
       getData();
     }
+    else 
+      throw 'peripheralId not set from calling page, must pass in as a parameter.'
   }
 
   return (

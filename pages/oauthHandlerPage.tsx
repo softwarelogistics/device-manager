@@ -93,16 +93,14 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
   useEffect(() => {
     console.log('use effect called')
 ~
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'oauthHandlerPage'}],
-    });
+    // navigation.reset({
+    //   index: 0,
+    //   routes: [{name: 'oauthHandlerPage'}],
+    // });
 
     console.log('navigation was reset.')
 
     let changedSubscription = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
-
-
     if (initialCall) {
       AsyncStorage.removeItem('oauth_launch');
       AsyncStorage.removeItem('oauth_user');

@@ -185,7 +185,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} >
-          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={showConfigurePage} name='ios-settings-sharp' />
+          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => showConfigurePage()} name='ios-settings-sharp' />
         </View>),
     });
 
@@ -257,7 +257,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     {
       errorMessage &&
       <View style={{ marginBottom: 30 }}>
-        <Text>{{ errorMessage }}</Text>
+        <Text>{ errorMessage }</Text>
       </View>
     }
 

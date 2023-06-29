@@ -87,9 +87,10 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
       url = `${HttpClient.getWebUrl()}/mobile/login/oauth/${provider}?expo_dev_ip_addr=${localIp}&mobile_app_scheme=nuviot`;      
     }
 
-    console.log('login with: ' + url);
+    console.log('login now with: ' + url);
 
-    await Linking.openURL(url).finally(() => setIsBusy(false));
+    await Linking.openURL(url).finally(() => setIsBusy(false));    
+    console.log('i am back and replacing');
     navigation.replace('oauthHandlerPage');
   };
 

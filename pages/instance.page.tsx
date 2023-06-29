@@ -51,8 +51,6 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     setDeviceModels(uniqueDeviceModels);
   }
 
-
-
   const addDevice = () => {
     navigation.navigate('scanPage', { repoId: deviceRepoId, instanceId: instanceId });
   }
@@ -76,7 +74,6 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
   useEffect(() => {
     let palette = AppServices.getAppTheme()
     setThemePalette(palette);
-
 
     navigation.setOptions({
       headerRight: () => (
