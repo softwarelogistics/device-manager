@@ -13,6 +13,7 @@ import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID
 import { BLENuvIoTDevice } from "../models/device/device-local";
 import { StatusBar } from "expo-status-bar";
 import { RemoteDeviceState } from "../models/blemodels/state";
+import Page from "../mobile-ui-common/page";
 
 const IDLE = 0;
 const CONNECTING = 1;
@@ -115,17 +116,17 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   }
 
   const showConfigurePage = async () => {
-  if (connectionState == CONNECTED) {
+    if (connectionState == CONNECTED) {
       console.log('was connected...');
       ble.removeAllListeners('receive');
       ble.removeAllListeners('disconnected');
-      let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;  
+      let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
       await ble.disconnectById(peripheralId);
       setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
     }
 
     appServices.wssService.close();
-    let params = { peripheralId: peripheralId, repoId: repoId, deviceId: id}
+    let params = { peripheralId: peripheralId, repoId: repoId, deviceId: id }
     console.log('launch config page')
     console.log(params);
 
@@ -145,7 +146,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} >
-          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor} onPress={showConfigurePage} name='ios-settings-sharp' />
+          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor} onPress={(() => showConfigurePage())} name='ios-settings-sharp' />
         </View>),
     });
 
@@ -233,13 +234,13 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       </View>)
   }
 
-  return <View style={[styles.container, { backgroundColor: themePalette.background }]}>
-
+  return <Page style={[styles.container]}>
     <ScrollView style={styles.scrollContainer}>
       <StatusBar style="auto" />
       {
         deviceDetail && !errorMessage &&
-        <View style={{ marginBottom: 30 }}>
+
+        <View >
           {
             deviceDetail &&
             <View>
@@ -275,7 +276,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
           }
           {
             deviceDetail.sensorCollection &&
-            <View style={{ marginTop: 20 }}>
+            <View style={{ marginTop: 20, marginBottom:20 }}>
               {sectionHeader('Live Sensor Data')}
               <Text style={labelStyle}>ADC Sensors</Text>
               <ScrollView horizontal={true}>
@@ -304,7 +305,8 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
             </View>
           }
         </View>
+
       }
     </ScrollView>
-  </View>
+  </Page>
 }
