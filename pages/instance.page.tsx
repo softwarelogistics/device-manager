@@ -107,7 +107,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
         </Picker>
         <View>
           <ScrollView style={{ flexGrow: 1, marginBottom:20 }} >
-            <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', backgroundColor: themePalette.background, width: "100%", marginLeft:10, marginRight:10 }}>
+            <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', backgroundColor: themePalette.background, width: "100%" }}>
               {devices && devices.map((item, key) => {
                 return <Pressable onPress={() => showDevice(item)} key={item.id} >
                   <View style={[{ flex: 1, flexDirection: 'row', padding: 10, height: 90, width: 180, borderWidth: 1, backgroundColor: themePalette.inputBackgroundColor, borderRadius: 8, margin: 5, borderColor: themePalette.border }]}  >

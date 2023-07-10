@@ -17,6 +17,7 @@ export default function Page(props: any) {
     const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
     const [logoutSubscription, setLogoutSubscription] = useState<Subscription | undefined>(undefined);
     const [busySubscription, setBusySubscription] = useState<Subscription | undefined>(undefined);
+    const [errorSubscription, setErrorSubscription] = useState<Subscription | undefined>(undefined);
     const [isBusy, setIsBusy] = useState(false);
     const navigation = useNavigation();
 
@@ -25,6 +26,7 @@ export default function Page(props: any) {
         let logoutSubscription = HttpClient.logoutSubscription.addListener('logout', () => { setIsAuthenticated(false) });
         let busySubscription = NetworkCallStatusService.busySubscription.addListener('busy', () => setIsBusy(true));
         let idleSubscription = NetworkCallStatusService.busySubscription.addListener('idle', () => setIsBusy(false));
+        
 
         return (() => {
             AppServices.themeChangeSubscription.remove(themeChangedSubscription);

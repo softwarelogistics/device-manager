@@ -242,17 +242,20 @@ export class NuviotClientService {
     const promise = new Promise<Core.FormResult<TModel, TView>>((resolve, reject) => {
       this.http.get<Core.FormResult<TModel, TView>>(`${this.getApiUrl()}/${path}`)
         .then((response) => {
+          console.log('got response', response);
           NetworkCallStatusService.endCall();
           if (response.successful) {
+            console.log('path1')
             resolve(response);
           } else {
+            console.log('path2')
             this.errorReporter.addErrors(response.errors);
-            if (reject) {
-              reject(response.errors[0].message);
-            }
+            resolve(response);
+            console.log('path3')
           }
         },
           (err) => {
+            console.log('got error', err);
             let result: Core.FormResult<TModel, TView> = {
               resultId: '-1',
               successful: false,

@@ -299,17 +299,16 @@ export class DevicesService {
    * @param repoId Repository Id
    * @param deviceId Device Id
    */
-  public async getDevice(repoId: string, deviceId: string): Promise<Devices.DeviceDetail> {
+  public async getDevice(repoId: string, deviceId: string): Promise<Devices.DeviceDetail | null> {
     this.setDeviceDetail(undefined);
     this._deviceLoading$.next(undefined);
     const uri = `/api/device/${repoId}/${deviceId}/metadata`;
-    console.log(uri);
     let result = await this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(uri);
     this.setDeviceDetail(result.model);
     if(result.successful)
       return result.model;
     else
-      throw result.errors[0].message;
+      return null;
   }
 
 

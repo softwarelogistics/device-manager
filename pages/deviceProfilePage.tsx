@@ -45,20 +45,22 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
   const loadDevice = async () => {
     let fullDevice = await appServices.deviceServices.getDevice(repoId, id);
-    setDeviceDetail(fullDevice);
-    connectToDevice(fullDevice);
+    if(fullDevice) {
+      setDeviceDetail(fullDevice);
+      
 
-    await appServices.wssService.init('device', fullDevice.id);
-    appServices.wssService.onmessage = (e) => {
-      let json = e.data;
-      let wssMessage = JSON.parse(json);
-      let wssPayload = wssMessage.payloadJSON;
-      let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
+      //await appServices.wssService.init('device', fullDevice.id);
+      appServices.wssService.onmessage = (e) => {
+        let json = e.data;
+        let wssMessage = JSON.parse(json);
+        let wssPayload = wssMessage.payloadJSON;
+        let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
 
-      if (device) {
-        fullDevice.sensorCollection = device.sensorCollection;
-        fullDevice.lastContact = device.lastContact;
-        setDeviceDetail(fullDevice);
+        if (device) {
+          fullDevice!.sensorCollection = device.sensorCollection;
+          fullDevice!.lastContact = device.lastContact;
+          setDeviceDetail(fullDevice);
+        }
       }
     }
   }
@@ -224,9 +226,15 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const sensorBlock = (idx: number, sensors: Devices.Sensor[], icon: string) => {
     let sensor = sensors.find(snsr => snsr.portIndex == idx);
 
+    let sensorIndex = idx + 1;
+    if(sensorIndex > 8) sensorIndex -= 8;
+
+    let sensorName = sensor?.name ?? `Sensor ${sensorIndex}`;
+    
+
     return (
       <View style={[{ flex: 1, width: 100, backgroundColor: sensor ? 'green' : '#d0d0d0', margin: 5, justifyContent: 'center', borderRadius: 8 }]}>
-        <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : 'black' }}>Sensor {idx + 1}</Text>
+        <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : 'black' }}>{sensorName}</Text>
         <View >
           <Icon style={{ textAlign: 'center', color: sensor ? 'white' : '#a0a0a0' }} size={64} onPress={showConfigurePage} name={icon} />
         </View>
@@ -258,6 +266,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
             </View>
           }
           {
+            remoteDeviceState &&
             <View style={{ marginTop: 20 }}>
               {sectionHeader('Current Device Status')}
               {panelDetail('green', 'Firmware SKU', deviceDetail.actualFirmware)}
