@@ -18,6 +18,7 @@ import { Subscription } from "../utils/NuvIoTEventEmitter";
 import { PermissionsHelper } from "../services/ble-permissions";
 import { scanUtils } from "../services/scan-utils";
 import { NetworkCallStatusService } from "../services/network-call-status-service";
+import Page from "../mobile-ui-common/page";
 
 export default function AssociatePage({ navigation, props, route }: IReactPageServices) {
   const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
@@ -73,8 +74,10 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
   const setIsBusy = (value: boolean) => {
     if (value)
       NetworkCallStatusService.beginCall(busyMessage);
-    else
+    else {
+      console.log('set end call')
       NetworkCallStatusService.endCall();
+    }
   }
 
   if (initialCall) {
@@ -122,9 +125,9 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
   }
 
   const stopScanning = () => {
-    console.log('[ScanPage__StopScanning];');
+    console.log('[Associatepage__StopScanning];');
     if (isScanning) {
-      console.log('[ScanPage__StopScanning] Is Scanning;');
+      console.log('[Associatepage__StopScanning] Is Scanning;');
       if (!ble.simulatedBLE()) {
         ble.removeAllListeners('connecting');
         ble.removeAllListeners('connected');
@@ -135,6 +138,9 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
   }
 
   const selectDevice = async (device: BLENuvIoTDevice) => {
+    console.log('Select device');
+
+    
     let existingDevice = await appServices.deviceServices.getDevice(deviceRepoId, deviceId);
 
     if (Platform.OS === 'ios')
@@ -142,8 +148,9 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
     else
       existingDevice!.macAddress = device.peripheralId;
 
+      console.log('before BT C');
       setIsBusy(true);
-
+      console.log('after BT C');
       if (await ble.connectById(device.peripheralId)) {
         await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'deviceid=' + existingDevice!.deviceId);
         await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'orgid=' + existingDevice!.ownerOrganization.id);
@@ -151,10 +158,12 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
         await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'id=' + existingDevice!.id);
         await ble.disconnectById(device.peripheralId);
       }
-
+      console.log('BEFORE BT D');
+      setIsBusy(false);
+      console.log('after BT D');
+  
       await appServices.deviceServices.updateDevice(existingDevice!);
 
-      setIsBusy(false);
       navigation.goBack();
   }
 
@@ -206,7 +215,7 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
     });
   }, []);
 
-  return <View style={[styles.container, { padding: 0, backgroundColor: themePalette.background }]}>
+  return <Page style={[styles.container, { padding: 0, backgroundColor: themePalette.background }]}>
     {
       isScanning &&
       <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
@@ -239,7 +248,6 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
         />
       </>
     }
-
     {
       !isScanning && devices.length <= 0 &&
       <View style={[styles.centeredContent, { padding: 50, backgroundColor: themePalette.background }]}>
@@ -249,7 +257,7 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
         </TouchableOpacity>
       </View>
     }
-  </View>
+  </Page>
 }
 
 

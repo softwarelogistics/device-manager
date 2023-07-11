@@ -15,7 +15,7 @@ export class NetworkCallStatusService {
         this._activeCallCount++;
         this._loadingMessages.push(msg);
 
-        console.log(this._activeCallCount);
+        console.log('Begin Active Call Count', this._activeCallCount);
         NetworkCallStatusService.busySubscription.emit('busy', this._activeCallCount);
     }
 
@@ -27,7 +27,7 @@ export class NetworkCallStatusService {
                 NetworkCallStatusService.busySubscription.emit('idle', this._activeCallCount);
             }
 
-            console.log(this._activeCallCount);
+            console.log('End Active Call Count', this._activeCallCount);
         }
         else {
             throw 'Active call count is already zero at end call.';

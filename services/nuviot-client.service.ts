@@ -242,21 +242,18 @@ export class NuviotClientService {
     const promise = new Promise<Core.FormResult<TModel, TView>>((resolve, reject) => {
       this.http.get<Core.FormResult<TModel, TView>>(`${this.getApiUrl()}/${path}`)
         .then((response) => {
-          console.log('got response', response);
           NetworkCallStatusService.endCall();
           if (response.successful) {
-            console.log('path1')
             resolve(response);
           } else {
-            console.log('path2')
             this.errorReporter.addErrors(response.errors);
             resolve(response);
-            console.log('path3')
           }
         },
           (err) => {
-            console.log('got error', err);
-            let result: Core.FormResult<TModel, TView> = {
+            NetworkCallStatusService.endCall(); 
+            this.errorReporter.addMessage(err.message);
+          let result: Core.FormResult<TModel, TView> = {
               resultId: '-1',
               successful: false,
               model: null as TModel,
@@ -268,9 +265,7 @@ export class NuviotClientService {
               formFields: []
             };
             resolve(result);
-            NetworkCallStatusService.endCall();
-            this.errorReporter.addMessage(err.message);
-
+  
             //throw err.message ?? err;
           });
     });
@@ -383,7 +378,11 @@ export class NuviotClientService {
 
     NetworkCallStatusService.beginCall();
 
-    return await this.http.put(`${this.getApiUrl()}/${path}`, model);
+    let result = await this.http.put(`${this.getApiUrl()}/${path}`, model);
+
+    NetworkCallStatusService.endCall();
+
+    return result as Core.InvokeResultEx<TResponse>;
   }
 
   update<TModel>(path: string, model: TModel): Promise<Core.InvokeResult> {
