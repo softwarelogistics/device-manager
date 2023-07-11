@@ -8,6 +8,7 @@ const fontSizes = {
 
   large: 24,
   medium: 18,
+  mediumSmall: 14,
   small: 10
 };
 

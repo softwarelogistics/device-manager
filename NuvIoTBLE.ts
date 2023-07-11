@@ -304,6 +304,10 @@ export class NuvIoTBLE {
     console.log('Disconnected from ' + data.peripheral);
   }
 
+  async isConnected(id: string): Promise<boolean> {
+    return await BleManager.isPeripheralConnected(id)
+  }
+
   async connect(peripheral: Peripheral) {
     if (this.simulatedBLE()) {
 

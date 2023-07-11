@@ -14,6 +14,7 @@ import { BLENuvIoTDevice } from "../models/device/device-local";
 import { StatusBar } from "expo-status-bar";
 import { RemoteDeviceState } from "../models/blemodels/state";
 import Page from "../mobile-ui-common/page";
+import { IOValues } from "../models/blemodels/iovalues";
 
 const IDLE = 0;
 const CONNECTING = 1;
@@ -28,6 +29,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [deviceDetail, setDeviceDetail] = useState<Devices.DeviceDetail | undefined | any>();
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
+  const [hasMacAddress, setHasMacAddress] = useState<boolean>(false);
   const [deviceInRange, setDeviceInRange] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [connectionState, setConnectionState] = useState<number>(IDLE);
@@ -42,12 +44,13 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const barGreyChevronRightStyle: TextStyle = ViewStylesHelper.combineTextStyles([chevronBarVerticalStyle, { backgroundColor: palettes.gray.v20, fontSize: 18, paddingLeft: 4, paddingRight: 4, width: '98%', textAlignVertical: 'center' }]);
   const barGreyChevronRightLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([{ fontWeight: '700' }]);
   const labelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
+  const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
 
   const loadDevice = async () => {
     let fullDevice = await appServices.deviceServices.getDevice(repoId, id);
-    if(fullDevice) {
+    if (fullDevice) {
       setDeviceDetail(fullDevice);
-      
+      await connectToDevice(fullDevice);
 
       //await appServices.wssService.init('device', fullDevice.id);
       appServices.wssService.onmessage = (e) => {
@@ -65,6 +68,15 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     }
   }
 
+  const charHandler = (value: any) => {
+    console.log('handler');
+    if (value.characteristic == CHAR_UUID_STATE) {
+      console.log(value.value);
+      let rds = new RemoteDeviceState(value.value);
+      setRemoteDeviceState(rds);
+    }
+  }
+
   const checkPermissions = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       if (Platform.Version >= 23) {
@@ -79,36 +91,82 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     }
   }
 
+  const disconnectHandler = (id: string) => {
+    console.log(`Disconnected from device on live device page: ${id}`)
+    setConnectionState(DISCONNECTED);
+    setRemoteDeviceState(undefined);
+
+    ble.removeAllListeners('receive');
+    ble.removeAllListeners('disconnected');
+  }
+
   const connectToDevice = async (device: Devices.DeviceDetail) => {
     setDevices([]);
 
     console.log('attempt to connect to device ' + device.deviceId);
 
+
+    setHasMacAddress(false);
+    setPeripheralId(undefined);
+    setDeviceInRange(false);
+
     let hasPermissions = await checkPermissions();
     if (hasPermissions) {
-      if (device!.macAddress) {
+      if (device!.macAddress && device.macAddress.length > 0) {
+        setHasMacAddress(true);
         setPeripheralId(device!.macAddress);
-        if (await ble.connectById(device!.macAddress)) {
-          console.log('connected - android');
-          await ble.disconnectById(device!.macAddress)
-          setPeripheralId(device!.macAddress);
+
+        console.log('android path', device!.macAddress);
+
+        if (await ble.isConnected(device!.macAddress)) {
+          ble.addListener('receive', charHandler);
+          ble.addListener('disconnected', disconnectHandler);
           setDeviceInRange(true);
+          setConnectionState(CONNECTED);
         }
         else {
-          setDeviceInRange(false);
+          setConnectionState(CONNECTING);
+
+          if (await ble.connectById(device!.macAddress)) {
+            ble.addListener('receive', charHandler);
+            ble.addListener('disconnected', disconnectHandler);
+            setDeviceInRange(true);
+            setConnectionState(CONNECTED);
+
+            let success = await ble.listenForNotifications(device!.macAddress, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
+            if (!success) setErrorMessage('Could not listen for notifications.');
+            success = await ble.listenForNotifications(device!.macAddress, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
+            if (!success) setErrorMessage('Could not listen for notifications.');
+          }
+          else {
+            setDeviceInRange(false);
+            setRemoteDeviceState(undefined);
+          }
         }
       }
 
-      if (device!.iosBLEAddress) {
+      if (device!.iosBLEAddress && device.iosBLEAddress.length > 0) {
+        setHasMacAddress(true);
+
+        console.log('ios path');
         setPeripheralId(device!.iosBLEAddress);
-        if (await ble.connectById(device!.iosBLEAddress)) {
-          console.log('connected - ios');
-          setPeripheralId(device!.iosBLEAddress);
-          await ble.disconnectById(device!.iosBLEAddress);
+        setConnectionState(CONNECTING);
+        if (await ble.isConnected(device!.iosBLEAddress)) {
+          ble.addListener('receive', charHandler);
+          ble.addListener('disconnected', disconnectHandler);
           setDeviceInRange(true);
+          setConnectionState(CONNECTED);
         }
         else {
-          setDeviceInRange(false);
+          if (await ble.connectById(device!.iosBLEAddress)) {
+            ble.addListener('receive', charHandler);
+            ble.addListener('disconnected', disconnectHandler);
+            setPeripheralId(device!.iosBLEAddress);
+            setConnectionState(CONNECTED);
+          }
+          else {
+            setDeviceInRange(false);
+          }
         }
       }
     }
@@ -125,17 +183,36 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
       await ble.disconnectById(peripheralId);
       setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
+
+      appServices.wssService.close();
+      let params = { peripheralId: peripheralId, repoId: repoId, deviceId: id }
+      console.log('launch config page')
+      console.log(params);
+
+      navigation.navigate('configureDevice', params);
     }
-
-    appServices.wssService.close();
-    let params = { peripheralId: peripheralId, repoId: repoId, deviceId: id }
-    console.log('launch config page')
-    console.log(params);
-
-    navigation.navigate('configureDevice', params);
+    else {
+      alert('You must be connected to your device via Bluetooth to Remotely Configure device.');
+    }
   }
 
+
+  const showScanPage = async () => {
+      ble.removeAllListeners('receive');
+      ble.removeAllListeners('disconnected');
+      let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
+      await ble.disconnectById(peripheralId);
+      setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
+
+      appServices.wssService.close();
+      let params = { repoId: repoId, deviceId: id }
+      navigation.navigate('associatePage', params);
+  }
+
+
   useEffect(() => {
+    console.log('initial call.', initialCall);
+
     if (initialCall) {
       loadDevice();
       setInitialCall(false);
@@ -148,24 +225,29 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} >
-          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor} onPress={(() => showConfigurePage())} name='ios-settings-sharp' />
         </View>),
     });
 
     const focusSubscription = navigation.addListener('focus', () => {
       if (connectionState == DISCONNECTED_PAGE_SUSPENDED) {
+        setRemoteDeviceState(undefined);
+        setDeviceInRange(false);
         loadDevice();
       }
     });
 
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
+      console.log('before remove called CS=> ', connectionState);
       if (connectionState == CONNECTING) {
         ble.cancelConnect();
       }
       else if (connectionState == CONNECTED) {
-        console.log('DevicePage_BeforeRemove.');
+        console.log('DevicePage_BeforeRemove - ', peripheralId);
         ble.removeAllListeners('receive');
         ble.removeAllListeners('disconnected');
+        ble.stopListeningForNotifications(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
+        ble.stopListeningForNotifications(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
+
         await ble.disconnectById(peripheralId!);
       }
 
@@ -173,10 +255,12 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     });
 
     return (() => {
+      console.log('return was called');
+
       focusSubscription();
       blurSubscription();
     });
-  }, []);
+  }, [deviceInRange, connectionState]);
 
 
   const sectionHeader = (sectionHeader: string) => {
@@ -227,10 +311,10 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     let sensor = sensors.find(snsr => snsr.portIndex == idx);
 
     let sensorIndex = idx + 1;
-    if(sensorIndex > 8) sensorIndex -= 8;
+    if (sensorIndex > 8) sensorIndex -= 8;
 
     let sensorName = sensor?.name ?? `Sensor ${sensorIndex}`;
-    
+
 
     return (
       <View style={[{ flex: 1, width: 100, backgroundColor: sensor ? 'green' : '#d0d0d0', margin: 5, justifyContent: 'center', borderRadius: 8 }]}>
@@ -241,6 +325,8 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
         <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : '#d0d0d0' }}>{sensor?.value ?? '-'}</Text>
       </View>)
   }
+
+  console.log('has ma address', hasMacAddress);
 
   return <Page style={[styles.container]}>
     <ScrollView style={styles.scrollContainer}>
@@ -261,8 +347,32 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
           }
           {
             deviceInRange &&
+            <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
+              <Text style={labelStyle}>Local Device Connected</Text>
+              <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showConfigurePage())} name='ios-settings-sharp' />
+            </View>
+          }
+          {
+            !deviceInRange &&
             <View>
-              <Text>In Range</Text>
+              <Text style={labelStyle}>Not Connected</Text>
+              {
+                hasMacAddress == false &&
+                <View>
+                <Text style={contentStyle}>Device is not associated</Text>
+                <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
+                <Text style={contentStyle}>Please scan and associate. {hasMacAddress}</Text>
+                  <Icon.Button size={18} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showScanPage())} name='ios-settings-sharp' />
+                </View>
+                </View>
+              }
+              {
+                hasMacAddress == true &&
+                <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
+                  <Text style={contentStyle}>Hardware has been associated</Text>
+                  <Icon style={{ textAlign: 'center', }} size={18} color="white" onPress={() => showScanPage()} name='bluetooth-outline' />
+                </View>
+              }
             </View>
           }
           {
@@ -285,7 +395,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
           }
           {
             deviceDetail.sensorCollection &&
-            <View style={{ marginTop: 20, marginBottom:20 }}>
+            <View style={{ marginTop: 20, marginBottom: 20 }}>
               {sectionHeader('Live Sensor Data')}
               <Text style={labelStyle}>ADC Sensors</Text>
               <ScrollView horizontal={true}>

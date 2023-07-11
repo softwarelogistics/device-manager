@@ -32,6 +32,7 @@ import { ProfilePage } from './pages/profilePage';
 import { DeviceProfilePage } from './pages/deviceProfilePage';
 import { WelcomePage } from './pages/welcomePage';
 import { AboutPage } from './pages/about.page';
+import AssociatePage from './pages/associatePage';
 
 const Stack = createNativeStackNavigator();
 
@@ -142,6 +143,7 @@ const App = () => {
         <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
         <Stack.Screen name="registerPage" component={RegisterPage} options={{ title: ' ' }} />
         <Stack.Screen name="scanPage" component={ScanPage} options={{ title: 'Scan for Devices' }} />
+        <Stack.Screen name="associatePage" component={AssociatePage} options={{ title: 'Associate Existing Device' }} />
         <Stack.Screen name="sensorsPage" component={SensorsPage} options={{ title: 'Sensors' }} />
         <Stack.Screen name="settingsPage" component={ConnectivityPage} options={{ title: 'Configure Device: Connectivity' }} />
         <Stack.Screen name="splashPage" component={SplashPage} options={{ title: 'Welcome' }} />
