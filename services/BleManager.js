@@ -237,8 +237,10 @@ class BleManager {
   }
 
   async isBLEEnabled() {
-    let result = await bleManager.checkState();
-    console.log('is enabled: ' + result);
+    //let result = await bleManager.checkState();
+    //console.log('is enabled: ' + result);
+
+    return true;
   }
 
   startAsync(options) {
