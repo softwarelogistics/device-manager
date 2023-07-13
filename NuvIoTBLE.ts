@@ -2,7 +2,7 @@ import { Platform, NativeEventEmitter, NativeModules } from "react-native";
 
 import { NuvIoTEventEmitter } from './utils/NuvIoTEventEmitter'
 
-import { Peripheral } from 'react-native-ble-manager';
+import { BleState, Peripheral } from 'react-native-ble-manager';
 
 const BleManagerModule = NativeModules.BleManager;
 
@@ -11,7 +11,7 @@ const bleManagerEmitter =  simulateBLE ? null : new NativeEventEmitter(BleManage
 
 console.log('Application Startup, BLE is forced to simulated => ', simulateBLE);
 
-import BleManager, { requestMTU } from './services/BleManager'
+import BleManager from './services/BleManager'
 var Buffer = require('buffer/').Buffer
 
 export const SVC_UUID_NUVIOT = "d804b639-6ce7-4e80-9f8a-ce0f699085eb"
@@ -255,8 +255,11 @@ export class NuvIoTBLE {
       }, 5000);
     }
     else {
-      if (!this.isScanning) {
-        await BleManager.isBLEEnabled();
+      if (!this.isScanning) { 
+        let state = await BleManager.checkState();
+        if(state == BleState.Off){
+          console.log('ble radio is not on.')
+        }
         
         console.log('We are starting to scan');
         BleManager.scan([SVC_UUID_NUVIOT], 5, false)
@@ -331,7 +334,7 @@ export class NuvIoTBLE {
     }
   }
 
-  bin2String(array: []) {
+  bin2String(array: number[]) {
     var result = "";
     for (const char of array) {
       result += String.fromCharCode(char);
@@ -434,7 +437,7 @@ export class NuvIoTBLE {
 
             if (characteristicId) {
               console.log('BLEManager__connectById: Connected, id=' + id);
-              for (let chr of services.characteristics) {
+              for (let chr of services.characteristics!) {
 
                 if (chr.characteristic.toLocaleLowerCase() == characteristicId.toLocaleLowerCase()) {
                   console.log('BLEManager__connectById: Connected to NuvIoT Device, id=' + id);
