@@ -7,13 +7,15 @@ export interface Subscription {
 export class NuvIoTEventEmitter {
     subscriptions: Subscription[] = [];
 
+    debug = false;
+
     static eventId: number = 1;
 
     emit(name: string, data: any) {        
         for(let subscription of this.subscriptions ){
-            console.log(subscription.name + ' := ' + name);
+            if(this.debug) console.log(subscription.name + ' := ' + name);
             if(subscription.name == name) {                
-                console.log('sending');    
+                if(this.debug) console.log('sending');    
                 subscription.callback(data);
             }
         }
@@ -22,7 +24,7 @@ export class NuvIoTEventEmitter {
     addListener(name: string, callback: (event: any) => void) {
         NuvIoTEventEmitter.eventId++;
 
-        console.log('add sub=>' + name);
+        if(this.debug) console.log('add sub=>' + name);
         let subscription = {
             name: name,
             serialNumber: `eventId${NuvIoTEventEmitter.eventId}`,
@@ -34,9 +36,7 @@ export class NuvIoTEventEmitter {
         return subscription;
     }
 
-    remove(subscription: Subscription){
-        
-
+    remove(subscription: Subscription){        
         let idx = this.subscriptions.indexOf(subscription);
         if(idx != -1) {
             this.subscriptions.splice(idx, 1);            
@@ -44,7 +44,7 @@ export class NuvIoTEventEmitter {
     }
 
     removeAllListeners(name: string) {
-        console.log('remove sub=>' + name);
+        if(this.debug) console.log('remove sub=>' + name);
 
         let activeSubscriptions = this.subscriptions.filter(sub=>sub.name == name);
         for(let subscription of activeSubscriptions) {

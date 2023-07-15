@@ -23,7 +23,7 @@ export default function NavButton(props: any) {
     <TouchableOpacity style={ViewStylesHelper.combineViewStyles([ styles.buttonExternalLogin, { backgroundColor: themePalette.buttonTertiary, borderColor: themePalette.buttonTertiaryBorderColor }])}
       onPress={() => props.onPress(props.label)}>
       <Image source={props.imageUrl} style={styles.buttonExternalLoginLogo} />
-      <Text style={{marginLeft:10, marginTop:5, fontSize:24, color: themePalette.buttonTertiaryText }} > 
+      <Text style={{marginLeft:10, marginTop:8, fontSize:24, color: themePalette.buttonTertiaryText }} > 
         {props.label}
       </Text>
     </TouchableOpacity>

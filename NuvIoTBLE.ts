@@ -207,9 +207,19 @@ export class NuvIoTBLE {
   }
 
   async listenForNotifications(deviceId: string, serviceId: string, characteristicId: string): Promise<boolean> {
-    console.log('BLEManager__listenForNotifications, char=' + characteristicId);
+    console.log(`BLEManager__listenForNotifications__gettingServices, deviceid=${deviceId}, serviceid=${serviceId} char= ${characteristicId}`);
+
+    let peripheral = await BleManager.retrieveServices(deviceId);
+    console.log(`found services: ${peripheral.services?.length}`);
+    for(let service of peripheral.services!){
+      console.log(`service ${service.uuid}`);
+    }
+
     try {
+      console.log('BLEManager__listenForNotifications starting, char=' + characteristicId);
+
       await BleManager.startNotification(deviceId, serviceId, characteristicId);
+
       console.log('BLEManager__listenForNotifications started, char=' + characteristicId);
       return true;
     }
@@ -428,17 +438,21 @@ export class NuvIoTBLE {
         else {
           try {
             console.log('BLEManager__connectById: Connect, id=' + id);
+            let timeoutId = setTimeout(() => { BleManager.disconnect(id); console.log(`5 second timeout for device id ${id}`) }, 5000);            
             await BleManager.connect(id);
+            // if we got here, we should clear the timeout.
+            clearTimeout(timeoutId);
 
+            console.log('BLEManager__connectById: Connected, id=' + id);
+            
             let services = await BleManager.retrieveServices(id);
             if (Platform.OS == "android") {
               await BleManager.requestMTU(id, 512);
             }
 
             if (characteristicId) {
-              console.log('BLEManager__connectById: Connected, id=' + id);
+              console.log('BLEManager__connectById: Checking Services, id=' + id);
               for (let chr of services.characteristics!) {
-
                 if (chr.characteristic.toLocaleLowerCase() == characteristicId.toLocaleLowerCase()) {
                   console.log('BLEManager__connectById: Connected to NuvIoT Device, id=' + id);
                   return true;

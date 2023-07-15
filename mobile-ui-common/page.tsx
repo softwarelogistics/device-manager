@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, Button } from "react-native";
+import { View, Text, Image, Button } from "react-native";
 import AppServices from "../services/app-services";
 import styles from "../styles";
 import { ThemePalette } from "../styles.palette.theme";
@@ -10,6 +10,7 @@ import { useNavigation } from "@react-navigation/native";
 import { HttpClient } from "../core/utils";
 import { NetworkCallStatusService } from "../services/network-call-status-service";
 import { IReactPageServices } from "../services/react-page-services";
+import StdButton from "./std-button";
 
 export default function Page(props: any) {
     const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
@@ -26,7 +27,7 @@ export default function Page(props: any) {
         let logoutSubscription = HttpClient.logoutSubscription.addListener('logout', () => { setIsAuthenticated(false) });
         let busySubscription = NetworkCallStatusService.busySubscription.addListener('busy', () => setIsBusy(true));
         let idleSubscription = NetworkCallStatusService.busySubscription.addListener('idle', () => setIsBusy(false));
-        
+
 
         return (() => {
             AppServices.themeChangeSubscription.remove(themeChangedSubscription);
@@ -42,19 +43,20 @@ export default function Page(props: any) {
     };
 
     return (
-        <View style={[styles.container,  {width:'100%', backgroundColor: themePalette.background }]}>
+        <View style={[styles.container, { width: '100%', backgroundColor: themePalette.background }]}>
             {
                 isAuthenticated && !isBusy &&
-                <View style={[styles.container,  {width:'100%',  backgroundColor: themePalette.background }]}>
+                <View style={[styles.container, { width: '100%', backgroundColor: themePalette.background }]}>
                     {props.children}
                 </View>
             }
             {
                 !isAuthenticated && !isBusy &&
-                <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-                    <Button onPress={login} title="Login"></Button>
-                    <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Sorry, you have been logged out</Text>                    
-                    <Text style={[styles.spinnerText, { color: themePalette.shellTextColor, backgroundColor: 'green' }]}>Sorry, you have been logged out</Text>                    
+
+                <View style={styles.formGroup}>
+                    <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />                    
+                    <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Sorry, you have been logged out due to inactivity.</Text>
+                    <StdButton onPress={login} label="Login"></StdButton>
                 </View>
             }
             {
@@ -63,7 +65,7 @@ export default function Page(props: any) {
                     <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Please Wait</Text>
                     <ProgressSpinner isBusy={isBusy} />
                 </View>
-            }            
+            }
         </View>
     )
 }

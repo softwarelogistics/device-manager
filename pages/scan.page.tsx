@@ -32,9 +32,6 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
   
   const deviceRepoId = route.params.repoId;
 
-  console.log('incoming');
-  console.log(route.params);
-
   const checkPermissions = async () => {
     if (Platform.OS === 'android') {
       let hasPermissions = false;

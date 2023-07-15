@@ -18,6 +18,8 @@ import { ThemePalette } from "../styles.palette.theme";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import palettes from "../styles.palettes";
 import colors from "../styles.colors";
+import Page from "../mobile-ui-common/page";
+import { NetworkCallStatusService } from "../services/network-call-status-service";
 
 const IDLE = 0;
 const CONNECTING = 1;
@@ -37,8 +39,6 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const [sensorValues, setSensorValues] = useState<IOValues | undefined>(undefined);
   const [connectionState, setConnectionState] = useState<number>(IDLE);
   const [sysConfig, setSysConfig] = useState<SysConfig>();
-  const [isBusy, setIsBusy] = useState<boolean>(true);
-  const [busyMessage, setBusyMessage] = useState<String>("Retrieving Device");
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
   const peripheralId = route.params.id;
@@ -78,10 +78,11 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
 
   const connectToBLE = async () => {
     setErrorMessage(undefined);
-    setIsBusy(true);
     setConnectionState(CONNECTING);
-    setBusyMessage("Establishing BLE Connection to Device.");
+    NetworkCallStatusService.beginCall('Establishing BLE Connection to Device.')
     if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
+
+      NetworkCallStatusService.endCall();
       setConnectionState(CONNECTED);
       await ble.subscribe(ble);
 
@@ -91,16 +92,25 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         setSysConfig(sysConfig);
 
         try {
-          setBusyMessage("Loading Device Details From Server");
+          NetworkCallStatusService.beginCall('Loading Device Details from Server.')
+          console.log(`Requesting Device: repoid: ${sysConfig.repoId}, ${sysConfig.id}`);
           let device = await appServices.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
           setDeviceDetail(device);
         }
         catch (e) {
           alert(e);
+          
+          return;
+        }
+        finally
+        {
+          NetworkCallStatusService.endCall();
         }
       }
       else {
+        NetworkCallStatusService.endCall();        
         setErrorMessage(`Could not get sys config for ${peripheralId}`)
+        return;
       }
 
       ble.removeAllListeners('receive');
@@ -109,20 +119,28 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       ble.addListener('receive', charHandler);
       ble.addListener('disconnected', disconnectHandler);
 
+      NetworkCallStatusService.beginCall('Subscribing to live notifications.')
       let success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
       if (!success) {
         setErrorMessage('Could not listen for notifications.');
+      }
+      else {
+        console.log('listening started')
       }
 
       success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
       if (!success) {
         setErrorMessage('Could not listen for notifications.');
       }
+      else {
+        console.log('listening started')
+      }
+
+      NetworkCallStatusService.endCall();
     }
     else {
       setErrorMessage(`Could not establish BLE connection to ${peripheralId}`);
-      setBusyMessage("Not Connected.");
-      setIsBusy(false);
+      NetworkCallStatusService.endCall();
       setConnectionState(DISCONNECTED);
       window.setTimeout(() => connectToBLE(), 1000);
     }
@@ -142,7 +160,6 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const loadDevice = async () => {
     if (ble.simulatedBLE()) {
       setConnectionState(CONNECTED);
-      setIsBusy(false);
       setSysConfig(simData.getSysConfig());
       setRemoteDeviceState(simData.getRemoteDeviceState());
 
@@ -174,8 +191,8 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       }
       else if (connectionState == CONNECTED) {
         console.log('DevicePage_BeforeRemove.');
-        ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-        ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
+        await ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
+        await ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
         ble.removeAllListeners('receive');
         ble.removeAllListeners('disconnected');
         await ble.disconnectById(peripheralId);
@@ -253,7 +270,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       </View>)
   }
 
-  return <View style={[styles.container, { backgroundColor: themePalette.background }]}>
+  return <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
     {
       errorMessage &&
       <View style={{ marginBottom: 30 }}>
@@ -325,14 +342,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
 
           }
         </View>
-      }
-      {
-        connectionState == CONNECTING &&
-        <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-          <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Connecting to BLE</Text>
-          <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
-        </View>
-      }
+      }      
       {
         connectionState == DISCONNECTED &&
         <View>
@@ -351,6 +361,6 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         <Text style={{ color: themePalette.shellTextColor }}>Please Wait Reconnecting</Text>
       }
     </ScrollView>
-  </View>
+  </Page>
 
 }

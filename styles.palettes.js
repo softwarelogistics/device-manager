@@ -144,6 +144,7 @@ const palettes = {
     shellNavColor: '#D1E4F6',
     shellTextColor: '#FFFFFF',
     toggleColor: '#F3F3F3',
+    accentColor: '#d48d17',
     name: 'dark',
   },
 
@@ -166,6 +167,7 @@ const palettes = {
     shellNavColor: '#D48D17',
     shellTextColor: '#000000',
     toggleColor: '#000000',
+    accentColor: '#d48d17',
     name: 'light',
   },
 };

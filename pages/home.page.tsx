@@ -104,7 +104,7 @@ export default function HomePage({ navigation }: IReactPageServices) {
             <Pressable onPress={() => showInstance(item)} key={item.id} >
               <View style={[styles.listRow, { padding: 10, marginLeft:10, marginRight:10, marginBottom: 10, height: 60, backgroundColor: themePalette.inputBackgroundColor, }]}  >
                 <SLIcon icon={item.icon} />
-                <Text style={[{ marginLeft: 3, marginTop: 3, color: themePalette.shellTextColor, fontSize: 24, flex: 3 }]}>{item.name}</Text>
+                <Text style={[{  marginLeft:10,  marginTop: 3, color: themePalette.shellTextColor, fontSize: 24, flex: 3 }]}>{item.name}</Text>
               </View>
             </Pressable>
           }

@@ -141,14 +141,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
             <Text style={[styles.header, styles.mt_20, { color: themePalette.shellTextColor }]}>OR</Text>
           }
           <NavButton label="Sign in with Email" imageUrl={require('../assets/loginicons/email.png')} onPress={() => setIsSignInEmail(true)}></NavButton>
-        </View>
-      }
-      {
-        !isBusy && false &&
-        <View style={styles.authCallToActionView}>
-          <View style={callToActionView} onTouchStart={() => register()}>
-            <Text style={[styles.authActionHeaders, { color: themePalette.shellTextColor }]}>Need an Account? <Text style={styles.authActionLink}>Register now.</Text></Text>
-          </View>
+          
         </View>
       }
     </Page>

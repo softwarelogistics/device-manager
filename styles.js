@@ -72,6 +72,13 @@ const styles = StyleSheet.create({
     marginHorizontal: "1%",
   },
 
+  link: {
+    color: colors.accentColor,
+    fontSize: fontSizes.medium,
+    marginHorizontal: "1%",
+  },
+
+
   currentOrganizationView: {
     width: '100%',
     height: 128,

@@ -32,7 +32,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     let result = await appServices.deviceServices.getDevicesForRepoAsync(deviceRepoId)
     let uniqueDeviceModels: Core.EntityHeader[] = [];
 
-    for (let device of result.model) {
+    for (let device of result.model!) {
       if (uniqueDeviceModels.filter(mod => mod.id == device.deviceTypeId).length == 0) {
         uniqueDeviceModels.push({ id: device.deviceTypeId, text: device.deviceType })
       }
@@ -43,7 +43,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     uniqueDeviceModels.unshift({ id: 'all', text: 'All Device Models' });
     setDeviceModelFilter('all');
 
-    let devices = result.model.sort((a, b) => a.deviceName > b.deviceName ? 1 : -1);
+    let devices = result.model!.sort((a, b) => a.deviceName > b.deviceName ? 1 : -1);
 
     setDevices(devices);
     setAllDevices(devices);
@@ -105,8 +105,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
         <Picker selectedValue={deviceModelFilter} onValueChange={deviceTypeChanged} style={{ flex: 1, backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
           {deviceModels.map(itm => <Picker.Item key={itm.id} label={itm.text} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />)}
         </Picker>
-        <View>
-          <ScrollView style={{ flexGrow: 1, marginBottom:20 }} >
+          <ScrollView style={{ flexGrow: 1, marginBottom:30 }} >
             <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', backgroundColor: themePalette.background, width: "100%" }}>
               {devices && devices.map((item, key) => {
                 return <Pressable onPress={() => showDevice(item)} key={item.id} >
@@ -120,7 +119,6 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
 
             </View>
           </ScrollView>
-        </View>
       </View>
     </Page>
   )

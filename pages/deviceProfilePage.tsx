@@ -49,6 +49,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const loadDevice = async () => {
     let fullDevice = await appServices.deviceServices.getDevice(repoId, id);
     if (fullDevice) {
+      console.log('loaded device.');
       setDeviceDetail(fullDevice);
       await connectToDevice(fullDevice);
 
@@ -65,6 +66,9 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
           setDeviceDetail(fullDevice);
         }
       }
+    }
+    else {
+      setErrorMessage('Sorry - Could Not Load Device.');
     }
   }
 
@@ -100,75 +104,81 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     ble.removeAllListeners('disconnected');
   }
 
+  const tryConnectViaAndroid = async (device: Devices.DeviceDetail) => {
+    if (device!.macAddress && device.macAddress.length > 0) {
+      setHasMacAddress(true);
+      setPeripheralId(device!.macAddress);
+
+      console.log('android path', device!.macAddress);
+
+      if (await ble.isConnected(device!.macAddress)) {
+        ble.addListener('receive', charHandler);
+        ble.addListener('disconnected', disconnectHandler);
+        setDeviceInRange(true);
+        setConnectionState(CONNECTED);
+      }
+      else {
+        setConnectionState(CONNECTING);
+
+        if (await ble.connectById(device!.macAddress)) {
+          ble.addListener('receive', charHandler);
+          ble.addListener('disconnected', disconnectHandler);
+          setDeviceInRange(true);
+          setConnectionState(CONNECTED);
+
+          let success = await ble.listenForNotifications(device!.macAddress, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
+          if (!success) setErrorMessage('Could not listen for notifications.');
+          success = await ble.listenForNotifications(device!.macAddress, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
+          if (!success) setErrorMessage('Could not listen for notifications.');
+        }
+        else {
+          setDeviceInRange(false);
+          setRemoteDeviceState(undefined);
+        }
+      }
+    }
+  }
+
+  const tryConnectViaIoS = async (device: Devices.DeviceDetail) => {
+    if (device!.iosBLEAddress && device.iosBLEAddress.length > 0) {
+      setHasMacAddress(true);
+
+      console.log('ios path');
+      setPeripheralId(device!.iosBLEAddress);
+      setConnectionState(CONNECTING);
+      if (await ble.isConnected(device!.iosBLEAddress)) {
+        ble.addListener('receive', charHandler);
+        ble.addListener('disconnected', disconnectHandler);
+        setDeviceInRange(true);
+        setConnectionState(CONNECTED);
+      }
+      else {
+        if (await ble.connectById(device!.iosBLEAddress)) {
+          ble.addListener('receive', charHandler);
+          ble.addListener('disconnected', disconnectHandler);
+          setPeripheralId(device!.iosBLEAddress);
+          setConnectionState(CONNECTED);
+        }
+        else {
+          setDeviceInRange(false);
+        }
+      }
+    }
+  }
+
   const connectToDevice = async (device: Devices.DeviceDetail) => {
     setDevices([]);
-
-    console.log('attempt to connect to device ' + device.deviceId);
-
 
     setHasMacAddress(false);
     setPeripheralId(undefined);
     setDeviceInRange(false);
 
     let hasPermissions = await checkPermissions();
-    if (hasPermissions) {
-      if (device!.macAddress && device.macAddress.length > 0) {
-        setHasMacAddress(true);
-        setPeripheralId(device!.macAddress);
-
-        console.log('android path', device!.macAddress);
-
-        if (await ble.isConnected(device!.macAddress)) {
-          ble.addListener('receive', charHandler);
-          ble.addListener('disconnected', disconnectHandler);
-          setDeviceInRange(true);
-          setConnectionState(CONNECTED);
-        }
-        else {
-          setConnectionState(CONNECTING);
-
-          if (await ble.connectById(device!.macAddress)) {
-            ble.addListener('receive', charHandler);
-            ble.addListener('disconnected', disconnectHandler);
-            setDeviceInRange(true);
-            setConnectionState(CONNECTED);
-
-            let success = await ble.listenForNotifications(device!.macAddress, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-            if (!success) setErrorMessage('Could not listen for notifications.');
-            success = await ble.listenForNotifications(device!.macAddress, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-            if (!success) setErrorMessage('Could not listen for notifications.');
-          }
-          else {
-            setDeviceInRange(false);
-            setRemoteDeviceState(undefined);
-          }
-        }
-      }
-
-      if (device!.iosBLEAddress && device.iosBLEAddress.length > 0) {
-        setHasMacAddress(true);
-
-        console.log('ios path');
-        setPeripheralId(device!.iosBLEAddress);
-        setConnectionState(CONNECTING);
-        if (await ble.isConnected(device!.iosBLEAddress)) {
-          ble.addListener('receive', charHandler);
-          ble.addListener('disconnected', disconnectHandler);
-          setDeviceInRange(true);
-          setConnectionState(CONNECTED);
-        }
-        else {
-          if (await ble.connectById(device!.iosBLEAddress)) {
-            ble.addListener('receive', charHandler);
-            ble.addListener('disconnected', disconnectHandler);
-            setPeripheralId(device!.iosBLEAddress);
-            setConnectionState(CONNECTED);
-          }
-          else {
-            setDeviceInRange(false);
-          }
-        }
-      }
+    if (hasPermissions) {     
+      if (Platform.OS === 'ios')
+        await tryConnectViaIoS(device);
+      else if(Platform.OS == 'android')
+        await tryConnectViaAndroid(device);
     }
     else {
       console.log('does not have permissions.');
@@ -198,15 +208,15 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
 
   const showScanPage = async () => {
-      ble.removeAllListeners('receive');
-      ble.removeAllListeners('disconnected');
-      let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
-      await ble.disconnectById(peripheralId);
-      setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
+    ble.removeAllListeners('receive');
+    ble.removeAllListeners('disconnected');
+    let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
+    await ble.disconnectById(peripheralId);
+    setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
 
-      appServices.wssService.close();
-      let params = { repoId: repoId, deviceId: id }
-      navigation.navigate('associatePage', params);
+    appServices.wssService.close();
+    let params = { repoId: repoId, deviceId: id }
+    navigation.navigate('associatePage', params);
   }
 
 
@@ -332,99 +342,105 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     <ScrollView style={styles.scrollContainer}>
       <StatusBar style="auto" />
       {
-        deviceDetail && !errorMessage &&
-
-        <View >
+        <View>
           {
-            deviceDetail &&
+            errorMessage &&
             <View>
-              {sectionHeader('Device Info and Connectivity')}
-              {panelDetail('purple', 'Device Name', deviceDetail?.name)}
-              {panelDetail('purple', 'Repository', deviceDetail.deviceRepository.text)}
-              {panelDetail('purple', deviceDetail.deviceTypeLabel, deviceDetail.deviceType.text)}
-              {panelDetail('purple', 'Last Contact', deviceDetail.lastContact)}
+              <Text style={contentStyle}>{errorMessage}</Text>
             </View>
           }
-          {
-            deviceInRange &&
-            <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
-              <Text style={labelStyle}>Local Device Connected</Text>
-              <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showConfigurePage())} name='ios-settings-sharp' />
-            </View>
-          }
-          {
-            !deviceInRange &&
-            <View>
-              <Text style={labelStyle}>Not Connected</Text>
-              {
-                hasMacAddress == false &&
-                <View>
-                <Text style={contentStyle}>Device is not associated</Text>
-                <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
-                <Text style={contentStyle}>Please scan and associate. {hasMacAddress}</Text>
-                  <Icon.Button size={18} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showScanPage())} name='ios-settings-sharp' />
-                </View>
-                </View>
-              }
-              {
-                hasMacAddress == true &&
-                <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
-                  <Text style={contentStyle}>Hardware has been associated</Text>
-                  <Icon style={{ textAlign: 'center', }} size={18} color="white" onPress={() => showScanPage()} name='bluetooth-outline' />
-                </View>
-              }
-            </View>
-          }
-          {
-            remoteDeviceState &&
-            <View style={{ marginTop: 20 }}>
-              {sectionHeader('Current Device Status')}
-              {panelDetail('green', 'Firmware SKU', deviceDetail.actualFirmware)}
-              {panelDetail('green', 'Firmware Rev', deviceDetail.actualFirmwareRevision)}
-              {panelDetail('green', 'Commissioned', deviceDetail.commissioned ? 'Yes' : 'No')}
-            </View>
-          }
-          {
-            remoteDeviceState &&
-            <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >
-              {connectionBlock('orange', 'wifi-outline', 'WiFi', remoteDeviceState.wifiStatus == 'Connected')}
-              {connectionBlock('orange', 'cellular-outline', 'Cellular', remoteDeviceState.cellularConnected)}
-              {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
+          <View >
 
-            </View>
-          }
-          {
-            deviceDetail.sensorCollection &&
-            <View style={{ marginTop: 20, marginBottom: 20 }}>
-              {sectionHeader('Live Sensor Data')}
-              <Text style={labelStyle}>ADC Sensors</Text>
-              <ScrollView horizontal={true}>
-                {sensorBlock(8, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(9, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(10, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(11, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(12, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(13, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(14, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(15, deviceDetail.sensorCollection, 'radio-outline')}
-              </ScrollView>
-              <Text style={labelStyle}>IO Sensors</Text>
-              <ScrollView horizontal={true}>
-                {sensorBlock(0, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(1, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(2, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(3, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(4, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(5, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(6, deviceDetail.sensorCollection, 'radio-outline')}
-                {sensorBlock(7, deviceDetail.sensorCollection, 'radio-outline')}
-              </ScrollView>
+            {
+              deviceDetail &&
+              <View>
+                {sectionHeader('Device Info and Connectivity')}
+                {panelDetail('purple', 'Device Name', deviceDetail?.name)}
+                {panelDetail('purple', 'Repository', deviceDetail.deviceRepository.text)}
+                {panelDetail('purple', deviceDetail.deviceTypeLabel, deviceDetail.deviceType.text)}
+                {panelDetail('purple', 'Last Contact', deviceDetail.lastContact)}
+              </View>
+            }
+            {
+              deviceInRange &&
+              <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
+                <Text style={labelStyle}>Local Device Connected</Text>
+                <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showConfigurePage())} name='ios-settings-sharp' />
+              </View>
+            }
+            {
+              deviceDetail && !deviceInRange &&
+              <View>
+                <Text style={labelStyle}>Not Connected</Text>
+                {
+                  hasMacAddress == false &&
+                  <View>
+                    <Text style={contentStyle}>Device is not associated on this platform.</Text>
+                    <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
+                      <Text style={contentStyle}>Please scan and associate. {hasMacAddress}</Text>
+                      <Icon.Button size={18} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showScanPage())} name='ios-settings-sharp' />
+                    </View>
+                  </View>
+                }
+                {
+                  hasMacAddress == true &&
+                  <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
+                    <Text style={contentStyle}>Hardware has been associated</Text>
+                    <Icon style={{ textAlign: 'center', }} size={18} color="white" onPress={() => showScanPage()} name='bluetooth-outline' />
+                  </View>
+                }
+              </View>
+            }
+            {
+              remoteDeviceState &&
+              <View style={{ marginTop: 20 }}>
+                {sectionHeader('Current Device Status')}
+                {panelDetail('green', 'Firmware SKU', deviceDetail.actualFirmware)}
+                {panelDetail('green', 'Firmware Rev', deviceDetail.actualFirmwareRevision)}
+                {panelDetail('green', 'Commissioned', deviceDetail.commissioned ? 'Yes' : 'No')}
+              </View>
+            }
+            {
+              remoteDeviceState &&
+              <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >
+                {connectionBlock('orange', 'wifi-outline', 'WiFi', remoteDeviceState.wifiStatus == 'Connected')}
+                {connectionBlock('orange', 'cellular-outline', 'Cellular', remoteDeviceState.cellularConnected)}
+                {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
+
+              </View>
+            }
+            {
+              deviceDetail && deviceDetail.sensorCollection &&
+              <View style={{ marginTop: 20, marginBottom: 20 }}>
+                {sectionHeader('Live Sensor Data')}
+                <Text style={labelStyle}>ADC Sensors</Text>
+                <ScrollView horizontal={true}>
+                  {sensorBlock(8, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(9, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(10, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(11, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(12, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(13, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(14, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(15, deviceDetail.sensorCollection, 'radio-outline')}
+                </ScrollView>
+                <Text style={labelStyle}>IO Sensors</Text>
+                <ScrollView horizontal={true}>
+                  {sensorBlock(0, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(1, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(2, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(3, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(4, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(5, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(6, deviceDetail.sensorCollection, 'radio-outline')}
+                  {sensorBlock(7, deviceDetail.sensorCollection, 'radio-outline')}
+                </ScrollView>
 
 
-            </View>
-          }
+              </View>
+            }
+          </View>
         </View>
-
       }
     </ScrollView>
   </Page>
