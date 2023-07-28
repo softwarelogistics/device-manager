@@ -368,6 +368,7 @@ export class NuvIoTBLE {
       const code = str.charCodeAt(ii); // x00-xFFFF
       bytes.push(code & 255); // low, high
     }
+  
     return bytes;
   }
 
@@ -406,11 +407,11 @@ export class NuvIoTBLE {
     try {
       let buffer = this.string2Bin(value);
       await BleManager.writeWithoutResponse(id, serviceId, characteristicId, buffer, 255);
-      console.log("BLEManager__writeNoResponseCharacteristic: success, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
+      console.log("BLEManager__writeNoResponseCharacteristic: success, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId + ', value=' + value);
       return true;
     }
     catch (e) {
-      console.log("BLEManager__writeNoResponseCharacteristic: failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
+      console.log("BLEManager__writeNoResponseCharacteristic: failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId + ', value=' + value);
       return false;
     }
   }

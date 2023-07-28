@@ -280,7 +280,6 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
 
     <ScrollView style={styles.scrollContainer}>
       <StatusBar style="auto" />
-      {
         connectionState == CONNECTED &&
         <View style={{ marginBottom: 30 }}>
           {
@@ -288,8 +287,15 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
             <View>
               {sectionHeader('Device Info and Connectivity')}
               {panelDetail('purple', 'Device Name', deviceDetail?.name)}
+              {panelDetail('purple', 'Device Id', deviceDetail?.deviceId)}
               {panelDetail('purple', 'Repository', deviceDetail.deviceRepository.text)}
               {panelDetail('purple', deviceDetail.deviceTypeLabel, deviceDetail.deviceType.text)}
+            </View>
+          }
+          {
+            !deviceDetail &&
+            <View>
+              {sectionHeader('Device Not Configured')}
             </View>
           }
           {
@@ -308,6 +314,8 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
               {panelDetail('green', 'Firmware SKU', remoteDeviceState.firmwareSku)}
               {panelDetail('green', 'Firmware Rev', remoteDeviceState.firmwareRevision)}
               {panelDetail('green', 'Commissioned', remoteDeviceState.commissioned ? 'Yes' : 'No')}
+              {panelDetail('green', 'Server Connection', remoteDeviceState.isCloudConnected ? 'Yes' : 'No')}
+
             </View>
           }
           {

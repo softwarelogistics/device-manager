@@ -100,13 +100,13 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
   return (
     <Page>
       <StatusBar style="auto" />
-      <View style={{ width: "100%", flexDirection: 'column' }}>
+      <View style={{ width: "100%", flexDirection: 'column'}}>
         <Text style={[{ margin: 3, color: themePalette.shellTextColor, fontSize: 24 }]}>{instanceName}</Text>
-        <Picker selectedValue={deviceModelFilter} onValueChange={deviceTypeChanged} style={{ flex: 1, backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
+        <Picker selectedValue={deviceModelFilter} onValueChange={deviceTypeChanged} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
           {deviceModels.map(itm => <Picker.Item key={itm.id} label={itm.text} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />)}
         </Picker>
-          <ScrollView style={{ flexGrow: 1, marginBottom:30 }} >
-            <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', backgroundColor: themePalette.background, width: "100%" }}>
+          <ScrollView style={{  backgroundColor:'red' }} >
+            <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', backgroundColor: themePalette.background, width: "100%", height:"100%" }}>
               {devices && devices.map((item, key) => {
                 return <Pressable onPress={() => showDevice(item)} key={item.id} >
                   <View style={[{ flex: 1, flexDirection: 'row', padding: 10, height: 90, width: 180, borderWidth: 1, backgroundColor: themePalette.inputBackgroundColor, borderRadius: 8, margin: 5, borderColor: themePalette.border }]}  >

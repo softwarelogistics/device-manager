@@ -13,6 +13,7 @@ import fontSizes from "../styles.fontSizes";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import palettes from "../styles.palettes";
 import { ThemePalette } from "../styles.palette.theme";
+import Page from "../mobile-ui-common/page";
 
 export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) => {
 
@@ -89,13 +90,13 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
 
   let idx: number = 0;
   return (
-      <View style={{flex:1, flexDirection:'column', backgroundColor: themePalette.background }}>
+      <Page style={{backgroundColor: themePalette.background, width: "100%"  }}>
         {
           orgs && user && 
-          <View style={{ height:'auto', backgroundColor: themePalette.background}}>
+          <View style={{ height:'auto', backgroundColor: themePalette.background, width: "100%" }}>
               <FlatList
                 contentContainerStyle={{ backgroundColor: themePalette.background, alignItems: "stretch" }}
-                style={{ backgroundColor: themePalette.background, width: "100%" }}
+                style={{ backgroundColor: themePalette.background}}
                 ItemSeparatorComponent={myItemSeparator}
                 stickyHeaderIndices={[0]}
                 ListHeaderComponent={() => {
@@ -126,7 +127,7 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
               />
           </View>
         }
-      </View>
+      </Page>
   )
 }
 

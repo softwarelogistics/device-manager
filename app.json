@@ -19,11 +19,19 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "plugins": [
+      [
+        "expo-updates",
+        {
+          "username": "kevindwolf"
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.softwarelogistics.devicemgr",
       "infoPlist": {
-        "NSBluetoothAlwaysUsageDescription":"NuvIoT Device Manager uses Bluetooth to communicate with NuvIoT Devices.",
+        "NSBluetoothAlwaysUsageDescription": "NuvIoT Device Manager uses Bluetooth to communicate with NuvIoT Devices.",
         "LSApplicationQueriesSchemes": [
           "nuviot"
         ]
@@ -41,15 +49,15 @@
         "android.permission.BLUETOOTH_ADVERTISE",
         "android.permission.BLUETOOTH_CONNECT",
         "android.permission.BLUETOOTH_SCAN",
-        "android.permission.ACCESS_FINE_LOCATION",        
+        "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
       ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },    
+    },
     "extra": {
-      "environment":"development",
+      "environment": "development",
       "eas": {
         "projectId": "60332f43-00fd-4a35-8b33-c269770169e9"
       }

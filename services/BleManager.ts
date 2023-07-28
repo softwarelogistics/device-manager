@@ -194,6 +194,7 @@ class BleManager {
           if (error) {
             reject(error);
           } else {
+            console.log(`success write  ${data.length}`);
             fulfill();
           }
         }

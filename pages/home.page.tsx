@@ -41,8 +41,14 @@ export default function HomePage({ navigation }: IReactPageServices) {
 
     let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     setSubscription(changed);
+
+    const focusSubscription = navigation.addListener("focus", () => {
+      loadInstances();
+    });
+
     return (() => {
       if (subscription) AppServices.themeChangeSubscription.remove(subscription);
+      focusSubscription();
     });
   }, []);
 

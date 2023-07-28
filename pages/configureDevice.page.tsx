@@ -32,7 +32,7 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   const repoId = route.params.repoId;
   const peripheralId = route.params.peripheralId;
 
-  if(!peripheralId) {
+  if (!peripheralId) {
     console.log(route.params);
     throw 'Must provide peripheralId in the route'
   }
@@ -53,7 +53,7 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   const restartDevice = async () => {
     setIsBusy(true);
     if (await ble.connectById(peripheralId!)) {
-      await ble.writeNoResponseCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
+      //await ble.writeNoResponseCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
       await ble.disconnectById(peripheralId!);
       setIsBusy(false);
       await alert('Success resetting device.');
@@ -82,23 +82,23 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
     setIsBusy(true);
     if (await ble.connectById(peripheralId!)) {
       await ble.writeNoResponseCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `factoryreset=1`);
-      await ble.disconnectById(peripheralId!);      
+      await ble.disconnectById(peripheralId!);
       setIsBusy(false);
       await alert('Success resetting device to factory defaults.');
-      navigation.replace('homePage');
+      navigation.popToTop();
     }
-    else  {
+    else {
       setIsBusy(false);
       await alert('Could not connect to device.');
     }
   }
 
   useEffect(() => {
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()) );
+    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     setSubscription(changed);
-  
+
     return (() => {
-      if (subscription)AppServices.themeChangeSubscription.remove(subscription);
+      if (subscription) AppServices.themeChangeSubscription.remove(subscription);
     });
   }, []);
 
@@ -107,34 +107,36 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
       <StatusBar style="auto" />
       {
         isBusy ?
-        <View style={[styles.spinnerView, { backgroundColor: AppServices.getAppTheme().background }]}>
-          <Text style={{ color: AppServices.getAppTheme().shellTextColor, fontSize: 25 }}>Please Wait</Text>
-          <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
-        </View>
-        :
-        <View style={{margin:20}}>
-          <TouchableOpacity style={[primaryButtonStyle, { marginTop: 30, }]} onPress={() => showPage('settingsPage')}>
+          <View style={[styles.spinnerView, { backgroundColor: AppServices.getAppTheme().background }]}>
+            <Text style={{ color: AppServices.getAppTheme().shellTextColor, fontSize: 25 }}>Please Wait</Text>
+            <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
+          </View>
+          :
+          <View style={{ margin: 20 }}>
+            <TouchableOpacity style={[primaryButtonStyle, { marginTop: 30, }]} onPress={() => showPage('settingsPage')}>
               <Text style={primaryButtonTextStyle}> Connectivity </Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
 
+          {false &&
             <TouchableOpacity style={primaryButtonStyle} onPress={() => showPage('sensorsPage')}>
               <Text style={primaryButtonTextStyle}> Sensors </Text>
-          </TouchableOpacity>
+            </TouchableOpacity> 
+  }
 
             <TouchableOpacity style={primaryButtonStyle} onPress={() => showPage('dfuPage')}>
-            <Text style={primaryButtonTextStyle}> Firmware </Text>
-          </TouchableOpacity>
-
-          <View style={[{ marginTop: 40 }]}>
-            <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.alert.warning }]} onPress={() => restartDevice()}>
-              <Text style={primaryButtonTextStyle}> Restart </Text>
+              <Text style={primaryButtonTextStyle}> Firmware </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.submitButton, { marginTop:40, backgroundColor: palettes.alert.error }]} onPress={() => factoryReset()}>
-              <Text style={primaryButtonTextStyle}> Factory Reset </Text>
-            </TouchableOpacity>
+            <View style={[{ marginTop: 40 }]}>
+              <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.alert.warning }]} onPress={() => restartDevice()}>
+                <Text style={primaryButtonTextStyle}> Restart </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.submitButton, { marginTop: 40, backgroundColor: palettes.alert.error }]} onPress={() => factoryReset()}>
+                <Text style={primaryButtonTextStyle}> Factory Reset </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
       }
     </Page>
   );

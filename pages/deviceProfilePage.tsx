@@ -30,6 +30,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const [deviceDetail, setDeviceDetail] = useState<Devices.DeviceDetail | undefined | any>();
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
   const [hasMacAddress, setHasMacAddress] = useState<boolean>(false);
+  const [sensorValues, setSensorValues] = useState<IOValues | undefined>(undefined);
   const [deviceInRange, setDeviceInRange] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [connectionState, setConnectionState] = useState<number>(IDLE);
@@ -73,11 +74,20 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   }
 
   const charHandler = (value: any) => {
-    console.log('handler');
+    console.log('handler', value.characteristic);
     if (value.characteristic == CHAR_UUID_STATE) {
       console.log(value.value);
       let rds = new RemoteDeviceState(value.value);
+
+      console.log('rds', rds.commissioned);
+
       setRemoteDeviceState(rds);
+    }
+
+    if (value.characteristic == CHAR_UUID_IO_VALUE) {
+      console.log(value.value);
+      let values = new IOValues(value.value);
+      setSensorValues(values);
     }
   }
 
@@ -355,9 +365,10 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
               deviceDetail &&
               <View>
                 {sectionHeader('Device Info and Connectivity')}
-                {panelDetail('purple', 'Device Name', deviceDetail?.name)}
-                {panelDetail('purple', 'Repository', deviceDetail.deviceRepository.text)}
+                {panelDetail('purple', deviceDetail.deviceNameLabel, deviceDetail?.name)}
+                {panelDetail('purple', deviceDetail.deviceIdLabel, deviceDetail?.deviceId)}
                 {panelDetail('purple', deviceDetail.deviceTypeLabel, deviceDetail.deviceType.text)}
+                {panelDetail('purple', 'Repository', deviceDetail.deviceRepository.text)}                
                 {panelDetail('purple', 'Last Contact', deviceDetail.lastContact)}
               </View>
             }
@@ -397,7 +408,8 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                 {sectionHeader('Current Device Status')}
                 {panelDetail('green', 'Firmware SKU', deviceDetail.actualFirmware)}
                 {panelDetail('green', 'Firmware Rev', deviceDetail.actualFirmwareRevision)}
-                {panelDetail('green', 'Commissioned', deviceDetail.commissioned ? 'Yes' : 'No')}
+                {panelDetail('green', 'Commissioned', remoteDeviceState.commissioned ? 'Yes' : 'No' )}
+                {panelDetail('green', 'Server Connection', remoteDeviceState.isCloudConnected ? 'Yes' : 'No')}
               </View>
             }
             {
