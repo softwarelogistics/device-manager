@@ -119,8 +119,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     setBusyMessage("Loading Server Information");
     let defaultListener = await appServices.deploymentServices.LoadDefaultListenerForRepo(route.params.repoId);
     if (defaultListener.successful)
-      setDefaultListener(defaultListener.result);
-    console.log(defaultListener.result.userName, defaultListener.result.password, defaultListener.result.hostName, defaultListener.result.connectToPort, defaultListener.result.listenerType.id);
+      setDefaultListener(defaultListener.result);    
   }
 
   const factoryReset = async () => {
