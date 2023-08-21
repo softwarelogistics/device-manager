@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { TouchableOpacity, ScrollView, View, Text, ActivityIndicator, TextInput, Alert } from "react-native";
 import { StatusBar } from 'expo-status-bar';
 import { Device } from "react-native-ble-plx";
-
+import Page from "../mobile-ui-common/page";
 import Icon from "react-native-vector-icons/Ionicons";
 
 import { IReactPageServices } from "../services/react-page-services";
@@ -85,6 +85,9 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
     if (result.length > 0) {
       setFirmwareUpdateStatus(result[0]);
     }
+    else{
+      console.log('hi');
+    }
   }
 
   const updateFirmware = async () => {
@@ -118,7 +121,7 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
   });
 
   return (
-    <View style={[styles.scrollContainer, { backgroundColor: AppServices.getAppTheme().background }]}>
+    <Page style={[styles.scrollContainer, { backgroundColor: AppServices.getAppTheme().background }]}>
       <StatusBar style="auto" />
       {firmware ?
         <View>
@@ -151,7 +154,7 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
           <Text style={[{ color: AppServices.getAppTheme().shellTextColor, fontSize: fontSizes.medium }]}>Device does not have default firmware.</Text>
         </View>
       }
-    </View>
+    </Page>
   )
     }
 

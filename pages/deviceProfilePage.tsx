@@ -150,10 +150,14 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   }
 
   const tryConnectViaIoS = async (device: Devices.DeviceDetail) => {
+    console.log('try connect ios')
+    console.log(device!.iosBLEAddress);
+
     if (device!.iosBLEAddress && device.iosBLEAddress.length > 0) {
       setHasMacAddress(true);
 
       console.log('ios path');
+      
       setPeripheralId(device!.iosBLEAddress);
       setConnectionState(CONNECTING);
       if (await ble.isConnected(device!.iosBLEAddress)) {
@@ -168,6 +172,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
           ble.addListener('disconnected', disconnectHandler);
           setPeripheralId(device!.iosBLEAddress);
           setConnectionState(CONNECTED);
+          setDeviceInRange(true);
         }
         else {
           setDeviceInRange(false);

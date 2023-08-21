@@ -102,7 +102,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
       <StatusBar style="auto" />
       <View style={{ width: "100%", flexDirection: 'column'}}>
         <Text style={[{ margin: 3, color: themePalette.shellTextColor, fontSize: 24 }]}>{instanceName}</Text>
-        <Picker selectedValue={deviceModelFilter} onValueChange={deviceTypeChanged} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
+        <Picker selectedValue={deviceModelFilter} onValueChange={deviceTypeChanged} itemStyle={{color:themePalette.shellTextColor}} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
           {deviceModels.map(itm => <Picker.Item key={itm.id} label={itm.text} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />)}
         </Picker>
           <ScrollView style={{  backgroundColor:'red' }} >

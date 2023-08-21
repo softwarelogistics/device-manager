@@ -280,6 +280,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
 
     <ScrollView style={styles.scrollContainer}>
       <StatusBar style="auto" />
+      {
         connectionState == CONNECTED &&
         <View style={{ marginBottom: 30 }}>
           {
@@ -349,7 +350,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
             </View>
 
           }
-        </View>
+        </View>     
       }      
       {
         connectionState == DISCONNECTED &&

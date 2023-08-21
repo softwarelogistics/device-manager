@@ -53,7 +53,7 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   const restartDevice = async () => {
     setIsBusy(true);
     if (await ble.connectById(peripheralId!)) {
-      //await ble.writeNoResponseCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
+      await ble.writeNoResponseCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
       await ble.disconnectById(peripheralId!);
       setIsBusy(false);
       await alert('Success resetting device.');
@@ -81,11 +81,15 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   const factoryReset = async () => {
     setIsBusy(true);
     if (await ble.connectById(peripheralId!)) {
-      await ble.writeNoResponseCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `factoryreset=1`);
+      let writeSuccess = await ble.writeNoResponseCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `factoryreset=1`);
       await ble.disconnectById(peripheralId!);
       setIsBusy(false);
-      await alert('Success resetting device to factory defaults.');
-      navigation.popToTop();
+      if(writeSuccess) {
+        await alert('Success resetting device to factory defaults.');
+        navigation.popToTop();
+      }
+      else 
+        await alert('Could not send factory reset command to device..');
     }
     else {
       setIsBusy(false);
