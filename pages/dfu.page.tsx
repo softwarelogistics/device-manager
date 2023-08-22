@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { TouchableOpacity, ScrollView, View, Text, ActivityIndicator, TextInput, Alert } from "react-native";
 import { StatusBar } from 'expo-status-bar';
-import { Device } from "react-native-ble-plx";
 import Page from "../mobile-ui-common/page";
 import Icon from "react-native-vector-icons/Ionicons";
 
@@ -49,12 +48,14 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
         let state = new RemoteDeviceState(deviceStateStr);
         setRemoteDeviceState(state);
       }
+
+      ble.disconnectById(peripheralId);
     }
 
     setBusyMessage('Getting Device');
     let device = await appServices.deviceServices.getDevice(repoId, deviceId);
     setBusyMessage('Getting Device Model');
-    let deviceType = await appServices.deviceServices.getDeviceType(device.deviceType.id);
+    let deviceType = await appServices.deviceServices.getDeviceType(device!.deviceType.id);
     if (deviceType.model.firmware) {
       setBusyMessage('Getting Current Firmware Version');
       let firmware = await appServices.deviceServices.getFirmware(deviceType.model.firmware.id);
@@ -99,12 +100,8 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
       if (await ble.connectById(peripheralId)) {
         await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `dfu=${downloadId}`);
         await ble.disconnectById(peripheralId);
-
-        setConnectionState(CONNECTED);
-        await ble.subscribe(ble);
-        ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-        ble.btEmitter?.addListener('receive', handler);
-        ble.btEmitter?.addListener('disconnected', disconnectHandler);
+        setConnectionState(DISCONNECTED);
+        await ble.unsubscribe();
       }
     }
     else {
