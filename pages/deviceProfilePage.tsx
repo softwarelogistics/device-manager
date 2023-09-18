@@ -79,7 +79,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       console.log(value.value);
       let rds = new RemoteDeviceState(value.value);
 
-      console.log('rds', rds.commissioned);
+      console.log('Commissioned', rds.commissioned);
 
       setRemoteDeviceState(rds);
     }

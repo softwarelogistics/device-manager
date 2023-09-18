@@ -21,6 +21,12 @@ export class NetworkCallStatusService {
         NetworkCallStatusService.busySubscription.emit('busy', this._activeCallCount);
     }
 
+    static reset() {
+        NetworkCallStatusService.busySubscription.emit('idle', this._activeCallCount);
+        this._activeCallCount = 0;
+        this._loadingMessages = [];
+    }
+
     static endCall() {
         if (this._activeCallCount > 0) {
             this._activeCallCount--;
@@ -30,9 +36,6 @@ export class NetworkCallStatusService {
             }
 
             if(NetworkCallStatusService.debug) console.log(`End Active Call Count: ${msg} - ${this._activeCallCount}`);
-        }
-        else {
-            throw 'Active call count is already zero at end call.';
         }
     }
 }

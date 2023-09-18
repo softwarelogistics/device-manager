@@ -23,6 +23,8 @@ export default function Page(props: any) {
     const navigation = useNavigation();
 
     useEffect(() => {
+        console.log('use effect at page.');
+
         let themeChangedSubscription = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
         let logoutSubscription = HttpClient.logoutSubscription.addListener('logout', () => { setIsAuthenticated(false) });
         let busySubscription = NetworkCallStatusService.busySubscription.addListener('busy', () => setIsBusy(true));

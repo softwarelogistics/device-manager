@@ -88,10 +88,12 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   }
 
   const setIsBusy = (value: boolean) => {
-    if (value)
+    if (value) {
       NetworkCallStatusService.beginCall(busyMessage);
-    else
+    }
+    else{
       NetworkCallStatusService.endCall();
+    }
   }
 
   const load = async () => {
@@ -119,7 +121,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     setBusyMessage("Loading Server Information");
     let defaultListener = await appServices.deploymentServices.LoadDefaultListenerForRepo(route.params.repoId);
     if (defaultListener.successful)
-      setDefaultListener(defaultListener.result);    
+      setDefaultListener(defaultListener.result);       
   }
 
   const factoryReset = async () => {
@@ -264,7 +266,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   const init = async () => {
     setIsBusy(true);
     await load();
-    setIsBusy(false);
+    setIsBusy(false);    
   }
 
   const deviceTypeChanged = async (id: string) => {
@@ -280,7 +282,8 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   useEffect(() => {
     if (initialCall) {
       init();
-      setInitialCall(false);
+      NetworkCallStatusService.reset();
+      setInitialCall(false);      
     }
 
     let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
