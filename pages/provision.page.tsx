@@ -30,6 +30,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
   const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined>(undefined);
   const [initialCall, setInitialCall] = useState<boolean>(true);
+  const [isReady, setIsReady] = useState<boolean>(false);
   const [repos, setRepos] = useState<Devices.DeviceRepoSummary[]>([]);
   const [deviceTypes, setDeviceTypes] = useState<Devices.DeviceTypeSummary[]>([])
   const [selectedRepo, setSelectedRepo] = useState<Devices.DeviceRepoSummary | undefined>();
@@ -120,8 +121,12 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
     setBusyMessage("Loading Server Information");
     let defaultListener = await appServices.deploymentServices.LoadDefaultListenerForRepo(route.params.repoId);
-    if (defaultListener.successful)
+    if (defaultListener.successful) {
       setDefaultListener(defaultListener.result);       
+      console.log(defaultListener.result);
+    }
+
+    setIsReady(true);
   }
 
   const factoryReset = async () => {
@@ -178,8 +183,6 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     let result = await appServices.deviceServices.addDevice(newDevice, replace, false);
     if (result.successful) {
       newDevice = result.result;
-      setIsBusy(true);
-
       if (await ble.connectById(peripheralId)) {
         await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'deviceid=' + deviceId);
         await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'orgid=' + newDevice.ownerOrganization.id);
@@ -227,9 +230,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
       }
       setIsBusy(false);
 
-      return "OK";
-
-
+      return "OK";      
     }
     else {
       setIsBusy(false);
@@ -296,54 +297,57 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   }, []);
 
   return (
+    
     <Page>
       <StatusBar style="auto" />
-      <ScrollView>
-        <View style={[styles.scrollContainer, { backgroundColor: AppServices.getAppTheme().background }]}>
+      {isReady &&
+        <ScrollView>
+          <View style={[styles.scrollContainer, { backgroundColor: AppServices.getAppTheme().background }]}>
 
-          <Text style={inputLabelStyle}>Repositories:</Text>
-          <Picker selectedValue={selectedRepo?.id} onValueChange={repoChanged} style={{ height: 12 }} itemStyle={{ height: 12 }} >
-            {repos.map(itm =>
-              <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ height: 12, color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor }} />
-            )}
-          </Picker>
+            <Text style={inputLabelStyle}>Repositories:</Text>
+            <Picker selectedValue={selectedRepo?.id} onValueChange={repoChanged} style={{ height: 12 }} itemStyle={{ height: 12 }} >
+              {repos.map(itm =>
+                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ height: 12, color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor }} />
+              )}
+            </Picker>
 
-          <Text style={inputLabelStyle}>Device Models:</Text>
-          <Picker selectedValue={selectedDeviceModel?.id} onValueChange={deviceTypeChanged} >
-            {deviceTypes.map(itm =>
-              <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, height: 10 }} />
-            )}
-          </Picker>
+            <Text style={inputLabelStyle}>Device Models:</Text>
+            <Picker selectedValue={selectedDeviceModel?.id} onValueChange={deviceTypeChanged} >
+              {deviceTypes.map(itm =>
+                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, height: 10 }} />
+              )}
+            </Picker>
 
-          <EditField label="Device Name" value={deviceName} placeHolder="enter device name" onChangeText={e => setDeviceName(e)} />
-          <EditField label="Device Id" value={deviceId} placeHolder="enter device id" onChangeText={e => setDeviceId(e)} />
+            <EditField label="Device Name" value={deviceName} placeHolder="enter device name" onChangeText={e => setDeviceName(e)} />
+            <EditField label="Device Id" value={deviceId} placeHolder="enter device id" onChangeText={e => setDeviceId(e)} />
 
-          <Text style={inputLabelStyle}>WiFi Connection:</Text>
-          <Picker selectedValue={selectedWiFiConnection} onValueChange={e => setSelectedWiFiConnection(e)} >
-            {wifiConnections?.map(itm =>
-              <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, height: 10 }} />
-            )}
-          </Picker>
+            <Text style={inputLabelStyle}>WiFi Connection:</Text>
+            <Picker selectedValue={selectedWiFiConnection} onValueChange={e => setSelectedWiFiConnection(e)} >
+              {wifiConnections?.map(itm =>
+                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, height: 10 }} />
+              )}
+            </Picker>
 
-          <View style={styles.flex_toggle_row}>
-            <Text style={inputLabelStyle}>Use Default Listener:</Text>
-            <Switch onValueChange={e => setUseDefaultListener(e)} value={useDefaultListener}
-              thumbColor={(colors.primaryColor)}
-              trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+            <View style={styles.flex_toggle_row}>
+              <Text style={inputLabelStyle}>Use Default Listener:</Text>
+              <Switch onValueChange={e => setUseDefaultListener(e)} value={useDefaultListener}
+                thumbColor={(colors.primaryColor)}
+                trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+            </View>
+
+            <View style={styles.flex_toggle_row}>
+              <Text style={inputLabelStyle}>Commissioned:</Text>
+              <Switch onValueChange={e => setCommissioned(e)} value={commissioned}
+                thumbColor={(colors.primaryColor)}
+                trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+            </View>
+
+            <TouchableOpacity style={[styles.submitButton, { marginTop: 10, backgroundColor: palettes.primary.normal }]} onPress={() => callProvisionDevice()}>
+              <Text style={primaryButtonTextStyle}> Provision </Text>
+            </TouchableOpacity>
           </View>
-
-          <View style={styles.flex_toggle_row}>
-            <Text style={inputLabelStyle}>Commissioned:</Text>
-            <Switch onValueChange={e => setCommissioned(e)} value={commissioned}
-              thumbColor={(colors.primaryColor)}
-              trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
-          </View>
-
-          <TouchableOpacity style={[styles.submitButton, { marginTop: 10, backgroundColor: palettes.primary.normal }]} onPress={() => callProvisionDevice()}>
-            <Text style={primaryButtonTextStyle}> Provision </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      }
     </Page>
   )
 }
