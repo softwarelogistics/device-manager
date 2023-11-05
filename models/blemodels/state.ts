@@ -19,8 +19,6 @@ export class RemoteDeviceState {
             this.otaParam = parts[14];
             this.otaState = parts[15];
 
-            console.log('rds', this.commissioned, parts[4]);
-
             switch(parts[5])
             {
                 case '0': this.wifiStatus = 'Idle'; break;

@@ -23,7 +23,11 @@ export class SysConfig {
     this.pingRate = parseInt(parts[16]);
     this.sendUpdateRate = parseInt(parts[17]);
     this.gpsEnabled = parts[18] == '1';
-    this.gpsUpdateRate = parts[19] == '1';
+    this.gpsUpdateRate = parts[19];
+    if(parts.length >= 20)
+      this.loopRate = parts[20];
+    else 
+      this.loopRate = "250";
   }
 
   deviceId: string;
@@ -45,5 +49,6 @@ export class SysConfig {
   pingRate: number;
   sendUpdateRate: number;
   gpsEnabled: boolean;
-  gpsUpdateRate: boolean;
+  gpsUpdateRate: string;
+  loopRate: string;
 }

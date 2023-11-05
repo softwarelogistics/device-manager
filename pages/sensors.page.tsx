@@ -48,7 +48,11 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
 
   const [value, setValue] = useState('');
 
-  let peripheralId = route.params.id;
+  let peripheralId = route.params.peripheralId;
+  let repoId = route.params.repoId;
+  let deviceId = route.params.deviceId;
+  
+  console.log(peripheralId, repoId, deviceId);
 
   const ports = [
     { label: '-select port-', value: '-1' },
@@ -83,6 +87,9 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
     { label: 'ADC', value: '1' },
     { label: 'CT', value: '2' },
     { label: 'Switch', value: '3' },
+    { label: 'Thermistor', value: '4' },
+    { label: 'Volts', value: '5' },
+    { label: 'Other', value: '6' },
   ];
 
   const ioPortType = [
@@ -92,8 +99,10 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
     { label: 'Pulse Counter', value: '3' },
     { label: 'DS18B', value: '4' },
     { label: 'DHT11', value: '5' },
-    { label: 'DHT22', value: '6' },
-    { label: 'MX711', value: '7' },
+    { label: 'DHT22 - Temperature and Humidity', value: '6' },
+    { label: 'DHT22 - Humidity', value: '7' },
+    { label: 'MX711', value: '8' },
+    { label: 'Other', value: '9' },
   ];
 
   const inputStyleOverride = {
@@ -168,6 +177,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
           setCalibration(parts[4]);
           setZero(parts[5]);
         }
+
+        console.log('reading', analogDeviceType, digitalDeviceType);
       }
     }
   }
@@ -254,7 +265,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
           <StatusBar style="auto" />
           <Text style={inputLabelStyle}>Port:</Text>
           <Picker selectedValue={value} onValueChange={portChanged} >
-            {ports.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.shellTextColor} />)}
+            {ports.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
           </Picker>
 
           {
@@ -262,7 +273,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
             <View>
               <Text style={inputLabelStyle}>ADC Type:</Text>
               <Picker selectedValue={analogDeviceType} onValueChange={(value) => setAnalogDeviceType(value)} >
-                {adcPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.shellTextColor} />)}
+                {adcPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
               </Picker>
             </View>
           }
@@ -272,7 +283,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
             <View>
               <Text style={inputLabelStyle}>Digitial Port Type:</Text>
               <Picker selectedValue={digitalDeviceType} onValueChange={(value) => setDigitalDeviceType(value)} >
-                {ioPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.shellTextColor} />)}
+                {ioPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
               </Picker>
             </View>
           }

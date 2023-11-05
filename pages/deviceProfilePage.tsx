@@ -25,7 +25,7 @@ const DISCONNECTED_PAGE_SUSPENDED = 4;
 export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServices) => {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
   const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
-  const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined>(undefined);
+  const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined | null>(undefined);
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [deviceDetail, setDeviceDetail] = useState<Devices.DeviceDetail | undefined | any>();
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
@@ -50,7 +50,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const loadDevice = async () => {
     let fullDevice = await appServices.deviceServices.getDevice(repoId, id);
     if (fullDevice) {
-      console.log('loaded device.');
       setDeviceDetail(fullDevice);
       await connectToDevice(fullDevice);
 
@@ -62,6 +61,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
         let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
 
         if (device) {
+          console.log('wss update');
           fullDevice!.sensorCollection = device.sensorCollection;
           fullDevice!.lastContact = device.lastContact;
           setDeviceDetail(fullDevice);
@@ -74,12 +74,9 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   }
 
   const charHandler = (value: any) => {
-    console.log('handler', value.characteristic);
     if (value.characteristic == CHAR_UUID_STATE) {
       console.log(value.value);
       let rds = new RemoteDeviceState(value.value);
-
-      console.log('Commissioned', rds.commissioned);
 
       setRemoteDeviceState(rds);
     }
@@ -87,6 +84,21 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     if (value.characteristic == CHAR_UUID_IO_VALUE) {
       console.log(value.value);
       let values = new IOValues(value.value);
+      for(let i = 0; i < values.ioValues.length; i++){
+        let value = values.ioValues[i];
+        if(value) {
+          console.log(i, value);
+        }
+      }
+
+      for(let i = 0; i < values.adcValues.length; i++){
+        let value = values.adcValues[i];
+        if(value) {
+          //let sensor = deviceDetail.sensorCollection.
+          //deviceDetail!.sensorCollection![i].value = value;
+          console.log(i, value);
+        }
+      }
       setSensorValues(values);
     }
   }
@@ -106,9 +118,11 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   }
 
   const disconnectHandler = (id: string) => {
-    console.log(`Disconnected from device on live device page: ${id}`)
+    console.log(`device=disconnected; // deviceid= ${id}`)
+
     setConnectionState(DISCONNECTED);
-    setRemoteDeviceState(undefined);
+    setRemoteDeviceState(null);
+    
 
     ble.removeAllListeners('receive');
     ble.removeAllListeners('disconnected');
@@ -150,14 +164,9 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   }
 
   const tryConnectViaIoS = async (device: Devices.DeviceDetail) => {
-    console.log('try connect ios')
-    console.log(device!.iosBLEAddress);
-
     if (device!.iosBLEAddress && device.iosBLEAddress.length > 0) {
       setHasMacAddress(true);
 
-      console.log('ios path');
-      
       setPeripheralId(device!.iosBLEAddress);
       setConnectionState(CONNECTING);
       if (await ble.isConnected(device!.iosBLEAddress)) {
@@ -202,7 +211,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
   const showConfigurePage = async () => {
     if (connectionState == CONNECTED) {
-      console.log('was connected...');
       ble.removeAllListeners('receive');
       ble.removeAllListeners('disconnected');
       let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
@@ -211,9 +219,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
       appServices.wssService.close();
       let params = { peripheralId: peripheralId, repoId: repoId, deviceId: id }
-      console.log('launch config page')
-      console.log(params);
-
       navigation.navigate('configureDevice', params);
     }
     else {
@@ -236,8 +241,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
 
   useEffect(() => {
-    console.log('initial call.', initialCall);
-
     if (initialCall) {
       loadDevice();
       setInitialCall(false);
@@ -351,8 +354,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       </View>)
   }
 
-  console.log('has ma address', hasMacAddress);
-
   return <Page style={[styles.container]}>
     <ScrollView style={styles.scrollContainer}>
       <StatusBar style="auto" />
@@ -375,7 +376,14 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                 {panelDetail('purple', deviceDetail.deviceTypeLabel, deviceDetail.deviceType.text)}
                 {panelDetail('purple', 'Repository', deviceDetail.deviceRepository.text)}                
                 {panelDetail('purple', 'Last Contact', deviceDetail.lastContact)}
-              </View>
+              </View>              
+            }
+            {
+            !remoteDeviceState &&
+            <View>
+                {panelDetail('purple', "Firmware SKU", deviceDetail?.actualFirmware)}
+                {panelDetail('purple', "FIrmware Rev", deviceDetail?.actualFirmwareRevision)}
+            </View>
             }
             {
               deviceInRange &&
@@ -411,8 +419,10 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
               remoteDeviceState &&
               <View style={{ marginTop: 20 }}>
                 {sectionHeader('Current Device Status')}
-                {panelDetail('green', 'Firmware SKU', deviceDetail.actualFirmware)}
-                {panelDetail('green', 'Firmware Rev', deviceDetail.actualFirmwareRevision)}
+                {panelDetail('green', 'Firmware SKU', remoteDeviceState.firmwareSku)}
+                {panelDetail('green', 'Device Model', remoteDeviceState.deviceModelKey)}
+                {panelDetail('green', 'Firmware Rev', remoteDeviceState.firmwareRevision)}
+                {panelDetail('green', 'Hardware Rev', remoteDeviceState.hardwareRevision)}
                 {panelDetail('green', 'Commissioned', remoteDeviceState.commissioned ? 'Yes' : 'No' )}
                 {panelDetail('green', 'Server Connection', remoteDeviceState.isCloudConnected ? 'Yes' : 'No')}
               </View>

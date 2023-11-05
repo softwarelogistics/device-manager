@@ -8,7 +8,7 @@ export class NetworkCallStatusService {
     public static busySubscription: NuvIoTEventEmitter = new NuvIoTEventEmitter();
     private static _loadingMessages: String[] = [];
 
-    private static debug = true;
+    private static debug = false;
 
     constructor() { }
     static _activeCallCount: number = 0;

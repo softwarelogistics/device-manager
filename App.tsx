@@ -33,6 +33,8 @@ import { DeviceProfilePage } from './pages/deviceProfilePage';
 import { WelcomePage } from './pages/welcomePage';
 import { AboutPage } from './pages/about.page';
 import AssociatePage from './pages/associatePage';
+import { DeviceAdvancedPage } from './pages/device-advanced';
+import { ConsolePage } from './pages/console.page';
 
 const Stack = createNativeStackNavigator();
 
@@ -152,6 +154,8 @@ const App = () => {
         <Stack.Screen name="devicesPage" component={DevicesPage} options={{ title: 'Devices' }} />
         <Stack.Screen name="profilePage" component={ProfilePage} options={{ title: 'Profile' }} />
         <Stack.Screen name="aboutPage" component={AboutPage} options={{ title: 'About' }} />
+        <Stack.Screen name="advancedPage" component={DeviceAdvancedPage} options={{ title: 'Advanced' }} />
+        <Stack.Screen name="consolePage" component={ConsolePage} options={{ title: 'Console' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

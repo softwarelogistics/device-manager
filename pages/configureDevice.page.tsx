@@ -122,11 +122,17 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
               <Text style={primaryButtonTextStyle}> Connectivity </Text>
             </TouchableOpacity>
 
-          {false &&
+            <TouchableOpacity style={[primaryButtonStyle, { marginTop: 30, }]} onPress={() => showPage('advancedPage')}>
+              <Text style={primaryButtonTextStyle}> Advanced </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[primaryButtonStyle]} onPress={() => showPage('consolePage')}>
+              <Text style={primaryButtonTextStyle}> Console </Text>
+            </TouchableOpacity>
+
             <TouchableOpacity style={primaryButtonStyle} onPress={() => showPage('sensorsPage')}>
               <Text style={primaryButtonTextStyle}> Sensors </Text>
             </TouchableOpacity> 
-  }
 
             <TouchableOpacity style={primaryButtonStyle} onPress={() => showPage('dfuPage')}>
               <Text style={primaryButtonTextStyle}> Firmware </Text>
