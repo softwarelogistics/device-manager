@@ -45,8 +45,7 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
   const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
 
 
-  const charHandler = (value: any) => {
-    console.log('char handler');
+  const charHandler = (value: any) => {    
     if (value.characteristic == CHAR_UUID_CONSOLE) {
       console.log(value.value);
     }
@@ -119,6 +118,10 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
         setDeviceInRange(true);
         setConnectionState(CONNECTED);
 
+        let  char = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_CONSOLE)
+        console.log("path2");
+        console.log(char);
+
         let success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_CONSOLE);
         if (!success) setErrorMessage('Could not listen for notifications.'); else console.log('blesubscribe=console;')
     }
@@ -128,6 +131,10 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
           ble.addListener('disconnected', disconnectHandler);
           setConnectionState(CONNECTED);
           setDeviceInRange(true);
+
+          let  char = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_CONSOLE)
+          console.log("path1");
+          console.log(char);
 
           let success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_CONSOLE);
           if (!success) setErrorMessage('Could not listen for notifications.'); else console.log('blesubscribe=console;')

@@ -278,6 +278,7 @@ class BleManager {
         characteristicUUID,
         (error: string | null) => {
           if (error) {
+            console.log('could not start notification: ' + error)
             reject(error);
           } else {
             fulfill();

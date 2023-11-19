@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ActivityIndicator, Platform, View, Text, TextStyle, TouchableOpacity, ScrollView, ViewStyle } from "react-native";
 import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
@@ -36,6 +36,10 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const [connectionState, setConnectionState] = useState<number>(IDLE);
   const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
 
+  const stateRef = useRef();
+
+  stateRef.current = deviceDetail
+
   const repoId = route.params.repoId;
   const id = route.params.id;
 
@@ -53,7 +57,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       setDeviceDetail(fullDevice);
       await connectToDevice(fullDevice);
 
-      //await appServices.wssService.init('device', fullDevice.id);
+      await appServices.wssService.init('device', fullDevice.id);
       appServices.wssService.onmessage = (e) => {
         let json = e.data;
         let wssMessage = JSON.parse(json);
@@ -61,10 +65,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
         let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
 
         if (device) {
-          console.log('wss update');
-          fullDevice!.sensorCollection = device.sensorCollection;
-          fullDevice!.lastContact = device.lastContact;
-          setDeviceDetail(fullDevice);
         }
       }
     }
@@ -72,6 +72,13 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       setErrorMessage('Sorry - Could Not Load Device.');
     }
   }
+  
+  /*const handleDeviceUpdate = (update: Devices.DeviceForNotification) => {
+    fullDevice!.sensorCollection = update.sensorCollection;
+    fullDevice!.lastContact = update.lastContact;
+    console.log('wss update:' + update.lastContact);
+    setDeviceDetail(fullDevice);
+  }*/
 
   const charHandler = (value: any) => {
     if (value.characteristic == CHAR_UUID_STATE) {
@@ -82,7 +89,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     }
 
     if (value.characteristic == CHAR_UUID_IO_VALUE) {
-      console.log(value.value);
+      console.log(value);
       let values = new IOValues(value.value);
       for(let i = 0; i < values.ioValues.length; i++){
         let value = values.ioValues[i];
@@ -122,8 +129,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
     setConnectionState(DISCONNECTED);
     setRemoteDeviceState(null);
-    
-
+   
     ble.removeAllListeners('receive');
     ble.removeAllListeners('disconnected');
   }
@@ -265,12 +271,10 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     });
 
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
-      console.log('before remove called CS=> ', connectionState);
       if (connectionState == CONNECTING) {
         ble.cancelConnect();
       }
       else if (connectionState == CONNECTED) {
-        console.log('DevicePage_BeforeRemove - ', peripheralId);
         ble.removeAllListeners('receive');
         ble.removeAllListeners('disconnected');
         ble.stopListeningForNotifications(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
@@ -283,8 +287,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     });
 
     return (() => {
-      console.log('return was called');
-
       focusSubscription();
       blurSubscription();
     });
