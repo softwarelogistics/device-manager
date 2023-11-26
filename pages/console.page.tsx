@@ -13,6 +13,7 @@ import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID
 import { BLENuvIoTDevice } from "../models/device/device-local";
 import { StatusBar } from "expo-status-bar";
 import { RemoteDeviceState } from "../models/blemodels/state";
+import Moment from 'moment';
 import Page from "../mobile-ui-common/page";
 import { IOValues } from "../models/blemodels/iovalues";
 
@@ -21,6 +22,11 @@ const CONNECTING = 1;
 const CONNECTED = 2;
 const DISCONNECTED = 3;
 const DISCONNECTED_PAGE_SUSPENDED = 4;
+
+interface ConsoleOutput {
+  timestamp: string;
+  message: string;
+}
 
 export const ConsolePage = ({ props, navigation, route }: IReactPageServices) => {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
@@ -32,8 +38,10 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
   const [sensorValues, setSensorValues] = useState<IOValues | undefined>(undefined);
   const [deviceInRange, setDeviceInRange] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+  const [consoleOutput, setConsoleOutput] = useState<ConsoleOutput[]>([]);
   const [connectionState, setConnectionState] = useState<number>(IDLE);
-  
+  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
+
   const peripheralId = route.params.peripheralId;
 
   const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
@@ -44,10 +52,15 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
   const labelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
   const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
 
-
-  const charHandler = (value: any) => {    
+  const charHandler = (value: any) => {
     if (value.characteristic == CHAR_UUID_CONSOLE) {
-      console.log(value.value);
+      var now = new Date();
+      var msg = `${now.getHours()}:${now.getMinutes()} ${now.getSeconds()} ${value.value}`;
+      console.log(msg);
+      consoleOutput.unshift(
+        { timestamp: Moment(now).format('hh:mm:ss a'), message: value.value }
+      );
+      setLastUpdated(now);
     }
   }
 
@@ -78,7 +91,7 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
   const tryConnectViaAndroid = async (device: Devices.DeviceDetail) => {
     if (device!.macAddress && device.macAddress.length > 0) {
       setHasMacAddress(true);
-      
+
 
       console.log('android path', device!.macAddress);
 
@@ -112,54 +125,54 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
   }
 
   const connectViaBLE = async () => {
-      if (await ble.isConnected(peripheralId)) {
-        ble.addListener('receive', charHandler);
-        ble.addListener('disconnected', disconnectHandler);
-        setDeviceInRange(true);
-        setConnectionState(CONNECTED);
+    if (await ble.isConnected(peripheralId)) {
+      ble.addListener('receive', (char) => charHandler(char));
+      ble.addListener('disconnected', disconnectHandler);
+      setDeviceInRange(true);
+      setConnectionState(CONNECTED);
 
-        let  char = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_CONSOLE)
-        console.log("path2");
+      let char = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_CONSOLE)
+      console.log("path2");
+      console.log(char);
+
+      let success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_CONSOLE);
+      if (!success) setErrorMessage('Could not listen for notifications.'); else console.log('blesubscribe=console;')
+    }
+    else {
+      if (await ble.connectById(peripheralId)) {
+        ble.addListener('receive', (char) => charHandler(char));
+        ble.addListener('disconnected', disconnectHandler);
+        setConnectionState(CONNECTED);
+        setDeviceInRange(true);
+
+        let char = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_CONSOLE)
+        console.log("path1");
         console.log(char);
 
         let success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_CONSOLE);
         if (!success) setErrorMessage('Could not listen for notifications.'); else console.log('blesubscribe=console;')
-    }
+
+      }
       else {
-        if (await ble.connectById(peripheralId)) {
-          ble.addListener('receive', charHandler);
-          ble.addListener('disconnected', disconnectHandler);
-          setConnectionState(CONNECTED);
-          setDeviceInRange(true);
-
-          let  char = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_CONSOLE)
-          console.log("path1");
-          console.log(char);
-
-          let success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_CONSOLE);
-          if (!success) setErrorMessage('Could not listen for notifications.'); else console.log('blesubscribe=console;')
-  
-        }
-        else {
-          setDeviceInRange(false);
-        }
+        setDeviceInRange(false);
       }
     }
-  
+  }
+
 
   const connectToDevice = async () => {
     setHasMacAddress(false);
     setDeviceInRange(false);
 
     let hasPermissions = await checkPermissions();
-    if (hasPermissions) {     
-        connectViaBLE();
+    if (hasPermissions) {
+      connectViaBLE();
     }
     else {
       console.log('does not have permissions.');
     }
   }
-  
+
   useEffect(() => {
     if (initialCall) {
       connectToDevice();
@@ -221,7 +234,17 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
     <ScrollView style={styles.scrollContainer}>
       <StatusBar style="auto" />
       {
-       <View>
+        <View>
+          {consoleOutput.map((item, index) =>
+            <View key={index}>
+              <Text style={contentStyle}>
+                {item.timestamp}
+              </Text>
+              <Text style={contentStyle}>
+                {item.message}
+              </Text>
+            </View>
+          )}
         </View>
       }
     </ScrollView>

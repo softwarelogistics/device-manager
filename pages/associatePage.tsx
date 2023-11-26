@@ -36,14 +36,15 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
   const deviceRepoId = route.params.repoId;
   const deviceId = route.params.deviceId;
 
-  console.log('incoming', deviceRepoId, deviceId);
-
   const checkPermissions = async () => {
     if (Platform.OS === 'android') {
+      console.log('[ScanPage__CheckPermissions] Checking Permissions')
       let hasPermissions = false;
       if (Platform.Version >= 23) {
         hasPermissions = await PermissionsHelper.requestLocationPermissions();
       }
+      else 
+        console.log('[ScanPage__CheckPermissions] Android Version < 23;')
 
       hasPermissions = await PermissionsHelper.requestBLEPermission();
       setHasPermissions(hasPermissions);
@@ -122,6 +123,11 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
           }, 5000);
       }
     }
+    else {
+      console.log('[ScanPage__StartScan] Does Not Have Scan Permissions;'); 
+      checkPermissions();
+    }
+
   }
 
   const stopScanning = () => {

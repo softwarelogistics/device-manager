@@ -15,12 +15,19 @@ import { StatusBar } from "expo-status-bar";
 import { RemoteDeviceState } from "../models/blemodels/state";
 import Page from "../mobile-ui-common/page";
 import { IOValues } from "../models/blemodels/iovalues";
+import Moment from 'moment';
 
 const IDLE = 0;
 const CONNECTING = 1;
 const CONNECTED = 2;
 const DISCONNECTED = 3;
 const DISCONNECTED_PAGE_SUSPENDED = 4;
+
+
+interface ConsoleOutput {
+  timestamp: string;
+  message: string;
+}
 
 export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServices) => {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
@@ -35,6 +42,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [connectionState, setConnectionState] = useState<number>(IDLE);
   const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
+  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
 
   const stateRef = useRef();
 
@@ -64,11 +72,13 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
         let wssPayload = wssMessage.payloadJSON;
         let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
 
-        if (device) {
+        if (fullDevice) {
+            fullDevice.sensorCollection = device.sensorCollection;
         }
       }
     }
     else {
+      console.log("[DeviceProfilePage__loadDevice] - Could Not Load Device");
       setErrorMessage('Sorry - Could Not Load Device.');
     }
   }
@@ -80,7 +90,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     setDeviceDetail(fullDevice);
   }*/
 
-  const charHandler = (value: any) => {
+  const charHandler = async (value: any, device: Devices.DeviceDetail) => {
     if (value.characteristic == CHAR_UUID_STATE) {
       console.log(value.value);
       let rds = new RemoteDeviceState(value.value);
@@ -90,6 +100,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
     if (value.characteristic == CHAR_UUID_IO_VALUE) {
       console.log(value);
+
       let values = new IOValues(value.value);
       for(let i = 0; i < values.ioValues.length; i++){
         let value = values.ioValues[i];
@@ -100,13 +111,13 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
       for(let i = 0; i < values.adcValues.length; i++){
         let value = values.adcValues[i];
-        if(value) {
-          //let sensor = deviceDetail.sensorCollection.
-          //deviceDetail!.sensorCollection![i].value = value;
-          console.log(i, value);
+        if(value !== undefined) {
+          device.sensorCollection![i].value = value.toString();          
+          console.log('deviceDetail Exists',i, value);
         }
       }
       setSensorValues(values);
+      setLastUpdated(new Date());
     }
   }
 
@@ -142,7 +153,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       console.log('android path', device!.macAddress);
 
       if (await ble.isConnected(device!.macAddress)) {
-        ble.addListener('receive', charHandler);
+        ble.addListener('receive', (char) => charHandler(char, device));
         ble.addListener('disconnected', disconnectHandler);
         setDeviceInRange(true);
         setConnectionState(CONNECTED);
@@ -151,7 +162,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
         setConnectionState(CONNECTING);
 
         if (await ble.connectById(device!.macAddress)) {
-          ble.addListener('receive', charHandler);
+          ble.addListener('receive', (char) => charHandler(char, device));
           ble.addListener('disconnected', disconnectHandler);
           setDeviceInRange(true);
           setConnectionState(CONNECTED);
@@ -176,14 +187,14 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       setPeripheralId(device!.iosBLEAddress);
       setConnectionState(CONNECTING);
       if (await ble.isConnected(device!.iosBLEAddress)) {
-        ble.addListener('receive', charHandler);
+        ble.addListener('receive', (char) => charHandler(char, device));
         ble.addListener('disconnected', disconnectHandler);
         setDeviceInRange(true);
         setConnectionState(CONNECTED);
       }
       else {
         if (await ble.connectById(device!.iosBLEAddress)) {
-          ble.addListener('receive', charHandler);
+          ble.addListener('receive', (char) => charHandler(char, device));
           ble.addListener('disconnected', disconnectHandler);
           setPeripheralId(device!.iosBLEAddress);
           setConnectionState(CONNECTED);
@@ -345,6 +356,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
     let sensorName = sensor?.name ?? `Sensor ${sensorIndex}`;
 
+    console.log('Sensor Data', sensorIndex, sensorName, sensor?.value);
 
     return (
       <View style={[{ flex: 1, width: 100, backgroundColor: sensor ? 'green' : '#d0d0d0', margin: 5, justifyContent: 'center', borderRadius: 8 }]}>

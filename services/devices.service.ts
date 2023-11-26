@@ -307,15 +307,12 @@ export class DevicesService {
     let result = await this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(uri);
     this.setDeviceDetail(result.model);
 
-    console.log(result);
-
     if(result.successful)
       return result.model;
-    else {
-      console.log('device load error');
-      console.log(result.errors[0].message);
-      return null;
-    }
+    
+    console.log('[DeviceService__getDevice] - Error loading device');
+    console.log(result.errors[0].message);
+    return null;
   }
 
 

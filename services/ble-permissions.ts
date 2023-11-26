@@ -3,97 +3,110 @@ import { PermissionsAndroid, Platform } from 'react-native';
 export class PermissionsHelper {
     public static async requestBLEPermission(): Promise<boolean> {
         try {
-            const granted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION, {
-                title: 'Location permission for bluetooth scanning',
-                message: 'To scan for NuvIoT devices, the application must have permissions to access course location.',
-                buttonNeutral: 'Ask Me Later',
-                buttonNegative: 'Cancel',
-                buttonPositive: 'OK',
-            },
-            );
 
-            let btGranted = PermissionsAndroid.RESULTS.GRANTED;
-            let btcGranted = PermissionsAndroid.RESULTS.GRANTED;
+            let crsGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION);
 
-            let OsVer = Platform.Version;//.constants["Release"] as number;
+            if (crsGranted) {
+                console.log('[PermissionsHelper__requestBLEPermission] - Already Has Course Location');
+            }
+            else {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION, {
+                    title: 'Location permission for bluetooth scanning',
+                    message: 'To scan for NuvIoT devices, the application must have permissions to access course location.',
+                    buttonNeutral: 'Ask Me Later',
+                    buttonNegative: 'Cancel',
+                    buttonPositive: 'OK',
+                }),
 
-            console.log('react native version' + OsVer)
+                    crsGranted = granted == PermissionsAndroid.RESULTS.GRANTED;
+                if (!crsGranted) {
+                    alert('To Use Bluetooth, you must grant location permissions.');
+                    console.log('[PermissionsHelper__requestBLEPermission] - Course Location Not Granted - will not continue.');
+                    return false;
+                }
 
-            // android revision 30 is android release 11, 31 is 12.
-            if (OsVer > 30) {
-                console.log('OS Version is greater then 30, need to request additional BT permissions.');
+                console.log('[PermissionsHelper__requestBLEPermission] - Course Location Granted Will Continue.');
+            }
 
-                btGranted = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN, {
+            let OsVer = Platform.Version as number;
+            if (crsGranted && OsVer < 31) {
+                console.log('[PermissionsHelper__requestBLEPermission] - OS Version < 31 and has course location');
+                return true;
+            }
+            else 
+                console.log('[PermissionsHelper__requestBLEPermission] - OS Version > 30 will need to check for bluetooth permissions.');
+
+            let btsGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN);
+            if (!btsGranted) {
+                btsGranted = (await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN/*, {
                     title: 'Bluetooth Scanning Permission',
                     message: 'To scan for NuvIoT devices, the application must have permissions to scan for bluetooth devices.',
                     buttonNeutral: 'Ask Me Later',
                     buttonNegative: 'Cancel',
                     buttonPositive: 'OK',
-                });
+                }*/)) == PermissionsAndroid.RESULTS.GRANTED;
 
-                console.log('Scan permissions granted?', btGranted);
+                if (!btsGranted) {
+                    alert('To Use Bluetooth, you must grant bluetooth scanning permissions.');
+                    console.log('[PermissionsHelper__requestBLEPermission] - Bluetooth Scanning Not Granted - will not continue.');
+                    return false;
+                }
 
-                btcGranted = await PermissionsAndroid.request(
+                console.log('[PermissionsHelper__requestBLEPermission] - Bluetooth Scanning Granted Will Continue.');
+            }
+            else
+                console.log('[PermissionsHelper__requestBLEPermission] - Bluetooth Scanning Already Granted Will Continue.');
+
+
+            let btcGranted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT);
+            if (!btcGranted) {
+                btcGranted = (await PermissionsAndroid.request(
                     PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT, {
-                    title: 'Bluetooth Connect Permissions',
-                    message: 'To connect to NuvIoT devices, the application must have permissions to connect to bluetooth devices.',
+                    title: 'Bluetooth Connect Permission',
+                    message: 'To Connect to NuvIoT devices, the application must have permissions to connect for bluetooth devices.',
                     buttonNeutral: 'Ask Me Later',
                     buttonNegative: 'Cancel',
                     buttonPositive: 'OK',
-                });
+                })) == PermissionsAndroid.RESULTS.GRANTED;
 
-                console.log('Connect permissions granted?', btGranted);
-            }
-            else {
-                console.log('OS Version less or equal to 30, do not need to request additional BT permissions.');
-            }
-
-            console.log('Permissions Granted', granted, btGranted, btcGranted);
-
-            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-                if (btGranted === PermissionsAndroid.RESULTS.GRANTED) {
-                    if (btcGranted === PermissionsAndroid.RESULTS.GRANTED) {
-                        console.log('Location permission for bluetooth scanning granted');
-                        return true;
-                    }
-                    else {
-                        console.log('Blue tooth connect permission => ' + btcGranted);
-                        return false;
-                    }
-                }
-                else {
-                    console.log('Blue tooth scan permission revoked -=> ' + btGranted);
+                if (!btcGranted) {
+                    alert('To Use Bluetooth, you must grant bluetooth connect permissions.');
+                    console.log('[PermissionsHelper__requestBLEPermission] - Bluetooth Connect Not Granted - will not continue.');
                     return false;
                 }
-            } else {
-                console.log('Location permission for bluetooth scanning revoked -=> ' + granted);
-                return false;
+
+                console.log('[PermissionsHelper__requestBLEPermission] - Bluetooth Connect Granted Will Continue.');
             }
+            else
+                console.log('[PermissionsHelper__requestBLEPermission] - Bluetooth Connect Already Granted Will Continue.');
+
+            return true;
+
         } catch (err) {
-            console.warn(err);
+            console.log('[PermissionsHelper__requestBLEPermission] - Error')
+            console.log(err)
             return false;
         }
     }
 
     public static async requestLocationPermissions(): Promise<boolean> {
         let hasFineLocationPermissions = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-        if(hasFineLocationPermissions) {
-            console.log("Already has fine location permissions");
-
+        if (hasFineLocationPermissions) {
+            console.log("'[PermissionsHelper__requestBLEPermission] - Already has fine location permissions");
             return true;
         }
 
         let grantedFineLocationPermissions = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-        if(grantedFineLocationPermissions) {
-            console.log("User accept");
+        if (grantedFineLocationPermissions) {
+            console.log("'[PermissionsHelper__requestBLEPermission] - User Accepted has fine location permissions");
             return true;
         }
 
+        alert('To Use Bluetooth, you must grant bluetooth fine location permissions.');
+        console.log("'[PermissionsHelper__requestBLEPermission] - User did not accept fine location permissions");
 
-        console.log("User refuse");
         return false;
     }
-
 }

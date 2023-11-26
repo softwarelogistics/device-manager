@@ -45,8 +45,9 @@ export class HttpClient {
         let jwt = await this.storage.getItemAsync('jwtExpires');
         if (jwt) {
             let date = new Date(jwt);
-            if (date < new Date()) {
-                console.log('expired, refreshing');
+            let now = new Date();
+            if (date < now) {
+                console.log(`[HttpClient__checkJWTExpire], Expired: ${date} - ${now}`);
                 return await this.renewToken();
             }
         }
@@ -86,7 +87,7 @@ export class HttpClient {
                 await AsyncStorage.setItem("refreshtoken", refreshResult.result.refreshToken);
                 await AsyncStorage.setItem("refreshtokenExpires", refreshResult.result.refreshTokenExpiresUTC);
                 await AsyncStorage.setItem("jwtExpires", refreshResult.result.accessTokenExpiresUTC);
-                console.log('refreshed with new JWT');
+                console.log('[HttpClient__renewToken] - Refreshed with new JWT');
 
                 let currentUserResult = await this.get<Core.FormResult<Users.AppUser, Users.AppUserView>>(`${HttpClient.getApiUrl()}/api/user`);
                 console.log(currentUserResult!.model);
@@ -94,14 +95,18 @@ export class HttpClient {
                 return true;
             }
             else {
+                console.log('[HttpClient__renewToken] - ERROR: could not refresh token');
                 HttpClient.logoutSubscription?.emit('logout', 'could not refresh token');
                 return false;
             }
 
         }
         catch (err: any) {
+            console.log('[HttpClient__renewToken] - Caught Exception: could not refresh token');
+            console.log(err);
+
             HttpClient.logoutSubscription?.emit('logout', 'could not refresh token');
-            console.log('could not get refresh');
+            
             return false;
         };
     }

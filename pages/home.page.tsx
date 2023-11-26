@@ -28,8 +28,6 @@ export default function HomePage({ navigation }: IReactPageServices) {
   const loadInstances = async () => {
     let user = await appServices.userServices.getUser();
     setUser(user);
-    console.log('got user');
-
     let instances = await appServices.deploymentServices.GetInstances();
       setInstances(instances!.model!);
   }
