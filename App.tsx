@@ -35,6 +35,7 @@ import { AboutPage } from './pages/about.page';
 import AssociatePage from './pages/associatePage';
 import { DeviceAdvancedPage } from './pages/device-advanced';
 import { ConsolePage } from './pages/console.page';
+import { SeaWolfHomePage } from './pages/seawolfHome.page';
 
 const Stack = createNativeStackNavigator();
 
@@ -141,6 +142,7 @@ const App = () => {
         <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
         <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
         <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home' }} />
+        <Stack.Screen name="seaWolfHomePage" component={SeaWolfHomePage} options={{ title: 'SeaWolf Home' }} />
         <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />
         <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
         <Stack.Screen name="registerPage" component={RegisterPage} options={{ title: ' ' }} />

@@ -16,7 +16,7 @@ export default function SplashPage({ navigation }: IReactPageServices) {
 
   const checkStartup = async () => {
     if ((await AsyncStorage.getItem("isLoggedIn")) == "true") {
-      navigation.replace('homePage')
+      navigation.replace('seaWolfHomePage')
       console.log('showing home page.');
     }
     else {
