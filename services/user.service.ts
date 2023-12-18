@@ -42,7 +42,6 @@ export class UserService {
   protected _users$ = new ReplaySubject<Core.ListResponse<Users.AppUserSummary | undefined>>(undefined);
 
   async loadCurrentUser(): Promise<Users.AppUser> {
-    console.log('load current user');
     const response = await this.clientService.request<Core.FormResult<Users.AppUser, Users.AppUserView>>('/api/user');
     if (response?.model?.firstName) {
       let userInitials = `${response?.model?.firstName.substring(0, 1)}`;
@@ -77,7 +76,6 @@ export class UserService {
   }
 
   public getOrgsForCurrentUser(): Promise<Core.ListResponse<Users.OrgUser>> {
-    console.log('get orgs')
     return this.clientService.getListResponse<Users.OrgUser>(`/api/user/orgs`);
   }
 
@@ -103,7 +101,7 @@ export class UserService {
               .then(res => resolve(true))
               .catch(err => reject(err));
           } else {
-            console.log(result.errors[0].message);
+            console.error(result.errors[0].message);
             reject(result.errors[0].message);
           }
         })

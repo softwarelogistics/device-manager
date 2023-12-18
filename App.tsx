@@ -41,7 +41,6 @@ const Stack = createNativeStackNavigator();
 
 const App = () => {
   const [navigationTheme, setNavigationTheme] = React.useState<any>();
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
   const [initialPage, setInitialPage] = useState<string>('splashPage');
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [launchUrl, setLaunchUrl] = useState<string|undefined>(undefined);
@@ -54,7 +53,7 @@ const App = () => {
       setLaunchUrl(url);
     }
     else 
-      console.log('no url passed in');
+      console.log('[App_launc] no url passed in');
   }
 
   const linking = {
@@ -84,7 +83,7 @@ const App = () => {
 
   const parseSchemeUrl = async (url:string) => {
     const { hostname, path, queryParams } = Linking.parse(url);
-    console.log(`app startup with url: ${hostname}, path: ${path} and data: ${JSON.stringify(queryParams)}`);
+    console.log(`[App_parseSchemeUrl] start up with url: ${hostname}, path: ${path} and data: ${JSON.stringify(queryParams)}`);
 
     if (queryParams && queryParams.userid && queryParams.token) {
       

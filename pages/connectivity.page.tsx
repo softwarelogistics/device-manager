@@ -88,9 +88,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
   const getData = async () => {
     setIsBusy(true);
-    console.log('get device data.');
     if (await ble.connectById(peripheralId)) {
-      console.log('got device data.');
       let deviceStateCSV = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
       let deviceState = new RemoteDeviceState(deviceStateCSV!);
       let deviceConfig = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
@@ -109,8 +107,6 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
       await ble.disconnectById(peripheralId);
       setViewReady(true);
-
-      console.log('got device data.');
     }
     else {
       console.warn('could not connect.');

@@ -4,7 +4,6 @@ import AppServices from "../services/app-services";
 import styles from "../styles"
 import { ThemePalette } from "../styles.palette.theme";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
-import ViewStylesHelper from "../utils/viewStylesHelper"
 
 
 export interface EditFieldProps {

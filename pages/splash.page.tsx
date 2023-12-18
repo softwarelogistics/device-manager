@@ -16,19 +16,19 @@ export default function SplashPage({ navigation }: IReactPageServices) {
 
   const checkStartup = async () => {
     if ((await AsyncStorage.getItem("isLoggedIn")) == "true") {
-      navigation.replace('seaWolfHomePage')
-      console.log('showing home page.');
+      navigation.replace('homePage')
+      console.log('[SplashPage__checkStartup] showing home page.');
     }
     else {
       let palette = await appServices.userServices.getThemePalette();
       setThemePalette(palette);
-      console.log('got theme', palette);
     }
   }
 
   let version = JSON.stringify(require("../package.json").version)
-  console.log(version);
+  
   version = version.replace('"', '').replace('"','');
+  console.log(`[SplashPage__checkStartup] version ${version}`);
 
   React.useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });

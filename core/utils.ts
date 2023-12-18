@@ -95,15 +95,15 @@ export class HttpClient {
                 return true;
             }
             else {
-                console.log('[HttpClient__renewToken] - ERROR: could not refresh token');
+                console.error('[HttpClient__renewToken] - ERROR: could not refresh token');
                 HttpClient.logoutSubscription?.emit('logout', 'could not refresh token');
                 return false;
             }
 
         }
         catch (err: any) {
-            console.log('[HttpClient__renewToken] - Caught Exception: could not refresh token');
-            console.log(err);
+            console.error('[HttpClient__renewToken] - Caught Exception: could not refresh token');
+            console.error(err);
 
             HttpClient.logoutSubscription?.emit('logout', 'could not refresh token');
             
@@ -138,7 +138,7 @@ export class HttpClient {
             let result = await fetch(url, options);
 
             if (result.status == 401) {
-                console.log('failed: Not Authorized');
+                console.error('failed: Not Authorized');
                 alert('Sorry, you have been logged out.');
                 throw new Error('could not renew token');
             }

@@ -18,7 +18,7 @@ class WssService {
         let url = await this.getWSSUrl(channel, id);
         this.ws = new WebSocket(url.result);
         this.ws.onopen = () => {
-            console.log('i open');
+            console.log('[WssService__onopen] web socket on open;');
         };
 
         this.ws.onmessage = (e) => {            
@@ -28,7 +28,7 @@ class WssService {
         };
 
         this.ws.onclose = () => {
-            console.log('closed web socket');
+            console.log('[WssService__onclose] web socket closed;');
         }
 
         this.ws.onerror = () => {

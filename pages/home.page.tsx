@@ -33,10 +33,6 @@ export default function HomePage({ navigation }: IReactPageServices) {
   }
 
   useEffect(() => {
-    if (initialCall) {
-      loadInstances();
-    }
-
     let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     setSubscription(changed);
 

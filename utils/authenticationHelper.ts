@@ -21,7 +21,7 @@ const AuthenticationHelper = {
     if (request.path) {
       response.navigationTarget = request.path.replace("--/", '');
     } else {
-      response.navigationTarget = 'seaWolfHomePage';
+      response.navigationTarget = 'homePage';
     }
 
     if (request.AppInstanceId && !AsyncStorage.getItem('appInstanceId')) {

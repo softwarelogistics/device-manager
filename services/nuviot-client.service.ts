@@ -28,7 +28,6 @@ export class NuviotClientService {
     }
 
     let url = `${this.getApiUrl()}/${path}`;
-    console.log('getListResponse=>' + url);
 
     let headers = new HttpHeaders();
     if (filter) {
@@ -75,30 +74,6 @@ export class NuviotClientService {
       }
 
     }
-
-    /*
-      console.log(url);
-      
-      this.http.get<Core.ListResponse<TData>>(url, { headers: headers })
-        .then((response) => {
-          console.log('in response from list');
-          if (response.successful) {
-            return response;
-          } else {
-            this.errorReporter.addErrors(response.errors!);
-            return null;
-          }
-        }, (err) => {
-          console.log('handling error');
-          this.errorReporter.addMessage(err.message);
-          
-        }).catch((err) => {          
-          this.errorReporter.addMessage(err.message);
-          return null;
-        })
-        .finally(() => {
-          NetworkCallStatusService.endCall();
-        });*/
   }
 
   getMarkDownContent(path: string): Promise<string> {
@@ -147,8 +122,6 @@ export class NuviotClientService {
       path = path.substring(1);
     }
 
-    console.log('request for invoke' + path);
-
     NetworkCallStatusService.beginCall();
 
     const promise = new Promise<Core.InvokeResultEx<TData>>((resolve, reject) => {
@@ -183,7 +156,6 @@ export class NuviotClientService {
     NetworkCallStatusService.beginCall();
     const promise = new Promise<TData>((resolve, reject) => {
       let url = `${this.getApiUrl()}/${path}`;
-      console.log(url);
       let fullPath = url;
       this.http.get<TData>(fullPath)
         .then((response) => {
@@ -191,6 +163,7 @@ export class NuviotClientService {
           resolve(response);
         }).catch(
           (err) => {
+            console.error(err);            
             NetworkCallStatusService.endCall();
             this.errorReporter.addMessage(err.message);
             if (reject) {
@@ -220,6 +193,7 @@ export class NuviotClientService {
           }
         })
         .catch(err => {
+          console.error(err);
           NetworkCallStatusService.endCall();
           if (reject) {
             reject(err);
@@ -251,6 +225,7 @@ export class NuviotClientService {
           }
         },
           (err) => {
+            console.error(err);
             NetworkCallStatusService.endCall(); 
             this.errorReporter.addMessage(err.message);
           let result: Core.FormResult<TModel, TView> = {
@@ -318,7 +293,6 @@ export class NuviotClientService {
         .then((response) => {
           NetworkCallStatusService.endCall();
           if (!response.successful && reportError) {
-            console.log('adding error...why?')
             this.errorReporter.addErrors(response.errors);
           }
           resolve(response);

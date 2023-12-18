@@ -43,10 +43,10 @@ export class NuvIoTEventEmitter {
         }
     }
 
-    removeAllListeners(name: string) {
-        if(this.debug) console.log('remove sub=>' + name);
+    removeAllListeners(name: string | undefined = undefined) {
+        if(this.debug) console.log('[EventEmitter_RemoveAllListeners] name=' + name ?? 'all');
 
-        let activeSubscriptions = this.subscriptions.filter(sub=>sub.name == name);
+        let activeSubscriptions = name ? this.subscriptions.filter(sub=>sub.name == name) : this.subscriptions;
         for(let subscription of activeSubscriptions) {
             let idx = this.subscriptions.indexOf(subscription);
             this.subscriptions.splice(idx, 1);

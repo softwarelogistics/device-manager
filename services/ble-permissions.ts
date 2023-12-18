@@ -94,7 +94,7 @@ export class PermissionsHelper {
     public static async requestLocationPermissions(): Promise<boolean> {
         let hasFineLocationPermissions = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
         if (hasFineLocationPermissions) {
-            console.log("'[PermissionsHelper__requestBLEPermission] - Already has fine location permissions");
+            console.log("[PermissionsHelper__requestBLEPermission] - Already has fine location permissions");
             return true;
         }
 
@@ -108,5 +108,19 @@ export class PermissionsHelper {
         console.log("'[PermissionsHelper__requestBLEPermission] - User did not accept fine location permissions");
 
         return false;
+    }
+
+    public static async hasBLEPermissions() : Promise<boolean> {
+        if (Platform.OS === 'android') {
+            if (Platform.Version >= 23) {
+              if (!await PermissionsHelper.requestLocationPermissions())
+                return false;
+            }
+      
+            return await PermissionsHelper.requestBLEPermission();
+          }
+          else {
+            return true;
+          }      
     }
 }

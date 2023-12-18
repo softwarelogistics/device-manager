@@ -56,7 +56,12 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
   }
 
   const showDevice = (deviceSummary: Devices.DeviceSummary) => {
-    navigation.navigate('deviceProfilePage', { id: deviceSummary.id, repoId: deviceRepoId });
+    if(deviceSummary.deviceTypeId == 'D37B01208A6B4C4D8953C53435F1AD59' && false){
+      navigation.navigate('seaWolfHomePage', { id: deviceSummary.id, repoId: deviceRepoId });
+    }
+    else {
+      navigation.navigate('deviceProfilePage', { id: deviceSummary.id, repoId: deviceRepoId });
+    }
   }
 
 
