@@ -36,6 +36,7 @@ import AssociatePage from './pages/associatePage';
 import { DeviceAdvancedPage } from './pages/device-advanced';
 import { ConsolePage } from './pages/console.page';
 import { SeaWolfHomePage } from './pages/seawolfHome.page';
+import { CanMonitorPage } from './pages/canmonitor.page';
 
 const Stack = createNativeStackNavigator();
 
@@ -157,6 +158,7 @@ const App = () => {
         <Stack.Screen name="aboutPage" component={AboutPage} options={{ title: 'About' }} />
         <Stack.Screen name="advancedPage" component={DeviceAdvancedPage} options={{ title: 'Advanced' }} />
         <Stack.Screen name="consolePage" component={ConsolePage} options={{ title: 'Console' }} />
+        <Stack.Screen name="canMonitorPage" component={CanMonitorPage} options={{ title: 'Can Monitor' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

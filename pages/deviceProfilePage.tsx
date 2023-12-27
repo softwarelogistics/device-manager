@@ -16,13 +16,7 @@ import { RemoteDeviceState } from "../models/blemodels/state";
 import Page from "../mobile-ui-common/page";
 import { IOValues } from "../models/blemodels/iovalues";
 import Moment from 'moment';
-
-const IDLE = 0;
-const CONNECTING = 1;
-const CONNECTED = 2;
-const DISCONNECTED = 3;
-const DISCONNECTED_PAGE_SUSPENDED = 4;
-
+import { ConnectedDevice } from "../mobile-ui-common/connected-device";
 
 interface ConsoleOutput {
   timestamp: string;
@@ -35,12 +29,9 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined | null>(undefined);
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [deviceDetail, setDeviceDetail] = useState<Devices.DeviceDetail | undefined | any>();
-  const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
-  const [hasMacAddress, setHasMacAddress] = useState<boolean>(false);
   const [sensorValues, setSensorValues] = useState<IOValues | undefined>(undefined);
-  const [deviceInRange, setDeviceInRange] = useState<boolean>(false);
+  const [isDeviceConnected, setIsDeviceConnected] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
-  const [connectionState, setConnectionState] = useState<number>(IDLE);
   const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
   const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
 
@@ -59,36 +50,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const labelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
   const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
 
-  const loadDevice = async () => {
-    let fullDevice = await appServices.deviceServices.getDevice(repoId, id);    
-    if (fullDevice) {
-      await appServices.wssService.init('device', fullDevice.id);
-      setDeviceDetail(fullDevice);
-      await connectToDevice(fullDevice);
-      
-      appServices.wssService.onmessage = (e) => {
-        let json = e.data;
-        let wssMessage = JSON.parse(json);
-        let wssPayload = wssMessage.payloadJSON;
-        let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
-
-        if (fullDevice) {
-          fullDevice.sensorCollection = device.sensorCollection;
-        }
-      }
-    }
-    else {
-      console.error("[DeviceProfilePage__loadDevice] - Could Not Load Device");
-      setErrorMessage('Sorry - Could Not Load Device.');
-    }
-  }
-
-  /*const handleDeviceUpdate = (update: Devices.DeviceForNotification) => {
-    fullDevice!.sensorCollection = update.sensorCollection;
-    fullDevice!.lastContact = update.lastContact;
-    console.log('wss update:' + update.lastContact);
-    setDeviceDetail(fullDevice);
-  }*/
 
   const charHandler = async (value: any, device: Devices.DeviceDetail) => {
     if (value.characteristic == CHAR_UUID_STATE) {
@@ -112,7 +73,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       for (let i = 0; i < values.adcValues.length; i++) {
         let value = values.adcValues[i];
         if (value !== undefined) {
-          device.sensorCollection![i].value = value.toString();
+        //  device.sensorCollection![i].value = value.toString();
         }
       }
       setSensorValues(values);
@@ -120,83 +81,52 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     }
   }
 
-  const checkPermissions = async (): Promise<boolean> => {
-    if (Platform.OS === 'android') {
-      if (Platform.Version >= 23) {
-        if (!await PermissionsHelper.requestLocationPermissions())
-          return false;
-      }
 
-      return await PermissionsHelper.requestBLEPermission();
+  const loadDevice = async () => {
+    let fullDevice = await appServices.deviceServices.getDevice(repoId, id);    
+    if (fullDevice) {
+      await appServices.wssService.init('device', fullDevice.id);
+      setDeviceDetail(fullDevice);
+
+      let peripheralId: string | undefined;
+      if(Platform.OS == 'ios')
+        peripheralId = fullDevice.iosBLEAddress;
+      else if(Platform.OS == 'android')
+        peripheralId = fullDevice.macAddress;
+
+      setPeripheralId(peripheralId);
+
+      if(peripheralId)  {
+        ConnectedDevice.onReceived = (value) => charHandler(value, deviceDetail);
+        ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
+        ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
+
+        await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE]);        
+      }
+                
+      appServices.wssService.onmessage = (e) => {
+        let json = e.data;
+        let wssMessage = JSON.parse(json);
+        let wssPayload = wssMessage.payloadJSON;
+        let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
+
+        if (fullDevice) {
+          fullDevice.sensorCollection = device.sensorCollection;
+        }
+      }
     }
     else {
-      return true;
+      console.error("[DeviceProfilePage__loadDevice] - Could Not Load Device");
+      setErrorMessage('Sorry - Could Not Load Device.');
     }
   }
 
-  const disconnectHandler = (id: string) => {
-    console.log(`device=disconnected; // deviceid= ${id}`)
-
-    setConnectionState(DISCONNECTED);
-    setRemoteDeviceState(null);
-
-    ble.removeAllListeners();
-  }
-
-  const tryConnect = async (device: Devices.DeviceDetail, peripheralId: string) => {
-    if (peripheralId?.length > 0) {
-      setHasMacAddress(true);
-      setPeripheralId(device!.macAddress);
-
-      setConnectionState(CONNECTING);
-
-      if (await ble.connectById(peripheralId)) {
-        ble.addListener('receive', (char) => charHandler(char, device));
-        ble.addListener('disconnected', disconnectHandler);
-
-        setDeviceInRange(true);
-        setConnectionState(CONNECTED);
-
-        let success = await ble.listenForNotifications(device!.macAddress, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-        if (!success) setErrorMessage('Could not listen for notifications.');
-        success = await ble.listenForNotifications(device!.macAddress, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-        if (!success) setErrorMessage('Could not listen for notifications.');
-      }
-      else {
-        setDeviceInRange(false);
-        setRemoteDeviceState(undefined);
-      }
-    }
-  }
-
-  const connectToDevice = async (device: Devices.DeviceDetail) => {
-    setDevices([]);
-
-    setHasMacAddress(false);
-    setPeripheralId(undefined);
-    setDeviceInRange(false);
-
-    let hasPermissions = await checkPermissions();
-    if (hasPermissions) {
-      if (Platform.OS === 'ios')
-        await tryConnect(device, device.iosBLEAddress);
-      else if (Platform.OS == 'android')
-        await tryConnect(device, device.macAddress);
-    }
-    else {
-      console.log('does not have permissions.');
-    }
-  }
 
   const showPage = async (pageName: String) => {
     ble.removeAllListeners();
     let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
-    if(connectionState == CONNECTED) {
-      await ble.stopListeningForNotifications(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-      await ble.stopListeningForNotifications(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-      await ble.disconnectById(peripheralId);
-      setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
-    }
+  
+    await ConnectedDevice.disconnect();
 
     appServices.wssService.close();
     let params = { peripheralId: peripheralId, repoId: repoId, deviceId: id }
@@ -204,7 +134,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   }
 
   const showConfigurePage = async () => {
-    if (connectionState == CONNECTED) {
+    if (isDeviceConnected) {
       await showPage('configureDevice');      
     }
     else {
@@ -218,7 +148,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
   useEffect(() => {
     if (initialCall) {
-      loadDevice();
       setInitialCall(false);
       ble.peripherals = [];
     }
@@ -233,33 +162,21 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     });
 
     const focusSubscription = navigation.addListener('focus', () => {
-      if (connectionState == DISCONNECTED_PAGE_SUSPENDED) {
-        setRemoteDeviceState(undefined);
-        setDeviceInRange(false);
         loadDevice();
-      }
     });
 
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
-      if (connectionState == CONNECTING) {
-        ble.cancelConnect();
-      }
-      else if (connectionState == CONNECTED) {
-        ble.removeAllListeners();
-        await ble.stopListeningForNotifications(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-        await ble.stopListeningForNotifications(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-        await ble.disconnectById(peripheralId!);
-      }
+      if(isDeviceConnected)
+        await ConnectedDevice.disconnect();
 
-      appServices.wssService.close();
+       appServices.wssService.close();
     });
 
     return (() => {
       focusSubscription();
       blurSubscription();
     });
-  }, [deviceInRange, connectionState]);
-
+  }, [isDeviceConnected]);
 
   const sectionHeader = (sectionHeader: string) => {
     return (<View>
@@ -355,28 +272,28 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
               </View>
             }
             {
-              deviceInRange &&
+              isDeviceConnected &&
               <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
                 <Text style={labelStyle}>Local Device Connected</Text>
                 <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showConfigurePage())} name='ios-settings-sharp' />
               </View>
             }
             {
-              deviceDetail && !deviceInRange &&
+              deviceDetail && !isDeviceConnected &&
               <View>
                 <Text style={labelStyle}>Not Connected</Text>
                 {
-                  hasMacAddress == false &&
+                  !peripheralId &&
                   <View>
                     <Text style={contentStyle}>Device is not associated on this platform.</Text>
                     <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
-                      <Text style={contentStyle}>Please scan and associate. {hasMacAddress}</Text>
+                      <Text style={contentStyle}>Please scan and associate.</Text>
                       <Icon.Button size={18} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showScanPage())} name='ios-settings-sharp' />
                     </View>
                   </View>
                 }
                 {
-                  hasMacAddress == true &&
+                  peripheralId &&
                   <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
                     <Text style={contentStyle}>Hardware has been associated</Text>
                     <Icon style={{ textAlign: 'center', }} size={18} color="white" onPress={() => showScanPage()} name='bluetooth-outline' />

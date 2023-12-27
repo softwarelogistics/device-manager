@@ -24,8 +24,11 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [consoleOutput, setConsoleOutput] = useState<ConsoleOutput[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
+  const [isDeviceConnected, setIsDeviceConnected] = useState<boolean>(false);
 
   const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
+
+  const peripheralId = route.params.peripheralId;
 
   const charHandler = (value: any) => {
     if (value.characteristic == CHAR_UUID_CONSOLE) {
@@ -37,21 +40,42 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
       );
       setLastUpdated(now);
     }
-    else if(value.characteristic == CHAR_UUID_CAN_MSG){
+    else if (value.characteristic == CHAR_UUID_CAN_MSG) {
       console.log('canmsg', value.value);
     }
   }
-  
-  useEffect(() => {    
-  });
+
+  const tryConnect = async () => {
+    ConnectedDevice.onReceived = (value) => charHandler(value);
+    ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
+    ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
+
+    await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_CONSOLE]);
+  }
+
+  useEffect(() => {
+    const focusSubscription = navigation.addListener('focus', async () => {
+      await tryConnect();
+    });
+
+    const blurSubscription = navigation.addListener('beforeRemove', async () => {
+      if (isDeviceConnected)
+        await ConnectedDevice.disconnect();
+
+    });
+
+    return (() => {
+      focusSubscription();
+      blurSubscription();
+    });
+  }, [isDeviceConnected]);
 
   return <Page style={[styles.container]}>
-    <ConnectedDevice props={props} navigation={navigation} route={route} onReceived={charHandler} subscriptions={[CHAR_UUID_CONSOLE, CHAR_UUID_CAN_MSG]}/>
-    <ScrollView style={styles.scrollContainer}>    
+    <ScrollView style={styles.scrollContainer}>
       <StatusBar style="auto" />
       {
-        <View>            
-            {consoleOutput.map((item, index) =>
+        <View>
+          {consoleOutput.map((item, index) =>
             <View key={index}>
               <Text style={contentStyle}>
                 {item.timestamp}

@@ -32,9 +32,9 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   const repoId = route.params.repoId;
   const peripheralId = route.params.peripheralId;
 
-  if (!peripheralId) {
-    console.log(route.params);
-    throw 'Must provide peripheralId in the route'
+  if (!peripheralId || !deviceId || !repoId) {
+    console.error(route.params);
+    throw 'Must provide peripheralId, repoId and deviceId in the route.params'
   }
 
   const primaryButtonStyle: ViewStyle = ViewStylesHelper.combineViewStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
@@ -61,20 +61,6 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
     else {
       setIsBusy(false);
       await alert('Could not connect to device.');
-    }
-  }
-
-  const checkPermissions = async (): Promise<boolean> => {
-    if (Platform.OS === 'android') {
-      if (Platform.Version >= 23) {
-        if (!await PermissionsHelper.requestLocationPermissions())
-          return false;
-      }
-
-      return await PermissionsHelper.requestBLEPermission();
-    }
-    else {
-      return true;
     }
   }
 
@@ -129,6 +115,10 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
             <TouchableOpacity style={[primaryButtonStyle]} onPress={() => showPage('consolePage')}>
               <Text style={primaryButtonTextStyle}> Console </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity style={[primaryButtonStyle]} onPress={() => showPage('canMonitorPage')}>
+              <Text style={primaryButtonTextStyle}> CAN Monitor </Text>
+            </TouchableOpacity>            
 
             <TouchableOpacity style={primaryButtonStyle} onPress={() => showPage('sensorsPage')}>
               <Text style={primaryButtonTextStyle}> Sensors </Text>

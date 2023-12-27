@@ -1,12 +1,4 @@
-import { IReactPageServices } from "../services/react-page-services";
-import { ble, CHAR_UUID_CONSOLE, SVC_UUID_NUVIOT, CHAR_UUID_CAN_MSG } from '../NuvIoTBLE'
-import { useEffect, useState } from "react";
-import styles from '../styles';
-import ViewStylesHelper from "../utils/viewStylesHelper";
-import { ThemePalette } from "../styles.palette.theme";
-import AppServices from "../services/app-services";
-import fontSizes from "../styles.fontSizes";
-import { Text, TextStyle, View } from "react-native";
+import { ble, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { PermissionsHelper } from "../services/ble-permissions";
 
 const IDLE = 0;
@@ -15,94 +7,72 @@ const CONNECTED = 2;
 const DISCONNECTED = 3;
 const DISCONNECTED_PAGE_SUSPENDED = 4;
 
-export const ConnectedDevice = ({ navigation, props, route, onReceived, subscriptions }: IReactPageServices) => {
-    const [connectionState, setConnectionState] = useState<number>(IDLE);
-    const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
-    const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
-    const [deviceInRange, setDeviceInRange] = useState<boolean>(false);
-    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
-    const [initialCall, setInitialCall] = useState<boolean>(true);
+export class ConnectedDevice {
+    static peripheralId: string | undefined;
+    static connectionState: number = IDLE;
+    static lastUpdated: Date | undefined;
+    static errorMessage: string | undefined;
+    static onDisconnected: (() => void) | undefined;
+    static onConnected: (() => void) | undefined;
+    static didNotConnect: (() => void) | undefined;
+    static onReceived: ((value: any) => void) | undefined;
 
-    const peripheralId = route.params.peripheralId;
-    const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
+    private static _subscriptions: string[] | undefined;
 
-    const disconnectHandler = (id: string) => {
+    static disconnectHandler(id: string) {
         console.log(`[Console__disconnectHandler] disconnected; // deviceid=${id}`)
-        setConnectionState(DISCONNECTED);
+        ConnectedDevice.connectionState = DISCONNECTED;
         ble.removeAllListeners();
+        if (ConnectedDevice.onDisconnected) ConnectedDevice.onDisconnected();
     }
 
-    const charHandler = (value: any) => {
-        if (onReceived) {
-            console.log('sending it', value);
-            onReceived(value);
+    static charHandler = (value: any) => {
+        if (ConnectedDevice.onReceived) {
+            ConnectedDevice.onReceived(value);
         }
     }
 
-    const connectViaBLE = async () => {
-        setConnectionState(CONNECTING);
+    static async connect() {
+        if (await PermissionsHelper.hasBLEPermissions()) {
+            ConnectedDevice.connectionState = CONNECTING;
 
-        if (await ble.connectById(peripheralId)) {
-            ble.addListener('receive', (char) => charHandler(char));
-            ble.addListener('disconnected', disconnectHandler);
-            setConnectionState(CONNECTED);
-            setDeviceInRange(true);
+            if (await ble.connectById(ConnectedDevice.peripheralId!)) {
+                console.log(`[ConnectedDevice__connect] Connected`)
+                ble.addListener('receive', (char) => ConnectedDevice.charHandler(char));
+                ble.addListener('disconnected', ConnectedDevice.disconnectHandler);
+                ConnectedDevice.connectionState = CONNECTED;            
 
-            for(let charId of subscriptions!){
-                let success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, charId);    
-                if (!success) setErrorMessage('Could not listen for notifications.'); else console.log('blesubscribe=console;')
-            }
-        }
-        else {
-            setDeviceInRange(false);
-        }
-    }
-
-    const connectToDevice = async () => {
-        setDeviceInRange(false);
-
-        if (await PermissionsHelper.hasBLEPermissions())
-            connectViaBLE();
-    }
-
-    useEffect(() => {
-        if (initialCall) {
-            connectToDevice();
-            setInitialCall(false);
-        }
-        const focusSubscription = navigation.addListener('focus', () => {
-            if (connectionState == DISCONNECTED_PAGE_SUSPENDED) {
-                setDeviceInRange(false);
-                connectToDevice();
-            }
-        });
-
-        const blurSubscription = navigation.addListener('beforeRemove', async () => {
-            if (connectionState == CONNECTING) {
-                ble.cancelConnect();
-            }
-            else if (connectionState == CONNECTED) {
-                ble.removeAllListeners();
-                for(let charId of subscriptions!){
-                    await ble.stopListeningForNotifications(peripheralId!, SVC_UUID_NUVIOT, charId);
+                for (let charId of ConnectedDevice._subscriptions!) {
+                    let success = await ble.listenForNotifications(ConnectedDevice.peripheralId!, SVC_UUID_NUVIOT, charId);
+                    if (!success) {
+                        ConnectedDevice.errorMessage = 'Could not listen for notifications.';
+                        console.warn(`[ConnectedDevice__connect_could-not-subscribed] char-id=${charId};`)
+                    } 
+                    else
+                        console.log(`[ConnectedDevice__connect_subscribed] char-id=${charId};`)
                 }
 
-                await ble.disconnectById(peripheralId!);
+                if (ConnectedDevice.onConnected) {
+                    ConnectedDevice.onConnected();
+                }
             }
-        });
+            else {
+                if (ConnectedDevice.didNotConnect) ConnectedDevice.didNotConnect();
+            }
+        }
+    }
 
-        return (() => {
-            focusSubscription();
-            blurSubscription();
-        });
-    }, [deviceInRange, connectionState]);
+    static async connectAndSubscribe(peripheralId: string, subscriptions: string[]) {
+        this._subscriptions = subscriptions;
+        this.peripheralId = peripheralId;
+        await this.connect();
+    }
 
-    return <View>
-        <Text style={contentStyle}>
-            Connected
-        </Text>
-        <Text style={contentStyle}>
-            {connectionState}
-        </Text>
-    </View>
+    static async disconnect() {
+        for (let charId of ConnectedDevice._subscriptions!)
+            await ble.stopListeningForNotifications(ConnectedDevice.peripheralId!, SVC_UUID_NUVIOT, charId);
+
+        ble.removeAllListeners();
+        await ble.disconnectById(ConnectedDevice.peripheralId!);
+    }
 }

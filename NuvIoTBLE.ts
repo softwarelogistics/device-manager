@@ -164,7 +164,7 @@ export class NuvIoTBLE {
         // Convert bytes array to string
         const buffer = Buffer.from(value);
         const decodedValue = buffer.toString();
-        ble.btEmitter?.emit('receive', { characteristic: characteristic, value: decodedValue, raw: buffer});
+        ble.btEmitter?.emit('receive', { characteristic: characteristic, value: decodedValue, raw: value});
       });
     }
 
@@ -411,6 +411,7 @@ export class NuvIoTBLE {
   _cancelConnect: boolean = false;
 
   cancelConnect() {
+    console.warn('[BLEManager__cancelConnect]: Cancelling Connection Attempt.');
     this._cancelConnect = true;
   }
 
@@ -418,6 +419,7 @@ export class NuvIoTBLE {
     let retryCount = 5;
 
     ble.btEmitter?.emit('connecting', `Connecting to ${id}`);
+    this._cancelConnect = false;
     while (!this._cancelConnect) {
       if (this.simulatedBLE()) {
         return true;
@@ -477,7 +479,7 @@ export class NuvIoTBLE {
       }
     }
 
-    console.log('BLEManager__connectById: Connection Attempt Cancelled');
+    console.warn('[BLEManager__connectById]: Connection Attempt Cancelled');
 
     this._cancelConnect = false;
 
