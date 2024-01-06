@@ -69,10 +69,15 @@ export class ConnectedDevice {
     }
 
     static async disconnect() {
-        for (let charId of ConnectedDevice._subscriptions!)
-            await ble.stopListeningForNotifications(ConnectedDevice.peripheralId!, SVC_UUID_NUVIOT, charId);
+        console.log('hi from disconnect')
+        console.log(ConnectedDevice._subscriptions);
+        if(ConnectedDevice._subscriptions){
+            for (let charId of ConnectedDevice._subscriptions!)
+                await ble.stopListeningForNotifications(ConnectedDevice.peripheralId!, SVC_UUID_NUVIOT, charId);
+        }
 
         ble.removeAllListeners();
-        await ble.disconnectById(ConnectedDevice.peripheralId!);
+        if((ConnectedDevice.peripheralId))
+            await ble.disconnectById(ConnectedDevice.peripheralId!);
     }
 }

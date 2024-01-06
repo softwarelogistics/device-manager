@@ -1,6 +1,6 @@
 {
   "name": "device-mgr",
-  "version": "5.6.0",
+  "version": "5.7.0",
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",

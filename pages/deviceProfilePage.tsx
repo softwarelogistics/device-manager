@@ -124,12 +124,21 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
   const showPage = async (pageName: String) => {
     ble.removeAllListeners();
+    console.log('here');
+    console.log(deviceDetail);
     let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
+    console.log('here2');
   
     await ConnectedDevice.disconnect();
 
+    console.log('here3');
+
     appServices.wssService.close();
+    
+    console.log('here4');
+
     let params = { peripheralId: peripheralId, repoId: repoId, deviceId: id }
+    console.log(params);
     navigation.navigate(pageName, params);
   }
 

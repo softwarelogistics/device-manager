@@ -328,7 +328,7 @@ export class NuvIoTBLE {
           return true;
         }
         catch (e) {
-          console.error('[BLEManager__connect] could not connect; //peripheralId=' + peripheral.id + '');       
+          console.log('[BLEManager__connect] could not connect; //peripheralId=' + peripheral.id + '');       
         }
       }
     }
@@ -411,7 +411,7 @@ export class NuvIoTBLE {
   _cancelConnect: boolean = false;
 
   cancelConnect() {
-    console.warn('[BLEManager__cancelConnect]: Cancelling Connection Attempt.');
+    console.log('[BLEManager__cancelConnect]: Cancelling Connection Attempt.');
     this._cancelConnect = true;
   }
 
@@ -435,7 +435,7 @@ export class NuvIoTBLE {
             console.log(`[BLEManager__connectById] connecting; // peripheral id: ${id}`);
             let timeoutId = setTimeout(() => { 
               BleManager.disconnect(id); 
-              console.warn(`5 second timeout for device id ${id}`) 
+              console.log(`5 second timeout for device id ${id}`) 
             }, 5000);     
 
             await BleManager.connect(id);
@@ -468,7 +468,7 @@ export class NuvIoTBLE {
               return true;
           }
           catch (e) {
-            console.error('[BLEManager__connectById] Error - ' + e + ' id=' + id + ' retry count ' + retryCount);
+            console.log('[BLEManager__connectById] Error - ' + e + ' id=' + id + ' retry count ' + retryCount);
             
             if (retryCount-- == 0)
               return false;
@@ -479,7 +479,7 @@ export class NuvIoTBLE {
       }
     }
 
-    console.warn('[BLEManager__connectById]: Connection Attempt Cancelled');
+    console.log('[BLEManager__connectById]: Connection Attempt Cancelled');
 
     this._cancelConnect = false;
 
