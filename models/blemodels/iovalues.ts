@@ -1,5 +1,6 @@
 export class IOValues {
     constructor(str: string) {
+        console.log(str);
         this.adcValues = [];
         this.ioValues = [];
 
@@ -7,17 +8,18 @@ export class IOValues {
         for (let idx = 0; idx < 8; ++idx) {
             let value = parts[idx];
             if (value)
-                this.adcValues.push(parseFloat(value));
+                this.ioValues.push(parseFloat(value));
             else
-                this.adcValues.push(undefined);
+                this.ioValues.push(undefined);
         }
 
         for (let idx = 8; idx < 16; ++idx) {
             let value = parts[idx];
+            console.log(value);
             if (value)
-                this.ioValues.push(parseFloat(value));
+                this.adcValues.push(parseFloat(value));
             else
-                this.ioValues.push(undefined);
+                this.adcValues.push(undefined);
         }
     };
 
