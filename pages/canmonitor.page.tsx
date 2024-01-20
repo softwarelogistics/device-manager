@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, TextStyle, ScrollView } from "react-native";
+import { View, Text, TextStyle, Animated, ScrollView, Button } from "react-native";
 import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
 import { ThemePalette } from "../styles.palette.theme";
@@ -169,7 +169,7 @@ class EngineDynamic {
         }
 
         if (this.messageBuffer[2] != 255 && this.messageBuffer[1] != 255)
-            this.oilPressure = this.messageBuffer[2] << 8 | this.messageBuffer[1];
+            this.oilPressure = (this.messageBuffer[2] << 8 | this.messageBuffer[1]) / 100.0;
 
         if (this.messageBuffer[6] > 0 && this.messageBuffer[5] != 255) {
             var kelvin = (this.messageBuffer[6] << 8 | this.messageBuffer[5]) / 100.0;
@@ -184,8 +184,6 @@ class EngineDynamic {
 
         if (this.messageBuffer[8] > 0 && this.messageBuffer[7] > 0)
             this.voltage = (this.messageBuffer[8] << 8 | this.messageBuffer[7]) / 100.0;
-
-
     }
 
     toString() {
@@ -376,7 +374,23 @@ export const CanMonitorPage = ({ props, navigation, route }: IReactPageServices)
         <ScrollView style={styles.scrollContainer}>
             <StatusBar style="auto" />
             {
+                
                 <View>
+                    <View>
+                        <Text>
+                        {isDeviceConnected && 
+                            <Text>
+                            Connected
+                            </Text>
+                        }
+                        {!isDeviceConnected && 
+                            <Text>
+                            Not Connected
+                            <Button title="Connect" onPress={tryConnect} />
+                            </Text>
+                        }
+                        </Text>
+                    </View>                    
                     <Text style={headerStyle}>Rapid Properties</Text>
                     {engineRapidParameters.map((itm, idx) =>
                         <View key={idx}>
@@ -391,7 +405,7 @@ export const CanMonitorPage = ({ props, navigation, route }: IReactPageServices)
                         <View key={idx}>
                             <Text style={contentStyle}>Engine Number: {itm.engineNumber}</Text>
                             <Text style={contentStyle}>Engine Temperature: {itm.engineTemperature} F</Text>
-                            <Text style={contentStyle}>Oil Pressure: {itm.oilPressure}</Text>
+                            <Text style={contentStyle}>Oil Pressure: {itm.oilPressure} psi</Text>
                             <Text style={contentStyle}>Voltage: {itm.voltage} V</Text>
                             <Text style={contentStyle}>Fuel Pressure: {itm.fuelPressure} l/h</Text>
                             <Text style={contentStyle}>Fuel Rate: {itm.fuelRate} pa</Text>

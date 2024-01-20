@@ -95,7 +95,7 @@ export class HttpClient {
                 return true;
             }
             else {
-                console.error('[HttpClient__renewToken] - ERROR: could not refresh token');
+                console.log('[HttpClient__renewToken] - ERROR: could not refresh token');
                 HttpClient.logoutSubscription?.emit('logout', 'could not refresh token');
                 return false;
             }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, TextStyle, ScrollView } from "react-native";
+import { View, Text, TextStyle, ScrollView, Button } from "react-native";
 import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
 import { ThemePalette } from "../styles.palette.theme";
@@ -75,6 +75,22 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
       <StatusBar style="auto" />
       {
         <View>
+          <View>
+            <Text>
+              {isDeviceConnected && 
+                <Text>
+                Connected
+                </Text>
+              }
+              {!isDeviceConnected && 
+                <Text>
+                Not Connected
+                <Button title="Connect" onPress={tryConnect} />
+                </Text>
+              }
+            </Text>
+          </View>
+
           {consoleOutput.map((item, index) =>
             <View key={index}>
               <Text style={contentStyle}>
