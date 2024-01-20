@@ -53,27 +53,36 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
   const charHandler = async (value: any, device: Devices.DeviceDetail) => {
     if (value.characteristic == CHAR_UUID_STATE) {
-      console.log(value.value);
       let rds = new RemoteDeviceState(value.value);
 
       setRemoteDeviceState(rds);
     }
 
     if (value.characteristic == CHAR_UUID_IO_VALUE) {
-      console.log(value);
-
       let values = new IOValues(value.value);
       for (let i = 0; i < values.ioValues.length; i++) {
         let value = values.ioValues[i];
-        if (value) {
-          console.log(i, value);
+        let sensor = device.sensorCollection.find(sns=>sns.portIndex == i && sns.technology.key == 'io');
+        if(sensor) {
+          if (value !== undefined) {
+            sensor.value = value.toString();
+          }
+          else {
+            sensor.value = '';
+          }
         }
       }
 
       for (let i = 0; i < values.adcValues.length; i++) {
         let value = values.adcValues[i];
-        if (value !== undefined) {
-        //  device.sensorCollection![i].value = value.toString();
+        let sensor = device.sensorCollection.find(sns=>sns.portIndex == i && sns.technology.key == 'adc');
+        if(sensor) {
+          if (value !== undefined) {
+            sensor.value = value.toString();
+          }
+          else {
+            sensor.value = '';
+          }
         }
       }
       setSensorValues(values);
@@ -83,6 +92,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
 
   const loadDevice = async () => {
+    console.log('load fd');
     let fullDevice = await appServices.deviceServices.getDevice(repoId, id);    
     if (fullDevice) {
       await appServices.wssService.init('device', fullDevice.id);
@@ -97,7 +107,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       setPeripheralId(peripheralId);
 
       if(peripheralId)  {
-        ConnectedDevice.onReceived = (value) => charHandler(value, deviceDetail);
+        ConnectedDevice.onReceived = (value) => charHandler(value, fullDevice!);
         ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
         ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
 
@@ -124,21 +134,11 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
   const showPage = async (pageName: String) => {
     ble.removeAllListeners();
-    console.log('here');
     console.log(deviceDetail);
     let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
-    console.log('here2');
-  
     await ConnectedDevice.disconnect();
-
-    console.log('here3');
-
     appServices.wssService.close();
-    
-    console.log('here4');
-
     let params = { peripheralId: peripheralId, repoId: repoId, deviceId: id }
-    console.log(params);
     navigation.navigate(pageName, params);
   }
 
@@ -231,13 +231,11 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     </View>
   }
 
-  const sensorBlock = (idx: number, sensors: Devices.Sensor[], icon: string) => {
-    let sensor = sensors.find(snsr => snsr.portIndex == idx);
-
-    let sensorIndex = idx + 1;
-    if (sensorIndex > 8) sensorIndex -= 8;
-
-    let sensorName = sensor?.name ?? `Sensor ${sensorIndex}`;
+  const ioSensorBlock = (idx: number, sensors: Devices.Sensor[], icon: string) => {
+    
+    let sensor = sensors.find(snsr => snsr.portIndex == (idx) && snsr.technology.key == 'io');    
+  
+    let sensorName = sensor?.name ?? `Sensor ${idx + 1}`;
 
     return (
       <View style={[{ flex: 1, width: 100, backgroundColor: sensor ? 'green' : '#d0d0d0', margin: 5, justifyContent: 'center', borderRadius: 8 }]}>
@@ -248,6 +246,22 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
         <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : '#d0d0d0' }}>{sensor?.value ?? '-'}</Text>
       </View>)
   }
+
+  const adcSensorBlock = (idx: number, sensors: Devices.Sensor[], icon: string) => {
+    let sensor = sensors.find(snsr => snsr.portIndex == (idx) && snsr.technology.key == 'adc');    
+  
+    let sensorName = sensor?.name ?? `Sensor ${idx + 1}`;
+
+    return (
+      <View style={[{ flex: 1, width: 100, backgroundColor: sensor ? 'green' : '#d0d0d0', margin: 5, justifyContent: 'center', borderRadius: 8 }]}>
+        <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : 'black' }}>{sensorName}</Text>
+        <View >
+          <Icon style={{ textAlign: 'center', color: sensor ? 'white' : '#a0a0a0' }} size={64} onPress={showConfigurePage} name={icon} />
+        </View>
+        <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : '#d0d0d0' }}>{sensor?.value ?? '-'}</Text>
+      </View>)
+  }
+
 
   return <Page style={[styles.container]}>
     <ScrollView style={styles.scrollContainer}>
@@ -337,25 +351,25 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                 {sectionHeader('Live Sensor Data')}
                 <Text style={labelStyle}>ADC Sensors</Text>
                 <ScrollView horizontal={true}>
-                  {sensorBlock(8, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(9, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(10, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(11, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(12, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(13, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(14, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(15, deviceDetail.sensorCollection, 'radio-outline')}
+                  {adcSensorBlock(0, deviceDetail.sensorCollection, 'radio-outline')}
+                  {adcSensorBlock(1, deviceDetail.sensorCollection, 'radio-outline')}
+                  {adcSensorBlock(2, deviceDetail.sensorCollection, 'radio-outline')}
+                  {adcSensorBlock(3, deviceDetail.sensorCollection, 'radio-outline')}
+                  {adcSensorBlock(4, deviceDetail.sensorCollection, 'radio-outline')}
+                  {adcSensorBlock(5, deviceDetail.sensorCollection, 'radio-outline')}
+                  {adcSensorBlock(6, deviceDetail.sensorCollection, 'radio-outline')}
+                  {adcSensorBlock(7, deviceDetail.sensorCollection, 'radio-outline')}
                 </ScrollView>
                 <Text style={labelStyle}>IO Sensors</Text>
                 <ScrollView horizontal={true}>
-                  {sensorBlock(0, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(1, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(2, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(3, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(4, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(5, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(6, deviceDetail.sensorCollection, 'radio-outline')}
-                  {sensorBlock(7, deviceDetail.sensorCollection, 'radio-outline')}
+                  {ioSensorBlock(0, deviceDetail.sensorCollection, 'radio-outline')}
+                  {ioSensorBlock(1, deviceDetail.sensorCollection, 'radio-outline')}
+                  {ioSensorBlock(2, deviceDetail.sensorCollection, 'radio-outline')}
+                  {ioSensorBlock(3, deviceDetail.sensorCollection, 'radio-outline')}
+                  {ioSensorBlock(4, deviceDetail.sensorCollection, 'radio-outline')}
+                  {ioSensorBlock(5, deviceDetail.sensorCollection, 'radio-outline')}
+                  {ioSensorBlock(6, deviceDetail.sensorCollection, 'radio-outline')}
+                  {ioSensorBlock(7, deviceDetail.sensorCollection, 'radio-outline')}
                 </ScrollView>
 
 
