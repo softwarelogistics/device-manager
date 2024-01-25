@@ -319,7 +319,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                   peripheralId &&
                   <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
                     <Text style={contentStyle}>Hardware has been associated</Text>
-                    <Icon style={{ textAlign: 'center', }} size={18} color="white" onPress={() => showScanPage()} name='bluetooth-outline' />
+                    <Icon style={{ textAlign: 'center', }} size={18} color={themePalette.shellNavColor}  onPress={() => showScanPage()} name='bluetooth-outline' />
                   </View>
                 }
               </View>

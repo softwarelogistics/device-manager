@@ -227,7 +227,7 @@ export class NuvIoTBLE {
       return true;
     }
     catch (e) {
-      console.error('[BLEManager__stopListeningForNotifications] could not stop listening, char=' + characteristicId + ", err=" + e);
+      console.log('[BLEManager__stopListeningForNotifications] could not stop listening, char=' + characteristicId + ", err=" + e);
       return false;
     }
   }
@@ -460,7 +460,7 @@ export class NuvIoTBLE {
                 console.log(chr.characteristic, characteristicId);
               }
 
-              console.warn(`[BLEManager__connectById] not a NuvIoT device;`);
+              console.log(`[BLEManager__connectById] not a NuvIoT device;`);
               await this.disconnectById(id);
               return false;
             }
@@ -508,7 +508,7 @@ export class NuvIoTBLE {
           }
 
           if (await BleManager.isPeripheralConnected(id)) {
-            console.error(`[BLEManager__disconnectById] still-connected; timeout waiting for disconnect.`);
+            console.log(`[BLEManager__disconnectById] still-connected; timeout waiting for disconnect.`);
             return false;
           }
 
@@ -516,7 +516,7 @@ export class NuvIoTBLE {
           return true;
         }
         catch (e) {
-          console.error(`[BLEManager__disconnectById] error ` + e);
+          console.log(`[BLEManager__disconnectById] error ` + e);
           return false;
         }
       }
