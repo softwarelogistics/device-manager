@@ -145,6 +145,7 @@ const palettes = {
     shellTextColor: '#FFFFFF',
     toggleColor: '#F3F3F3',
     accentColor: '#d48d17',
+    placeHolderText: '#b0b0b0',    
     name: 'dark',
   },
 
@@ -161,13 +162,14 @@ const palettes = {
     buttonTertiaryBorderColor: '#454545',
     buttonTertiaryText: '#000000',
     currentOrganizationBackgroundColor: '#1976D2',
-    inputBackgroundColor: standardColors.primaryBlue20,
+    inputBackgroundColor: '#ffffff',
     listItemIconColor: '#1976D2',
     shell: '#FFFFFF',
     shellNavColor: '#D48D17',
     shellTextColor: '#000000',
     toggleColor: '#000000',
     accentColor: '#d48d17',
+    placeHolderText: '#b0b0b0',    
     name: 'light',
   },
 };

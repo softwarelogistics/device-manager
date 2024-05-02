@@ -3,7 +3,7 @@ export const CommonSettings = {
 }
 
 export const environment = {
-    production: false,
+    production: true,
     appId: "1C114B00D8014BD988BF61D74672F9D2",
     deviceId: 'mobileApp',
     appInstanceid: "",

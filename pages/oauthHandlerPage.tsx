@@ -141,7 +141,17 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
         </View>
       }
       {!failedAuth && 
+      <View>
         <Text style={{color:themePalette.shellTextColor}}>Please Wait</Text>
+        <MciIcon.Button
+        name="logout"
+        style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
+        color={colors.white}
+        backgroundColor={colors.transparent}
+        onPress={() => logOut()}>
+        <Text style={submitButtonWhiteTextStyle}> Try Again </Text>
+      </MciIcon.Button>
+      </View>
       }
     </View>
     </Page>

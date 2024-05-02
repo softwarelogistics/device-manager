@@ -17,6 +17,7 @@ export class ThemePalette {
   listItemIconColor: string;
   shell: string;
   shellNavColor: string;
+  placeHolderText: string;
   shellTextColor: string;
   accentColor: string;
   toggleColor: string;
@@ -42,7 +43,8 @@ export class ThemePalette {
     this.shellTextColor = '';
     this.toggleColor = '';
     this.accentColor = '';
-    this.name = '?'    
+    this.name = '?',
+    this.placeHolderText = ''
   }
 }
 

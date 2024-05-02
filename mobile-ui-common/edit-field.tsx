@@ -30,8 +30,8 @@ export default function EditField(props:EditFieldProps) {
  return (
     <View>
         <Text style={[styles.label, { color: themePalette.shellTextColor, fontWeight: (themePalette.name === 'dark' ? '700' : '400')  }]} >{props.label}</Text>
-        <TextInput autoCapitalize="none" style={{ color: themePalette.shellTextColor, fontSize:20, backgroundColor: themePalette.inputBackgroundColor, height:50,  marginRight:5, paddingLeft:5  }} 
-                placeholderTextColor={themePalette.shellNavColor}  
+        <TextInput autoCapitalize="none" style={{ color: themePalette.shellTextColor, fontSize:20, backgroundColor: themePalette.inputBackgroundColor, height:40, paddingStart:10, marginRight:5, marginBottom:20, paddingLeft:5  }} 
+                placeholderTextColor={themePalette.placeHolderText}  
                 editable={props.editable !== false} placeholder={props.placeHolder} secureTextEntry={props.secureTextEntry} onChangeText={props.onChangeText} value={props.value} />
     </View>
  )};

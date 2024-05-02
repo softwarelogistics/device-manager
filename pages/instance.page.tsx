@@ -7,9 +7,11 @@ import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
 import { ThemePalette } from "../styles.palette.theme";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
-import { ActivityIndicator, FlatList, Pressable, ScrollView, Text, View } from "react-native";
+import { Button } from 'react-native-ios-kit';
+import { ActionSheetIOS, ActivityIndicator, FlatList, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import SLIcon from "../mobile-ui-common/sl-icon";
+import styles from "../styles";
 
 
 export const InstancePage = ({ navigation, props, route }: IReactPageServices) => {
@@ -17,7 +19,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
   const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
-  const [deviceModelFilter, setDeviceModelFilter] = useState<string | undefined>(undefined);
+  const [deviceModelFilter, setDeviceModelFilter] = useState<Core.EntityHeader | undefined>(undefined);
 
   const [allDevices, setAllDevices] = useState<Devices.DeviceSummary[] | undefined>(undefined);
   const [devices, setDevices] = useState<Devices.DeviceSummary[] | undefined>(undefined);
@@ -41,7 +43,7 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     uniqueDeviceModels = uniqueDeviceModels.sort((a, b) => a.text > b.text ? 1 : -1);
 
     uniqueDeviceModels.unshift({ id: 'all', text: 'All Device Models' });
-    setDeviceModelFilter('all');
+    setDeviceModelFilter(uniqueDeviceModels[0]);
 
     let devices = result.model!.sort((a, b) => a.deviceName > b.deviceName ? 1 : -1);
 
@@ -64,9 +66,8 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     }
   }
 
-
   const deviceTypeChanged = async (id: string) => {
-    setDeviceModelFilter(id);
+    setDeviceModelFilter(deviceModels.find(itm => itm.id == id));
 
     if (id === 'all')
       setDevices(allDevices);
@@ -75,6 +76,23 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
       setDevices(deviceModels);
     }
   }
+
+  const deviceModelFilterSelected = async () => {
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: deviceModels.map(item => item.text),
+        destructiveButtonIndex: 2,
+        cancelButtonIndex: 0,
+        userInterfaceStyle: 'dark',
+      },
+      buttonIndex => {
+        if (buttonIndex === 0) {
+          // cancel action
+        } else if (buttonIndex > 1 ) {
+          deviceTypeChanged(deviceModels[buttonIndex].id);    
+        }
+      })
+  };
 
   useEffect(() => {
     let palette = AppServices.getAppTheme()
@@ -106,10 +124,14 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
     <Page>
       <StatusBar style="auto" />
       <View style={{ width: "100%", flexDirection: 'column'}}>
-        <Text style={[{ margin: 3, color: themePalette.shellTextColor, fontSize: 24 }]}>{instanceName}</Text>
-        <Picker selectedValue={deviceModelFilter} onValueChange={deviceTypeChanged} itemStyle={{color:themePalette.shellTextColor}} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
+        <Text style={[{ margin: 3, color:themePalette.shellTextColor, fontSize: 24 }]}>{instanceName}</Text>
+            {Platform.OS == 'ios' && deviceModelFilter && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline  onPress={() => deviceModelFilterSelected()} >{deviceModelFilter.text}</Button> }
+            {Platform.OS == 'ios' && !deviceModelFilter && <Button title='-all-' onPress={() => deviceModelFilterSelected()} /> }
+            {Platform.OS != 'ios' &&             
+        <Picker selectedValue={deviceModelFilter?.id} onValueChange={deviceTypeChanged} itemStyle={{color:themePalette.shellTextColor}} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
           {deviceModels.map(itm => <Picker.Item key={itm.id} label={itm.text} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />)}
         </Picker>
+}
           <ScrollView style={{  backgroundColor:'red' }} >
             <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', backgroundColor: themePalette.background, width: "100%", height:"100%" }}>
               {devices && devices.map((item, key) => {

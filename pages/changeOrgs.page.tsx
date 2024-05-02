@@ -65,15 +65,8 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
       setInitialCall(false);
       loadUserOrgs();
     }
-
-    (async () => {
-      await appServices.userServices.getUser()
-        .then(result => {
-          if (result) {
-            setThemePalette(result.themePalette);
-          }
-        });
-    })();
+    var palette = AppServices.getAppTheme()
+    setThemePalette(palette);
   });
 
   const currentOrganizationHeaderCircleStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.iconButtonCircle, styles.alignCenter, { color: colors.white, fontSize: 72, marginTop: 16, textAlign: 'center' }]);
@@ -90,7 +83,7 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
 
   let idx: number = 0;
   return (
-      <Page style={{backgroundColor: themePalette.background, width: "100%"  }}>
+    <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
         {
           orgs && user && 
           <View style={{ height:'auto', backgroundColor: themePalette.background, width: "100%" }}>

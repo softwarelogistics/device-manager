@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    marginBottom: 10
+    marginBottom: 20
   },
 
   listRow: {
