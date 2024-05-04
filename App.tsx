@@ -1,4 +1,5 @@
-import * as React from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer, DefaultTheme, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -41,22 +42,16 @@ import { CanMonitorPage } from './pages/canmonitor.page';
 const Stack = createNativeStackNavigator();
 
 const App = () => {
-  const [navigationTheme, setNavigationTheme] = React.useState<any>();
+  const [navigationTheme, setNavigationTheme] = useState<any>();
   const [initialPage, setInitialPage] = useState<string>('splashPage');
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [launchUrl, setLaunchUrl] = useState<string|undefined>(undefined);
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
-  
-  const url = Linking.useURL();  
-  if(launchUrl != url){
-    if(url) {
-      setLaunchUrl(url);
-    }
-    else 
-      console.log('[App_launc] no url passed in');
-  }
 
+  const [loadMessage, setLoadMessage] = useState<string>('Loadidddng...');
+  const url = Linking.useURL();
+  console.log('start');
   const linking = {
     prefixes: ['exp://', 'nuviot://', 'exp://127.0.0.1:19000/--/'],
     config: {
@@ -81,7 +76,7 @@ const App = () => {
 
     setNavigationTheme(navTheme);
   }
-
+  
   const parseSchemeUrl = async (url:string) => {
     const { hostname, path, queryParams } = Linking.parse(url);
     console.log(`[App_parseSchemeUrl] start up with url: ${hostname}, path: ${path} and data: ${JSON.stringify(queryParams)}`);
@@ -115,6 +110,8 @@ const App = () => {
   }
 
   useEffect(() => {
+    setLoadMessage('Loading...' + new Date().toLocaleTimeString());
+    console.log(loadMessage);
     if (url) {
       parseSchemeUrl(url)
     }
@@ -129,39 +126,54 @@ const App = () => {
     return (() => { if (subscription) AppServices.themeChangeSubscription.remove(subscription); })
   },[url]);
 
+  
+
+  console.log('progress!');
+
   return (
     <NavigationContainer theme={navigationTheme} linking={linking}>
-      <Stack.Navigator initialRouteName={initialPage} screenOptions={{ headerBackTitleVisible: false }}>
-        <Stack.Screen name="accountPage" component={AccountPage} options={{ title: 'Settings' }} />
-        <Stack.Screen name="oauthHandlerPage" component={OAuthHandlerPage} options={{ title: 'Third Party Login' }} />
-        <Stack.Screen name="authPage" component={AuthPage} options={{ title: ' ' }} />
-        <Stack.Screen name="blePropertiesPage" component={BlePropertiesPage} options={{ title: 'Device Properties' }} />
-        <Stack.Screen name="changeOrgsPage" component={ChangeOrgPage} options={{ title: 'Organizations' }} />
-        <Stack.Screen name="configureDevice" component={ConfigureDevicePage} options={{ title: 'Configure Device' }} />
-        <Stack.Screen name="liveDevicePage" component={LiveDevicePage} options={{ title: 'Device Info' }} />
-        <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
-        <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
-        <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home' }} />
-        <Stack.Screen name="seaWolfHomePage" component={SeaWolfHomePage} options={{ title: 'SeaWolf Home' }} />
-        <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />
-        <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
-        <Stack.Screen name="registerPage" component={RegisterPage} options={{ title: ' ' }} />
-        <Stack.Screen name="scanPage" component={ScanPage} options={{ title: 'Scan for Devices' }} />
-        <Stack.Screen name="associatePage" component={AssociatePage} options={{ title: 'Associate Existing Device' }} />
-        <Stack.Screen name="sensorsPage" component={SensorsPage} options={{ title: 'Sensors' }} />
-        <Stack.Screen name="settingsPage" component={ConnectivityPage} options={{ title: 'Configure Device: Connectivity' }} />
-        <Stack.Screen name="splashPage" component={SplashPage} options={{ title: 'Welcome' }} />
-        <Stack.Screen name="tempSensorsPage" component={TempSensorPage} options={{ title: 'Sensors' }} />
-        <Stack.Screen name="instancePage" component={InstancePage} options={{ title: 'Devices' }} />
-        <Stack.Screen name="devicesPage" component={DevicesPage} options={{ title: 'Devices' }} />
-        <Stack.Screen name="profilePage" component={ProfilePage} options={{ title: 'Profile' }} />
-        <Stack.Screen name="aboutPage" component={AboutPage} options={{ title: 'About' }} />
-        <Stack.Screen name="advancedPage" component={DeviceAdvancedPage} options={{ title: 'Advanced' }} />
-        <Stack.Screen name="consolePage" component={ConsolePage} options={{ title: 'Console' }} />
-        <Stack.Screen name="canMonitorPage" component={CanMonitorPage} options={{ title: 'Can Monitor' }} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack.Navigator initialRouteName={initialPage} screenOptions={{ headerBackTitleVisible: false }}>
+      <Stack.Screen name="accountPage" component={AccountPage} options={{ title: 'Settings' }} />
+          <Stack.Screen name="oauthHandlerPage" component={OAuthHandlerPage} options={{ title: 'Third Party Login' }} />
+          <Stack.Screen name="authPage" component={AuthPage} options={{ title: ' ' }} />
+          <Stack.Screen name="blePropertiesPage" component={BlePropertiesPage} options={{ title: 'Device Properties' }} />
+          <Stack.Screen name="changeOrgsPage" component={ChangeOrgPage} options={{ title: 'Organizations' }} />
+          <Stack.Screen name="configureDevice" component={ConfigureDevicePage} options={{ title: 'Configure Device' }} />
+          <Stack.Screen name="liveDevicePage" component={LiveDevicePage} options={{ title: 'Device Info' }} />
+          <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
+          <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
+          <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home' }} />
+          <Stack.Screen name="seaWolfHomePage" component={SeaWolfHomePage} options={{ title: 'SeaWolf Home' }} />
+          <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />
+          <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
+          <Stack.Screen name="registerPage" component={RegisterPage} options={{ title: ' ' }} />
+          <Stack.Screen name="scanPage" component={ScanPage} options={{ title: 'Scan for Devices' }} />
+          <Stack.Screen name="associatePage" component={AssociatePage} options={{ title: 'Associate Existing Device' }} />
+          <Stack.Screen name="sensorsPage" component={SensorsPage} options={{ title: 'Sensors' }} />
+          <Stack.Screen name="settingsPage" component={ConnectivityPage} options={{ title: 'Configure Device: Connectivity' }} />
+          <Stack.Screen name="splashPage" component={SplashPage} options={{ title: 'Welcome' }} />
+          <Stack.Screen name="tempSensorsPage" component={TempSensorPage} options={{ title: 'Sensors' }} />
+          <Stack.Screen name="instancePage" component={InstancePage} options={{ title: 'Devices' }} />
+          <Stack.Screen name="devicesPage" component={DevicesPage} options={{ title: 'Devices' }} />
+          <Stack.Screen name="profilePage" component={ProfilePage} options={{ title: 'Profile' }} />
+          <Stack.Screen name="aboutPage" component={AboutPage} options={{ title: 'About' }} />
+          <Stack.Screen name="advancedPage" component={DeviceAdvancedPage} options={{ title: 'Advanced' }} />
+          <Stack.Screen name="consolePage" component={ConsolePage} options={{ title: 'Console' }} />
+          <Stack.Screen name="canMonitorPage" component={CanMonitorPage} options={{ title: 'Can Monitor' }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+ 
   );
-};
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+
 
 export default App;

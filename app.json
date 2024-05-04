@@ -4,7 +4,7 @@
     "name": "NuvIoT",
     "owner": "kevindwolf",
     "slug": "device-mgr",
-    "version": "1.0.0",
+    "version": "5.7.5",
     "orientation": "portrait",
     "icon": "./assets/adaptive-icon.png",
     "userInterfaceStyle": "light",
@@ -13,8 +13,8 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "updates":  {
-      "enabled": false,
+    "updates": {
+      "enabled": false
     },
     "assetBundlePatterns": [
       "**/*"
@@ -25,7 +25,8 @@
         {
           "username": "kevindwolf"
         }
-      ]
+      ],
+      "expo-build-properties"
     ],
     "ios": {
       "supportsTablet": true,

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { IReactPageServices } from "../services/react-page-services";
 import { StatusBar } from 'expo-status-bar';
@@ -26,7 +25,9 @@ export default function SplashPage({ navigation }: IReactPageServices) {
   }
 
   let version = JSON.stringify(require("../package.json").version)
-  
+
+  console.log('startup');
+
   version = version.replace('"', '').replace('"','');
   console.log(`[SplashPage__checkStartup] version ${version}`);
 

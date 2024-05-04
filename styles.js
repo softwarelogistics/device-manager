@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 import colors from './styles.colors';
 import fontSizes from './styles.fontSizes';
 import palettes from './styles.palettes';
+import { Platform } from 'react-native';
 
 const styles = StyleSheet.create({
 
@@ -362,5 +363,6 @@ const styles = StyleSheet.create({
   },
 
 });
+
 
 export default styles;
