@@ -29,51 +29,57 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
     console.log('check startup called.');
     let ola = await AsyncStorage.getItem('oauth_launch');
     if (ola == 'true') {
-      console.log('ola is true, calling next chunk of code.');
       await AsyncStorage.removeItem('oauth_launch');
-      clearTimeout(timer!);
-      setTimer(null)
+
       let oAuthUser = await AsyncStorage.getItem('oauth_user');
       let oAuthToken = await AsyncStorage.getItem('oauth_token');
       let initialPath = await AsyncStorage.getItem('oauth_path');
+
+      console.log(`OAuth Launch, User Id: ${oAuthUser}, Token: ${oAuthToken}, Path: ${initialPath}`);
+
       await AsyncStorage.removeItem('oauth_launch');
       await AsyncStorage.removeItem('oauth_user');
       await AsyncStorage.removeItem('oauth_token');
       await AsyncStorage.removeItem('oauth_path');
       finalizeLogin(oAuthUser!, oAuthToken!, initialPath!);
     }
+    else
+      setTimeout(() => checkStartup(), 1000);
   }
 
   const finalizeLogin = async (userId: string, authToken: string, path: string) => {
     let appInstanceId = await AsyncStorage.getItem('appInstanceId')
     appInstanceId = appInstanceId || AuthenticationHelper.newUuid();
 
-    if (path && (path.endsWith('home') || path.endsWith('welcome'))) {
-      const request = {
-        "GrantType": "single-use-token",
-        "UserId": userId,
-        "SingleUseToken": authToken,
-        "AppId": "nuviot-devicemgr",
-        "AppInstanceId": appInstanceId,
-      };
+    const request = {
+      "GrantType": "single-use-token",
+      "UserId": userId,
+      "SingleUseToken": authToken,
+      "AppId": "nuviot-devicemgr",
+      "AppInstanceId": appInstanceId,
+    };
 
-      console.log('attempting external login with request', request);
+    console.log('attempting external login with single use token', request);
 
-      let loginResponse = await AuthenticationHelper.login(request)
+    let loginResponse = await AuthenticationHelper.login(request)  
+    if (loginResponse.isSuccess) {
+      console.log('Login success. Loading current user.');
       await appServices.userServices.loadCurrentUser();
-      if (loginResponse.isSuccess) {
-        console.log('GTG - Navigate home.');
-        let path = loginResponse.navigationTarget!;
-        navigation.replace(path);
+      console.log('Loading current user.');
+
+      console.log('GTG - Navigate home.');
+      let path = loginResponse.navigationTarget!;
+      navigation.replace(path);
+    }
+    else {
+      console.log('Failed logging in with single use token.');
+
+      setFailedAuth(true);
+      if (loginResponse.errorMessage) {
+        alert(loginResponse.errorMessage);
       }
       else {
-        setFailedAuth(true);
-        if (loginResponse.errorMessage) {
-          alert(loginResponse.errorMessage);
-        }
-        else {
-          console.log(loginResponse.error);
-        }
+        console.log(loginResponse.error);
       }
     }
   };
@@ -92,13 +98,13 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
 
   useEffect(() => {
     console.log('use effect called')
-~
-    // navigation.reset({
-    //   index: 0,
-    //   routes: [{name: 'oauthHandlerPage'}],
-    // });
+    ~
+      // navigation.reset({
+      //   index: 0,
+      //   routes: [{name: 'oauthHandlerPage'}],
+      // });
 
-    console.log('navigation was reset.')
+      console.log('navigation was reset.')
 
     let changedSubscription = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     if (initialCall) {
@@ -109,14 +115,12 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
 
       setInitialCall(false);
 
-      let timer = setInterval(() => {
+      setTimeout(() => {
         checkStartup();
       }, 1000);
 
-      setTimer(timer);
 
       return () => {
-        clearTimeout(timer);
         AppServices.themeChangeSubscription.remove(changedSubscription);
       }
     }
@@ -124,36 +128,36 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
 
   return (
     <Page>
-    <StatusBar style="auto" />
-    <View style={styles.scrollContainer}>
-      {failedAuth &&
-        <View>
-          <Text></Text>
+      <StatusBar style="auto" />
+      <View style={styles.scrollContainer}>
+        {failedAuth &&
+          <View>
+            <Text></Text>
 
-          <MciIcon.Button
-            name="logout"
-            style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
-            color={colors.white}
-            backgroundColor={colors.transparent}
-            onPress={() => logOut()}>
-            <Text style={submitButtonWhiteTextStyle}> Log Out </Text>
-          </MciIcon.Button>
-        </View>
-      }
-      {!failedAuth && 
-      <View>
-        <Text style={{color:themePalette.shellTextColor}}>Please Wait</Text>
-        <MciIcon.Button
-        name="logout"
-        style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
-        color={colors.white}
-        backgroundColor={colors.transparent}
-        onPress={() => logOut()}>
-        <Text style={submitButtonWhiteTextStyle}> Try Again </Text>
-      </MciIcon.Button>
+            <MciIcon.Button
+              name="logout"
+              style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
+              color={colors.white}
+              backgroundColor={colors.transparent}
+              onPress={() => logOut()}>
+              <Text style={submitButtonWhiteTextStyle}> Log Out </Text>
+            </MciIcon.Button>
+          </View>
+        }
+        {!failedAuth &&
+          <View>
+            <Text style={{ color: themePalette.shellTextColor }}>Please Wait</Text>
+            <MciIcon.Button
+              name="logout"
+              style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
+              color={colors.white}
+              backgroundColor={colors.transparent}
+              onPress={() => logOut()}>
+              <Text style={submitButtonWhiteTextStyle}> Try Again </Text>
+            </MciIcon.Button>
+          </View>
+        }
       </View>
-      }
-    </View>
     </Page>
   )
 };

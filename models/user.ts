@@ -34,6 +34,7 @@ namespace Users {
     currentOrganization: Core.EntityHeader;
     currentOrganizationInitials?: string;
     email: string;
+    emailConfirmed: boolean;
     phoneNumber: string;
     profileImageUrl: Core.Image;
     externalLogins: ExternalLogin[];

@@ -15,7 +15,15 @@ export default function SplashPage({ navigation }: IReactPageServices) {
 
   const checkStartup = async () => {
     if ((await AsyncStorage.getItem("isLoggedIn")) == "true") {
-      navigation.replace('homePage')
+      let user = await appServices.userServices.getUser();
+      console.log(user);
+      if(!user!.emailConfirmed)
+        navigation.replace('confirmemail')
+      else if(!user!.currentOrganization)
+        navigation.replace('createorg')
+      else
+        navigation.replace('home')
+
       console.log('[SplashPage__checkStartup] showing home page.');
     }
     else {

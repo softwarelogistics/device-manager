@@ -41,31 +41,44 @@ const AuthenticationHelper = {
     let authUrl = `${HttpClient.getApiUrl()}/api/v1/auth`;
     console.log(authUrl);
     console.log(request);
-    const fetched = await fetch(authUrl, postOptions)
-      .catch(err => {
-        console.log(err);
-        response.error = err;
+
+    try
+    {
+      const fetched = await fetch(authUrl, postOptions)
+        .catch(err => {
+          console.log(err);
+          response.error = err;
+          response.navigationTarget = undefined;
+        });
+
+      const fetchedJson = await fetched?.json();
+      console.log('auth result', fetchedJson);
+
+      response.isSuccess = fetchedJson?.successful ?? false;
+
+      if (fetchedJson?.successful) {
+        console.log('login success, saving values and tokens');
+        await AsyncStorage.setItem("isLoggedIn", "true");
+        await AsyncStorage.setItem("jwt", fetchedJson.result.accessToken);
+        await AsyncStorage.setItem("refreshtoken", fetchedJson.result.refreshToken);
+        await AsyncStorage.setItem("refreshtokenExpires", fetchedJson.result.refreshTokenExpiresUTC);
+        await AsyncStorage.setItem("jwtExpires", fetchedJson.result.accessTokenExpiresUTC);
+      }
+      else if (fetchedJson.errors) {
+        console.log('login failed: ' + fetchedJson.errors[0].message);
+
+        response.errorMessage = fetchedJson.errors[0].message;
         response.navigationTarget = undefined;
-      });
+      }
 
-    const fetchedJson = await fetched?.json();
-    console.log('auth result', fetchedJson);
-
-    response.isSuccess = fetchedJson?.successful ?? false;
-
-    if (fetchedJson?.successful) {
-      await AsyncStorage.setItem("isLoggedIn", "true");
-      await AsyncStorage.setItem("jwt", fetchedJson.result.accessToken);
-      await AsyncStorage.setItem("refreshtoken", fetchedJson.result.refreshToken);
-      await AsyncStorage.setItem("refreshtokenExpires", fetchedJson.result.refreshTokenExpiresUTC);
-      await AsyncStorage.setItem("jwtExpires", fetchedJson.result.accessTokenExpiresUTC);
+      return response;
     }
-    else if (fetchedJson.errors) {
-      response.errorMessage = fetchedJson.errors[0].message;
+    catch (err) { 
+      console.log('login failed: ' + err);
+      response.error = err;
       response.navigationTarget = undefined;
+      return response;
     }
-
-    return response;
   },
 
   passwordLogin: async (email: string, password: string, path?: string | undefined): Promise<NuvIotAuthResponse> => {

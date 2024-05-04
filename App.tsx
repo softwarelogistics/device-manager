@@ -38,6 +38,9 @@ import { DeviceAdvancedPage } from './pages/device-advanced';
 import { ConsolePage } from './pages/console.page';
 import { SeaWolfHomePage } from './pages/seawolfHome.page';
 import { CanMonitorPage } from './pages/canmonitor.page';
+import CreateOrgPage from './pages/createOrg.page';
+import ConfirmEmailPage from './pages/confirmEmail.page';
+import AcceptInvitePage from './pages/acceptInvite.page';
 
 const Stack = createNativeStackNavigator();
 
@@ -51,7 +54,7 @@ const App = () => {
 
   const [loadMessage, setLoadMessage] = useState<string>('Loadidddng...');
   const url = Linking.useURL();
-  console.log('start');
+  console.log('application start');
   const linking = {
     prefixes: ['exp://', 'nuviot://', 'exp://127.0.0.1:19000/--/'],
     config: {
@@ -82,9 +85,13 @@ const App = () => {
     console.log(`[App_parseSchemeUrl] start up with url: ${hostname}, path: ${path} and data: ${JSON.stringify(queryParams)}`);
 
     if (queryParams && queryParams.userid && queryParams.token) {
-      
-      await AsyncStorage.setItem('oauth_user', queryParams.userid.toString());
-      await AsyncStorage.setItem('oauth_token', queryParams.token.toString());
+      let userId = queryParams.userid.toString();
+      let token = queryParams.token.toString();
+      let startupPage = queryParams.page ?? 'home';
+
+      console.log(`[App_parseSchemeUrl] success: userId=${userId}; token=${token}; startupPage = '${startupPage}'; hostname = '${hostname};`)
+      await AsyncStorage.setItem('oauth_user', userId);
+      await AsyncStorage.setItem('oauth_token', token);
       await AsyncStorage.setItem('oauth_path', hostname!);
       await AsyncStorage.setItem('oauth_launch', 'true');
       setInitialPage('oauthHandlerPage');
@@ -125,11 +132,7 @@ const App = () => {
 
     return (() => { if (subscription) AppServices.themeChangeSubscription.remove(subscription); })
   },[url]);
-
   
-
-  console.log('progress!');
-
   return (
     <NavigationContainer theme={navigationTheme} linking={linking}>
     <Stack.Navigator initialRouteName={initialPage} screenOptions={{ headerBackTitleVisible: false }}>
@@ -160,6 +163,9 @@ const App = () => {
           <Stack.Screen name="advancedPage" component={DeviceAdvancedPage} options={{ title: 'Advanced' }} />
           <Stack.Screen name="consolePage" component={ConsolePage} options={{ title: 'Console' }} />
           <Stack.Screen name="canMonitorPage" component={CanMonitorPage} options={{ title: 'Can Monitor' }} />
+          <Stack.Screen name="createorg" component={CreateOrgPage} options={{ title: 'Create New Organization' }} />
+          <Stack.Screen name="confirmemail" component={ConfirmEmailPage} options={{ title: 'Confirm Email' }} />
+          <Stack.Screen name="acceptInvite" component={AcceptInvitePage} options={{ title: 'Accept Invitation' }} />
         </Stack.Navigator>
       </NavigationContainer>
  
