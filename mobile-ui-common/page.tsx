@@ -10,17 +10,26 @@ import { NetworkCallStatusService } from "../services/network-call-status-servic
 import StdButton from "./std-button";
 
 export default function Page(props: any) {
+    const [appServices, setAppServices] = useState<AppServices>(new AppServices());
     const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
     const [isBusy, setIsBusy] = useState(false);
     const navigation = useNavigation();
 
     useEffect(() => {
+        
+    (async () => {
+        let palette = await appServices.userServices.getThemePalette();
+        setThemePalette(palette);
+      })();
+        
+
         let themeChangedSubscription = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
         let logoutSubscription = HttpClient.logoutSubscription.addListener('logout', () => { setIsAuthenticated(false) });
         let busySubscription = NetworkCallStatusService.busySubscription.addListener('busy', () => setIsBusy(true));
         let idleSubscription = NetworkCallStatusService.busySubscription.addListener('idle', () => setIsBusy(false));
 
+        console.log(' page ' + themePalette.name);
 
         return (() => {
             AppServices.themeChangeSubscription.remove(themeChangedSubscription);

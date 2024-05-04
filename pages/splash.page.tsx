@@ -43,6 +43,10 @@ export default function SplashPage({ navigation }: IReactPageServices) {
   }
 
   useEffect(() => {
+    console.log(themePalette.name);
+
+    console.log(themePalette.shellTextColor);
+
     (async () => {
       await checkStartup();
     })();

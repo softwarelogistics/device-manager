@@ -80,7 +80,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
   const loginExternal = async (provider: string) => {
     setIsBusy(true);
     let url = `${HttpClient.getWebUrl()}/mobile/login/oauth/${provider}?mobile_app_scheme=nuviot`;
-    if (Constants.manifest?.hostUri && false) {
+    if (Constants.manifest?.hostUri) {
       let hostName = Constants.manifest?.hostUri?.split(':')[0] as string;
       let localIp = hostName.replace('.', '-').replace('.', '-').replace('.', '-').replace('.', '-');
 

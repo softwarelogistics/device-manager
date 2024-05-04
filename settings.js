@@ -1,5 +1,5 @@
 export const CommonSettings = {
-    environment: 'production'
+    environment: 'development'
 }
 
 export const environment = {
@@ -7,7 +7,7 @@ export const environment = {
     appId: "1C114B00D8014BD988BF61D74672F9D2",
     deviceId: 'mobileApp',
     appInstanceid: "",
-    siteUri: 'https://api.nuviot.com'
+    siteUri: CommonSettings.environment == 'development' ? 'https://dev-api.nuviot.com' : 'https://api.nuviot.com'
     // siteUri: 'https://localhost:5001'
     //siteUri: 'https://dev-api.nuviot.com'
 };
