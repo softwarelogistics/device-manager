@@ -145,6 +145,7 @@ const App = () => {
           <Stack.Screen name="liveDevicePage" component={LiveDevicePage} options={{ title: 'Device Info' }} />
           <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
           <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
+          <Stack.Screen name="home" component={HomePage} options={{ title: 'Home' }} />
           <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home' }} />
           <Stack.Screen name="seaWolfHomePage" component={SeaWolfHomePage} options={{ title: 'SeaWolf Home' }} />
           <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />

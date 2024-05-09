@@ -298,7 +298,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
               isDeviceConnected &&
               <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
                 <Text style={labelStyle}>Local Device Connected</Text>
-                <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showConfigurePage())} name='ios-settings-sharp' />
+                <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showConfigurePage())} name='cog-outline' />
               </View>
             }
             {
@@ -311,7 +311,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                     <Text style={contentStyle}>Device is not associated on this platform.</Text>
                     <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
                       <Text style={contentStyle}>Please scan and associate.</Text>
-                      <Icon.Button size={18} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showScanPage())} name='ios-settings-sharp' />
+                      <Icon.Button size={18} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showScanPage())} name='cog-outline' />
                     </View>
                   </View>
                 }

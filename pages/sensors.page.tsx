@@ -323,8 +323,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
           {Platform.OS == 'ios' && selectedPort && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline  onPress={() => selectPort()} >{selectedPort.label}</Button> }
           {Platform.OS == 'ios' && !selectedPort && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline onPress={() => selectPort()} >-select port-</Button> }
           {Platform.OS != 'ios' && 
-            <Picker selectedValue={selectedPort?.value} onValueChange={portChanged} >
-              {ports.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
+            <Picker selectedValue={selectedPort?.value} onValueChange={portChanged} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }}>
+              {ports.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} style={{ fontSize:20, color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />)}
             </Picker>
           }
 
@@ -335,8 +335,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
               {Platform.OS == 'ios' && analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline  onPress={() => selectADCDeviceType()} >{analogDeviceType.label}</Button> }
               {Platform.OS == 'ios' && !analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline onPress={() => selectADCDeviceType()} >-select device type-</Button> }
               {Platform.OS != 'ios' && 
-                <Picker selectedValue={analogDeviceType?.value} onValueChange={(value) => setAnalogDeviceType(adcPortType.find(prt=>prt.value == value))} >
-                  {adcPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
+                <Picker selectedValue={analogDeviceType?.value} onValueChange={(value) => setAnalogDeviceType(adcPortType.find(prt=>prt.value == value))} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }}>
+                  {adcPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} style={{ fontSize:20, color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />)}
                 </Picker>
               }
             </View>
@@ -349,8 +349,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
               {Platform.OS == 'ios' && analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline  onPress={() => selectIODeviceType()} >{analogDeviceType.label}</Button> }
               {Platform.OS == 'ios' && !analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline onPress={() => selectIODeviceType()} >-select device type-</Button> }
               {Platform.OS != 'ios' &&               
-                <Picker selectedValue={digitalDeviceType?.value} onValueChange={(value) => setDigitalDeviceType(ioPortType.find(prt=>prt.value == value))} >
-                  {ioPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
+                <Picker selectedValue={digitalDeviceType?.value} onValueChange={(value) => setDigitalDeviceType(ioPortType.find(prt=>prt.value == value))} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }}>
+                  {ioPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} style={{ fontSize:20, color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />)}
                 </Picker>
               }
             </View>
