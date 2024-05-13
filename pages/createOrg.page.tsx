@@ -11,7 +11,7 @@ export default function CreateOrgPage({ navigation }: IReactPageServices) {
     return (
         <Page>
             <View>
-                <Text>Create Organization Page</Text>
+                <Text></Text>
             </View>
         </Page>
     )

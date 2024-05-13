@@ -52,8 +52,7 @@ const App = () => {
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
 
-  const [loadMessage, setLoadMessage] = useState<string>('Loadidddng...');
-  const url = Linking.useURL();
+  const [loadMessage, setLoadMessage] = useState<string>('Loading...');
   console.log('application start');
   const linking = {
     prefixes: ['exp://', 'nuviot://', 'exp://127.0.0.1:19000/--/'],

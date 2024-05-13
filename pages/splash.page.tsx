@@ -20,7 +20,7 @@ export default function SplashPage({ navigation }: IReactPageServices) {
       if(!user!.emailConfirmed)
         navigation.replace('confirmemail')
       else if(!user!.currentOrganization)
-        navigation.replace('createorg')
+        navigation.replace('authPage')
       else
         navigation.replace('home')
 

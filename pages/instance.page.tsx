@@ -129,7 +129,8 @@ export const InstancePage = ({ navigation, props, route }: IReactPageServices) =
             {Platform.OS == 'ios' && !deviceModelFilter && <Button title='-all-' onPress={() => deviceModelFilterSelected()} /> }
             {Platform.OS != 'ios' &&             
         <Picker selectedValue={deviceModelFilter?.id} onValueChange={deviceTypeChanged} itemStyle={{color:themePalette.shellTextColor}} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
-          {deviceModels.map(itm => <Picker.Item key={itm.id} label={itm.text} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />)}
+          {deviceModels.map(itm => 
+          <Picker.Item key={itm.id} label={itm.text} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: 'themePalette.background' }} />)}
         </Picker>
 }
           <ScrollView style={{  backgroundColor:'red' }} >
