@@ -19,10 +19,11 @@ export default function Page(props: any) {
     useEffect(() => {
         
     (async () => {
-        let palette = await appServices.userServices.getThemePalette();
-        setThemePalette(palette);
+      //  let palette = await appServices.userServices.getThemePalette();
+      //  setThemePalette(palette);
       })();
         
+      console.log(themePalette.background)
 
         let themeChangedSubscription = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
         let logoutSubscription = HttpClient.logoutSubscription.addListener('logout', () => { setIsAuthenticated(false) });
@@ -52,17 +53,14 @@ export default function Page(props: any) {
                     {props.children}
                 </View>
             }
-            {
-                !isAuthenticated && !isBusy &&
-
+            {!isAuthenticated && !isBusy &&
                 <View style={styles.formGroup}>
                     <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />                    
                     <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Sorry, you have been logged out due to inactivity.</Text>
                     <StdButton onPress={login} label="Login"></StdButton>
                 </View>
             }
-            {
-                isBusy &&
+            {isBusy &&
                 <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
                     <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Please Wait</Text>
                     <ProgressSpinner isBusy={isBusy} />
