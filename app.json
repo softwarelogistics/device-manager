@@ -54,6 +54,10 @@
         "android.permission.ACCESS_COARSE_LOCATION"
       ]
     },
+    "packagerOpts": {
+      "sourceExts": ["js", "jsx", "svgx"],
+      "transformer": "node_modules/react-native-svg-transformer/index.js"
+    },
     "web": {
       "favicon": "./assets/favicon.png"
     },

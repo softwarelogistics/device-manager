@@ -1,7 +1,11 @@
 import palettes from "./styles.palettes";
 
 export class ThemePalette {
+  blueBox: string;
+  titleColor: string;
   background: string;
+  viewBackground: string;
+  blueText: string;
   border: string;
   buttonPrimary: string;
   buttonPrimaryBorderColor;
@@ -19,13 +23,18 @@ export class ThemePalette {
   shellNavColor: string;
   placeHolderText: string;
   shellTextColor: string;
+  subtitleColor: string;
   accentColor: string;
   toggleColor: string;
   name: string;
 
   constructor() {
+    this.blueBox = '';
+    this.titleColor = '';
     this.background = '';
-    this.border = '' ,
+    this.viewBackground = '';
+    this.blueText = "";
+    this.border = '' ;
     this.buttonPrimary = '';
     this.buttonPrimaryBorderColor = '';
     this.buttonPrimaryText = '';
@@ -40,10 +49,11 @@ export class ThemePalette {
     this.listItemIconColor = '';
     this.shell = '';
     this.shellNavColor = '';
-    this.shellTextColor = '';
+    this.shellTextColor = ''
+    this.subtitleColor = '';
     this.toggleColor = '';
     this.accentColor = '';
-    this.name = '?',
+    this.name = '';
     this.placeHolderText = ''
   }
 }

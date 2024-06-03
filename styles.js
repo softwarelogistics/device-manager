@@ -3,18 +3,20 @@ import colors from './styles.colors';
 import fontSizes from './styles.fontSizes';
 import palettes from './styles.palettes';
 import { Platform } from 'react-native';
+import { ThemePalette, ThemePaletteService } from "./styles.palette.theme";
 
 const styles = StyleSheet.create({
 
   container: {
     flex: 1,
     alignItems: 'flex-start',
-    backgroundColor: colors.pageBackground,
+    backgroundColor: ThemePalette.background,
   },
 
   scrollContainer: {
     padding: 20,
     flex: 1,
+    width: '100%'
   },
 
   flexView_wrap_row: {
@@ -34,11 +36,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    marginBottom: 20
+    marginBottom: 20,
+    borderRadius: 8
   },
 
   listRow: {
-    flexDirection: 'row'
+    flexDirection: 'row',
+    minWidth: '100%',
   },
 
   formGroup: {
@@ -51,8 +55,9 @@ const styles = StyleSheet.create({
     paddingStart:10,
     alignSelf: "flex-start",
     borderColor: colors.borderColor,
+    borderStyle: 'solid',
     borderWidth: 1,
-    borderRadius: 4,
+    borderRadius: 8,
     marginBottom: 10,
     margin: 6,
     fontSize: fontSizes.medium,
@@ -69,20 +74,30 @@ const styles = StyleSheet.create({
 
   label: {
     color: colors.pageForeground,
-    fontSize: fontSizes.medium,
+    fontSize: fontSizes.mediumSmall,
     marginHorizontal: "1%",
+  },
+
+  labelTitle: {
+    color: colors.pageForeground,
+    fontSize: fontSizes.medium,
+  },
+
+  subtitleText: {
+    fontSize: fontSizes.mediumSmall,
+    lineHeight: 24
   },
 
   link: {
     color: colors.accentColor,
     fontSize: fontSizes.medium,
-    marginHorizontal: "1%",
+    // marginHorizontal: "1%",
   },
 
 
   currentOrganizationView: {
     width: '100%',
-    height: 128,
+    height: 150,
     backgroundColor: colors.primaryColor,
     fontSize: fontSizes.medium,
     fontWeight: 700
@@ -91,8 +106,9 @@ const styles = StyleSheet.create({
   currentOrganizationHeader: {
     fontSize: fontSizes.medium,
     marginBottom: 10,
-    marginTop: 10,
+    marginTop: 20,
     paddingLeft: 4,
+    fontWeight: 600
   },
 
   spinner: {
@@ -150,7 +166,7 @@ const styles = StyleSheet.create({
 
   submitButton: {
     backgroundColor: colors.primaryColor,
-    borderRadius: 4,
+    borderRadius: 8,
     height: 48,
     paddingVertical: 4,
     alignSelf: "flex-start",
@@ -209,7 +225,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     display:'flex',
     flexDirection:'row',
-    borderRadius: 4,
+    borderRadius: 8,
     height: 48,
     paddingVertical: 0,
     alignSelf: "flex-start",
@@ -310,7 +326,10 @@ const styles = StyleSheet.create({
     marginLeft: 0,
     paddingLeft: 0,
     textAlign: 'center',
-    top: -(fontSizes.iconButtonLarge + 4)
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -5
   },
 
   loadingIndicator: {

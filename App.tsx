@@ -52,7 +52,7 @@ const App = () => {
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
 
-  const [loadMessage, setLoadMessage] = useState<string>('Loading...');
+  const [loadMessage, setLoadMessage] = useState<string>('Loadidddng...');
   const url = Linking.useURL();
   console.log('application start');
   const linking = {
@@ -73,7 +73,8 @@ const App = () => {
       colors: {
         ...DefaultTheme.colors,
         card: current.shell,
-        text: current.shellTextColor
+        text: current.shellTextColor,
+        primary: 'blue',
       }
     };
 
@@ -135,7 +136,7 @@ const App = () => {
   
   return (
     <NavigationContainer theme={navigationTheme} linking={linking}>
-    <Stack.Navigator initialRouteName={initialPage} screenOptions={{ headerBackTitleVisible: false }}>
+    <Stack.Navigator initialRouteName={initialPage} screenOptions={{ headerBackTitleVisible: false,  headerTintColor: 'white', headerStyle: { backgroundColor: '#3377FF' } }}>
       <Stack.Screen name="accountPage" component={AccountPage} options={{ title: 'Settings' }} />
           <Stack.Screen name="oauthHandlerPage" component={OAuthHandlerPage} options={{ title: 'Third Party Login' }} />
           <Stack.Screen name="authPage" component={AuthPage} options={{ title: ' ' }} />
@@ -145,7 +146,6 @@ const App = () => {
           <Stack.Screen name="liveDevicePage" component={LiveDevicePage} options={{ title: 'Device Info' }} />
           <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
           <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
-          <Stack.Screen name="home" component={HomePage} options={{ title: 'Home' }} />
           <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home' }} />
           <Stack.Screen name="seaWolfHomePage" component={SeaWolfHomePage} options={{ title: 'SeaWolf Home' }} />
           <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />

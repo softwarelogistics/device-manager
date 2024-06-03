@@ -4,7 +4,7 @@ import AppServices from "../services/app-services";
 import styles from "../styles"
 import { ThemePalette } from "../styles.palette.theme";
 import ViewStylesHelper from "../utils/viewStylesHelper"
-import { primaryButton } from "./control-styles";
+import { primaryButton, secondaryButton } from "./control-styles";
 
 
 export default function StdButton(props:any) {
@@ -12,7 +12,7 @@ export default function StdButton(props:any) {
  const [initialCall, setInitialCall] = useState<boolean>(true);
 
  return (
-     <TouchableOpacity style={primaryButton} onPress={() => props.onPress()}>
+     <TouchableOpacity style={secondaryButton} onPress={() => props.onPress()}>
         <Text style={styles.submitButtonText}> {props.label} </Text>
     </TouchableOpacity>        
   );

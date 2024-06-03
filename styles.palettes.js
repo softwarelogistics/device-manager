@@ -1,5 +1,5 @@
 const standardColors = {
-  primaryBlue: '#1976D2',
+  primaryBlue: '#3399FF',
   primaryBlue10: '#E8F2FB',
   primaryBlue20: '#D1E4F6',
   primaryBlue40: '#A3C8ED',
@@ -8,6 +8,8 @@ const standardColors = {
   primaryBlue125: '#13589D',
   primaryBlue150: '#0C3B69',
   primaryBlue175: '#061D34',
+
+  primaryGray: '#363D4C',
   
   primaryOrange: '#D48D17',
   primaryOrange10: '#FBF4E8',
@@ -100,7 +102,7 @@ const palettes = {
 
   gray: {
     v100: '#222222',
-    v95: '#2D2D2D',
+    v95: '#605D62',
     v80: '#4E4E4E',
     v65: '#6F6F6F',
     v50: '#919191',
@@ -126,7 +128,10 @@ const palettes = {
   },
 
   dark: {
-    background: '#061D34',
+    blueBox: '#15406B',
+    background: '#252D3D',
+    viewBackground: '#363D4D',
+    blueText: '#EBF5FF',
     border: '#fff',
     buttonPrimary: '#1976D2',
     buttonPrimaryBorderColor: '#061D34',
@@ -138,11 +143,12 @@ const palettes = {
     buttonTertiaryBorderColor: '#061D34',
     buttonTertiaryText: '#FFFFFF',
     currentOrganizationBackgroundColor: '#0C3B69',
-    inputBackgroundColor: standardColors.primaryBlue125,
+    inputBackgroundColor: standardColors.primaryGray,
     listItemIconColor: '#D1E4F6',
     shell: '#0C3B69',
-    shellNavColor: '#D1E4F6',
+    shellNavColor: '#FFFFFF',
     shellTextColor: '#FFFFFF',
+    subtitleColor: '#7A8599',
     toggleColor: '#F3F3F3',
     accentColor: '#d48d17',
     placeHolderText: '#b0b0b0',    
@@ -150,7 +156,11 @@ const palettes = {
   },
 
   light: {
-    background: '#F5F5F5',
+    blueBox: '#EBF5FF',
+    titleColor: '#111111',
+    background: '#F5F7FA',
+    viewBackground: '#FFFFFF',
+    blueText: '#15406B',
     border: '#D48D17',
     buttonPrimary: '#1976D2',
     buttonPrimaryBorderColor: '#061D34',
@@ -165,8 +175,9 @@ const palettes = {
     inputBackgroundColor: '#ffffff',
     listItemIconColor: '#1976D2',
     shell: '#FFFFFF',
-    shellNavColor: '#D48D17',
+    shellNavColor: '#111111',
     shellTextColor: '#000000',
+    subtitleColor: '#999999',
     toggleColor: '#000000',
     accentColor: '#d48d17',
     placeHolderText: '#b0b0b0',    

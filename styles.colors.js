@@ -9,9 +9,16 @@ const colors = {
   primaryColor: palettes.primary.normal,
   errorColor: palettes.alert.error,
 
-  black: 'black',
+  darkTitle: palettes.titleColor,
   transparent: 'transparent',
-  white: 'white'
+  white: 'white',
+  gray: '#E0E4EC',
+  darkGray: '#74777E',
+  gray3: '#606A80',
+  gray4: '#4D5566',
+  borderLightColor: '#D8DDE5',
+  borderDarkColor: '#525866',
+  primaryBlue: '#3399FF'
 
 };
 
