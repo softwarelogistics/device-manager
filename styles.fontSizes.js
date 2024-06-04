@@ -1,5 +1,5 @@
 const fontSizes = {
-  header: 25,
+  header: 21,
   icon: 64,
   listItem: 15,
 
@@ -7,7 +7,7 @@ const fontSizes = {
   iconButtonLargeBackground: 42,
 
   large: 24,
-  medium: 18,
+  medium: 16,
   mediumSmall: 14,
   small: 10
 };

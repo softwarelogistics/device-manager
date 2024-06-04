@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { View, Image } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Image, Text } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import IconButton from "../mobile-ui-common/icon-button";
@@ -8,9 +8,12 @@ import styles from '../styles';
 import { IReactPageServices } from "../services/react-page-services";
 import { ThemePalette } from "../styles.palette.theme";
 import Page from "../mobile-ui-common/page";
+import { useFocusEffect } from "@react-navigation/native";
+
 
 export const ProfilePage = ({ navigation, props, route }: IReactPageServices) => {
     const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
+    const [currentTheme, setCurrentTheme] = useState('light')
     
     const showPage = (pageName: string) => {
         navigation.navigate(pageName);
@@ -26,14 +29,30 @@ export const ProfilePage = ({ navigation, props, route }: IReactPageServices) =>
         navigation.popToTop();
         navigation.replace('authPage');
       };
+
+      useFocusEffect(
+        React.useCallback(() => {
+            AsyncStorage.getItem("active_theme").then((value) => {
+                setCurrentTheme(value);
+                console.log("AsyncStorage value from profile:", value);
+            }).catch((error) => {
+                console.error("Error retrieving AsyncStorage value:", error);
+            });
+        }, [])
+    );
     
-    return (<Page>
+    return (<Page
+      style={{ backgroundColor: themePalette.background }}
+      themePalette={themePalette}
+    >
+      <View style={[styles.scrollContainer,{backgroundColor: themePalette.background }]}>
       <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
-      <View style={styles.formGroup}>
-        <IconButton color={themePalette.buttonPrimaryText} label="Switch Organization" icon="podium-outline" iconType="ion" onPress={() => showPage('changeOrgsPage')} ></IconButton>
-        <IconButton color={themePalette.buttonPrimaryText} label="Settings" icon="settings-outline" iconType="ion" onPress={() => showPage('accountPage')} ></IconButton>
-        <IconButton color={themePalette.buttonPrimaryText} label="Log Out" icon="log-out-outline" iconType="ion" onPress={() => logOut()} ></IconButton>        
-        <IconButton color={themePalette.buttonPrimaryText} label="About" icon="log-out-outline" iconType="ion" onPress={() => showPage('aboutPage')} ></IconButton>        
+        <View style={styles.formGroup}>
+          <IconButton color={themePalette.buttonPrimaryText} label="Switch Organization" icon="podium-outline" iconType="ion" onPress={() => showPage('changeOrgsPage')} ></IconButton>
+          <IconButton color={themePalette.buttonPrimaryText} label="Settings" icon="settings-outline" iconType="ion" onPress={() => showPage('accountPage')} ></IconButton>
+          <IconButton color={themePalette.buttonPrimaryText} label="Log Out" icon="log-out-outline" iconType="ion" onPress={() => logOut()} ></IconButton>        
+          <IconButton color={themePalette.buttonPrimaryText} label="About" icon="log-out-outline" iconType="ion" onPress={() => showPage('aboutPage')} ></IconButton>        
+        </View>
       </View>
     </Page>
     )

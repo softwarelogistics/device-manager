@@ -579,6 +579,8 @@ export function resolveIcon(iconName: string) {
           case 'icon-pz-worldwide-2': return require('../assets/icons/PNG/worldwide-2.png');
           case 'icon-pz-worm': return require('../assets/icons/PNG/worm.png');
           case 'icon-pz-writing-email': return require('../assets/icons/PNG/writing-email.png');
+
+          case 'icon-pz-setting-2': return require('../assets/icons/SVG/P-Z/setting-2');
      }
 
      return require('../assets/icons/PNG/worm.png');

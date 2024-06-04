@@ -41,7 +41,8 @@ import { CanMonitorPage } from './pages/canmonitor.page';
 import CreateOrgPage from './pages/createOrg.page';
 import ConfirmEmailPage from './pages/confirmEmail.page';
 import AcceptInvitePage from './pages/acceptInvite.page';
-import HomeWelcomePage from './pages/homeWelcome.Page';
+import colors from './styles.colors';
+import palettes from './styles.palettes';
 
 const Stack = createNativeStackNavigator();
 
@@ -55,6 +56,7 @@ const App = () => {
 
   const [loadMessage, setLoadMessage] = useState<string>('Loading...');
   const url = Linking.useURL();
+  console.log('application start');
   const linking = {
     prefixes: ['exp://', 'nuviot://', 'exp://127.0.0.1:19000/--/'],
     config: {
@@ -73,7 +75,8 @@ const App = () => {
       colors: {
         ...DefaultTheme.colors,
         card: current.shell,
-        text: current.shellTextColor
+        text: current.shellTextColor,
+        primary: 'blue',
       }
     };
 
@@ -82,24 +85,20 @@ const App = () => {
   
   const parseSchemeUrl = async (url:string) => {
     const { hostname, path, queryParams } = Linking.parse(url);
-    let startupPage = path ?? 'home';
-    startupPage = startupPage.replace('--/', '' );
- 
-    console.log(`[App_parseSchemeUrl] start up with url: ${hostname}, path: ${path}, startupPage: ${startupPage}]`);
+    console.log(`[App_parseSchemeUrl] start up with url: ${hostname}, path: ${path} and data: ${JSON.stringify(queryParams)}`);
 
     if (queryParams && queryParams.userid && queryParams.token) {
       let userId = queryParams.userid.toString();
       let token = queryParams.token.toString();
-     
-      console.log(`[App_parseSchemeUrl] success: userId=${userId}; token=${token}; startupPage = '${startupPage}';`)
+      let startupPage = queryParams.page ?? 'home';
+
+      console.log(`[App_parseSchemeUrl] success: userId=${userId}; token=${token}; startupPage = '${startupPage}'; hostname = '${hostname};`)
       await AsyncStorage.setItem('oauth_user', userId);
       await AsyncStorage.setItem('oauth_token', token);
-      await AsyncStorage.setItem('oauth_path', startupPage);
+      await AsyncStorage.setItem('oauth_path', hostname!);
       await AsyncStorage.setItem('oauth_launch', 'true');
       setInitialPage('oauthHandlerPage');
     }
-    else
-      console.error('[App_parseSchemeUrl] failed to parse url: ', url);
   }
 
   const initialLoad = async () => {
@@ -122,6 +121,7 @@ const App = () => {
 
   useEffect(() => {
     setLoadMessage('Loading...' + new Date().toLocaleTimeString());
+    console.log(loadMessage);
     if (url) {
       parseSchemeUrl(url)
     }
@@ -138,7 +138,7 @@ const App = () => {
   
   return (
     <NavigationContainer theme={navigationTheme} linking={linking}>
-    <Stack.Navigator initialRouteName={initialPage} screenOptions={{ headerBackTitleVisible: false }}>
+    <Stack.Navigator initialRouteName={initialPage} screenOptions={{ headerBackTitleVisible: false,  headerTintColor: palettes.primary.white, headerStyle: { backgroundColor: colors.primaryBlue } }}>
       <Stack.Screen name="accountPage" component={AccountPage} options={{ title: 'Settings' }} />
           <Stack.Screen name="oauthHandlerPage" component={OAuthHandlerPage} options={{ title: 'Third Party Login' }} />
           <Stack.Screen name="authPage" component={AuthPage} options={{ title: ' ' }} />
@@ -148,13 +148,7 @@ const App = () => {
           <Stack.Screen name="liveDevicePage" component={LiveDevicePage} options={{ title: 'Device Info' }} />
           <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
           <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
-         
-          <Stack.Screen name="home" component={HomePage} options={{ title: 'Home' }} />
           <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home' }} />
-          <Stack.Screen name="homeWelcome" component={HomeWelcomePage} options={{ title: 'Welcome' }} />
-          <Stack.Screen name="createorg" component={CreateOrgPage} options={{ title: 'Create New Organization' }} />
-          <Stack.Screen name="confirmemail" component={ConfirmEmailPage} options={{ title: 'Confirm Email' }} />
-         
           <Stack.Screen name="seaWolfHomePage" component={SeaWolfHomePage} options={{ title: 'SeaWolf Home' }} />
           <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />
           <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
@@ -172,6 +166,8 @@ const App = () => {
           <Stack.Screen name="advancedPage" component={DeviceAdvancedPage} options={{ title: 'Advanced' }} />
           <Stack.Screen name="consolePage" component={ConsolePage} options={{ title: 'Console' }} />
           <Stack.Screen name="canMonitorPage" component={CanMonitorPage} options={{ title: 'Can Monitor' }} />
+          <Stack.Screen name="createorg" component={CreateOrgPage} options={{ title: 'Create New Organization' }} />
+          <Stack.Screen name="confirmemail" component={ConfirmEmailPage} options={{ title: 'Confirm Email' }} />
           <Stack.Screen name="acceptInvite" component={AcceptInvitePage} options={{ title: 'Accept Invitation' }} />
         </Stack.Navigator>
       </NavigationContainer>

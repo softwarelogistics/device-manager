@@ -12,7 +12,7 @@ export default function ThemeSwitcher(props: any) {
     let nextPalette = ThemePaletteService.getThemePalette(newPalette)
     AppServices.setAppTheme(nextPalette);
     AppServices.themeChangeSubscription?.emit('changed', newPalette);
-    console.log('new')
+  
     setThemePalette(nextPalette);
   }
 

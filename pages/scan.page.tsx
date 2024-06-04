@@ -203,7 +203,7 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
                   <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>Type: {item.deviceType}</Text>
                 </View>
                 <Text style={[{ marginLeft: 10, color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>{item.peripheralId}</Text>
-                {item.provisioned && <Icon style={{ fontSize: 48, color: themePalette.listItemIconColor }} name='information-circle-outline' />}
+                {item.provisioned && <Icon style={{ fontSize: 48, color: themePalette.listItemIconColor }} name='ios-information-circle' />}
                 {!item.provisioned && <Icon style={{ fontSize: 48, color: 'green' }} name='add-circle-outline' />}
               </View>
             </Pressable>
@@ -211,6 +211,7 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
         />
       </>
     }
+
     {
       !isScanning && devices.length <= 0 &&
       <View style={[styles.centeredContent, { padding: 50, backgroundColor: themePalette.background }]}>

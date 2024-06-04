@@ -8,6 +8,7 @@ import { useNavigation } from "@react-navigation/native";
 import { HttpClient } from "../core/utils";
 import { NetworkCallStatusService } from "../services/network-call-status-service";
 import StdButton from "./std-button";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Page(props: any) {
     const [appServices, setAppServices] = useState<AppServices>(new AppServices());
@@ -15,18 +16,29 @@ export default function Page(props: any) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
     const [isBusy, setIsBusy] = useState(false);
     const navigation = useNavigation();
+    const [currentTheme, setCurrentTheme] = useState('light')
 
-    useEffect(() => {
+    useEffect(() => { 
+    // (async () => {
+    //     let palette = await appServices.userServices.getThemePalette();
+    //     setThemePalette(palette);
+    //   })();
+
+      AsyncStorage.getItem("active_theme").then((value) => {
+        setCurrentTheme(value);
+        console.log("AsyncStorage value:", value);
+     
+      }).catch((error) => {
+        console.error("Error retrieving AsyncStorage value:", error);
+      })
         
-    (async () => {
-      //  let palette = await appServices.userServices.getThemePalette();
-      //  setThemePalette(palette);
-      })();
-        
+
         let themeChangedSubscription = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
         let logoutSubscription = HttpClient.logoutSubscription.addListener('logout', () => { setIsAuthenticated(false) });
         let busySubscription = NetworkCallStatusService.busySubscription.addListener('busy', () => setIsBusy(true));
         let idleSubscription = NetworkCallStatusService.busySubscription.addListener('idle', () => setIsBusy(false));
+
+        console.log(' page ' + themePalette.name);
 
         return (() => {
             AppServices.themeChangeSubscription.remove(themeChangedSubscription);
@@ -49,16 +61,19 @@ export default function Page(props: any) {
                     {props.children}
                 </View>
             }
-            {!isAuthenticated && !isBusy &&
+            {
+                !isAuthenticated && !isBusy &&
+
                 <View style={styles.formGroup}>
-                    <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />                    
+                            <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />                   
                     <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Sorry, you have been logged out due to inactivity.</Text>
                     <StdButton onPress={login} label="Login"></StdButton>
                 </View>
             }
-            {isBusy &&
-                <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-                    <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Please Wait</Text>
+            {
+                isBusy &&
+                <View style={[styles.spinnerView, {  backgroundColor: themePalette.background, width: '100%' }]}>
+                    <Text style={[ { color: themePalette.shellTextColor, fontSize: 24, paddingBottom: 20  }]}>Please Wait</Text>
                     <ProgressSpinner isBusy={isBusy} />
                 </View>
             }
