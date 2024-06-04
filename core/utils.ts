@@ -1,7 +1,8 @@
 import { Observable } from "rxjs";
-import { CommonSettings } from '../settings';
+import { CommonSettings, environment } from '../settings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NuvIoTEventEmitter } from "../utils/NuvIoTEventEmitter";
+import AuthenticationHelper from "../utils/authenticationHelper";
 
 export class ActivatedRoute {
     snapshot: any;
@@ -57,14 +58,22 @@ export class HttpClient {
 
     async renewToken(): Promise<boolean> {
         let refreshToken = await this.storage.getItemAsync('refreshtoken');
+        let userJSON = await AsyncStorage.getItem('app_user');
+        if(!userJSON) {
+            console.error('[HttpClient__renewToken] - Could not load current user, thus could not renew from refresh token');
+            return false;
+        }
+    
+        let user = JSON.parse(userJSON);
+        let appInstanceId = await AuthenticationHelper.getAppInstanceId();
 
         let request = {
             GrantType: 'refreshtoken',
-            AppInstanceId: 'ABC123',
-            AppId: 'ABC1234',
-            DeviceId: 'ABC123',
-            ClientType: 'mobileapp',
-            Email: 'KEVINW@SLSYS.NET',
+            AppInstanceId: appInstanceId,
+            AppId: environment.appId,
+            DeviceId: environment.deviceId,
+            ClientType: environment.clientType,
+            Email: user.userName,
             RefreshToken: refreshToken,
         }
 
