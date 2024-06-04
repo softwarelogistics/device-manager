@@ -202,7 +202,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} >
-          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => showConfigurePage()} name='cog-outline' />
+          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => showConfigurePage()} name='ios-settings-sharp' />
         </View>),
     });
 

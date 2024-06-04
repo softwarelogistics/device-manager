@@ -56,6 +56,7 @@ export const AboutPage = ({ props, navigation, route }: IReactPageServices) => {
 
 
   return <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
+    <View style={{padding: 16, width: "100%", height: "100%", backgroundColor: themePalette.background }} >
     <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
 
     <TouchableOpacity style={[primaryButtonStyle, { marginTop: 30, }]} onPress={() => onFetchUpdateAsync()}>
@@ -67,6 +68,7 @@ export const AboutPage = ({ props, navigation, route }: IReactPageServices) => {
     <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://app.termly.io/document/terms-of-use-for-saas/90eaf71a-610a-435e-95b1-c94b808f8aca')}> Terms and Conditions</Text>
     <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://app.termly.io/document/privacy-policy/fb547f70-fe4e-43d6-9a28-15d403e4c720')}> Privacy Statement</Text>
     <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://www.software-logistics.com')}> Software Logistics, LLC</Text>
+    </View>
 
 
   </Page>;

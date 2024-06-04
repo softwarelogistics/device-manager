@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { ActivityIndicator, Platform, View, Text, TextStyle, TouchableOpacity, ScrollView, ViewStyle } from "react-native";
+import ScrollIndicator from 'react-native-scroll-indicator';
 import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
 import { ThemePalette } from "../styles.palette.theme";
@@ -17,6 +18,7 @@ import Page from "../mobile-ui-common/page";
 import { IOValues } from "../models/blemodels/iovalues";
 import Moment from 'moment';
 import { ConnectedDevice } from "../mobile-ui-common/connected-device";
+import colors from "../styles.colors";
 
 interface ConsoleOutput {
   timestamp: string;
@@ -42,11 +44,11 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const repoId = route.params.repoId;
   const id = route.params.id;
 
-  const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
+  const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 21, fontWeight: '500', textAlign: 'left' }]);
   const chevronBarVerticalStyle: ViewStyle = ViewStylesHelper.combineViewStyles([{ height: 39 }]);
   const chevronBarColorTick: ViewStyle = ViewStylesHelper.combineViewStyles([chevronBarVerticalStyle, { width: 8 }]);
-  const barGreyChevronRightStyle: TextStyle = ViewStylesHelper.combineTextStyles([chevronBarVerticalStyle, { backgroundColor: palettes.gray.v20, fontSize: 18, paddingLeft: 4, paddingRight: 4, width: '98%', textAlignVertical: 'center' }]);
-  const barGreyChevronRightLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([{ fontWeight: '700' }]);
+  const barGreyChevronRightStyle: TextStyle = ViewStylesHelper.combineTextStyles([chevronBarVerticalStyle, { backgroundColor: palettes.gray.v20, fontSize: 18 }]);
+  const barGreyChevronRightLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([{ fontWeight: '400', lineHeight: 24 }]);
   const labelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
   const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
 
@@ -196,15 +198,13 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const panelDetail = (color: string, label: string, value: string | null | undefined) => {
     return (
       deviceDetail &&
-      <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between', }]}>
-        <View style={[chevronBarColorTick, { backgroundColor: color, borderBottomLeftRadius: 6, borderTopLeftRadius: 6, marginRight:0 }]}>
-          <Text> </Text>
+      
+    
+        <View style={[barGreyChevronRightStyle, { color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, flexDirection: 'column',   height: 'auto', paddingVertical: 8, paddingHorizontal: 16,  }]}>
+          <Text style={[barGreyChevronRightLabelStyle, {  fontSize: 16, color: themePalette.subtitleColor  }]}>{label}:</Text>
+          <Text style={{  fontSize: 16, color: themePalette.shellTextColor, lineHeight: 24 }}>{value}</Text>
         </View>
-        <View style={[barGreyChevronRightStyle, { flexDirection: 'row', alignItems: 'center', borderTopRightRadius: 6, borderBottomRightRadius: 6, marginLeft:0 }]}>
-          <Text style={[barGreyChevronRightLabelStyle, { flex: 1, textAlignVertical: 'center', fontSize: 16 }]}>{label}:</Text>
-          <Text style={{ flex: 2, textAlign: 'right', textAlignVertical: 'center', marginRight: 5, fontSize: 16 }}>{value}</Text>
-        </View>
-      </View>
+    
     )
   }
 
@@ -238,12 +238,12 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     let sensorName = sensor?.name ?? `Sensor ${idx + 1}`;
 
     return (
-      <View style={[{ flex: 1, width: 100, backgroundColor: sensor ? 'green' : '#d0d0d0', margin: 5, justifyContent: 'center', borderRadius: 8 }]}>
-        <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : 'black' }}>{sensorName}</Text>
-        <View >
-          <Icon style={{ textAlign: 'center', color: sensor ? 'white' : '#a0a0a0' }} size={64} onPress={showConfigurePage} name={icon} />
+      <View style={[{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 120, width: 120, backgroundColor: themePalette.viewBackground, marginRight: 8, borderRadius: 8 }]}>
+          <View style={[{ display: "flex", justifyContent: 'center', alignItems: 'center', width: 56, height: 56, backgroundColor: colors.primaryBlue, borderRadius: 8, marginBottom: 8 }]}>
+          <Icon style={{ textAlign: 'center', color: sensor ? 'white' : '#d0d0d0' }} size={24} onPress={showConfigurePage} name={icon} />
         </View>
-        <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : '#d0d0d0' }}>{sensor?.value ?? '-'}</Text>
+        <Text style={{ textAlign: "center", textAlignVertical: "center", color: themePalette.shellTextColor }}>{sensorName}</Text>
+        {/* <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : '#d0d0d0' }}>{sensor?.value ?? '-'}</Text> */}
       </View>)
   }
 
@@ -253,19 +253,19 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     let sensorName = sensor?.name ?? `Sensor ${idx + 1}`;
 
     return (
-      <View style={[{ flex: 1, width: 100, backgroundColor: sensor ? 'green' : '#d0d0d0', margin: 5, justifyContent: 'center', borderRadius: 8 }]}>
-        <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : 'black' }}>{sensorName}</Text>
-        <View >
-          <Icon style={{ textAlign: 'center', color: sensor ? 'white' : '#a0a0a0' }} size={64} onPress={showConfigurePage} name={icon} />
-        </View>
-        <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : '#d0d0d0' }}>{sensor?.value ?? '-'}</Text>
-      </View>)
+    <View style={[{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 120, width: 120, backgroundColor: themePalette.viewBackground, marginRight: 8, borderRadius: 8 }]}>
+      <View style={[{ display: "flex", justifyContent: 'center', alignItems: 'center', width: 56, height: 56, backgroundColor: colors.primaryBlue, borderRadius: 8, marginBottom: 8 }]}>
+          <Icon style={{ textAlign: 'center', color: sensor ? 'white' : '#d0d0d0' }} size={24} onPress={showConfigurePage} name={icon} />
+      </View>
+        <Text style={{ textAlign: "center", textAlignVertical: "center", color: themePalette.shellTextColor }}>{sensorName}</Text>
+    </View>
+      )
   }
 
 
   return <Page style={[styles.container]}>
-    <ScrollView style={styles.scrollContainer}>
-      <StatusBar style="auto" />
+    <ScrollView style={[styles.scrollContainer,{backgroundColor: themePalette.background }]}>
+      {/* <StatusBar style="auto" /> */}
       {
         <View>
           {
@@ -275,44 +275,61 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
             </View>
           }
           <View >
-
+            {sectionHeader('Device Info')}
+          <View style={{ backgroundColor: themePalette.background}}>
             {
               deviceDetail &&
-              <View>
-                {sectionHeader('Device Info and Connectivity')}
+              <View style={{ borderTopLeftRadius: 8, borderTopRightRadius: 8, overflow: 'hidden'}}>
                 {panelDetail('purple', deviceDetail.deviceNameLabel, deviceDetail?.name)}
+                <View style={{ height: 1, backgroundColor: themePalette.background, width: '100%' }} />
                 {panelDetail('purple', deviceDetail.deviceIdLabel, deviceDetail?.deviceId)}
-                {panelDetail('purple', deviceDetail.deviceTypeLabel, deviceDetail.deviceType.text)}
-                {panelDetail('purple', 'Repository', deviceDetail.deviceRepository.text)}
-                {panelDetail('purple', 'Last Contact', deviceDetail.lastContact)}
+                <View style={{ height: 1, backgroundColor: themePalette.background, width: '100%' }} />
+                {panelDetail('purple', deviceDetail.deviceTypeLabel, deviceDetail?.deviceType ? deviceDetail.deviceType.text : 'N/A')}
+                <View style={{ height: 1, backgroundColor: themePalette.background, width: '100%' }} />
+                {panelDetail('purple', 'Repository', deviceDetail?.deviceRepository ? deviceDetail.deviceRepository.text : 'N/A')}
+                <View style={{ height: 1, backgroundColor: themePalette.background, width: '100%' }} />
+                {panelDetail('purple', 'Last Contact', deviceDetail?.lastContact ? deviceDetail.lastContact : 'N/A')}
+                <View style={{ height: 1, backgroundColor: themePalette.background, width: '100%' }} />
               </View>
             }
             {
               !remoteDeviceState &&
-              <View>
-                {panelDetail('purple', "Firmware SKU", deviceDetail?.actualFirmware)}
-                {panelDetail('purple', "FIrmware Rev", deviceDetail?.actualFirmwareRevision)}
+              <View style={{ borderBottomLeftRadius: 8, borderBottomRightRadius: 8, overflow: 'hidden'}}>
+                {panelDetail('purple', "Firmware SKU", deviceDetail?.actualFirmware ? deviceDetail?.actualFirmware : 'N/A')}
+                <View style={{ height: 1, backgroundColor: themePalette.background, width: '100%' }} />
+                {panelDetail('purple', "FIrmware Rev", deviceDetail?.actualFirmwareRevision ? deviceDetail.actualFirmwareRevision : 'N/A')}
               </View>
             }
+              </View>
             {
               isDeviceConnected &&
               <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
                 <Text style={labelStyle}>Local Device Connected</Text>
-                <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showConfigurePage())} name='cog-outline' />
+                <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showConfigurePage())} name='settings-sharp' />
               </View>
             }
             {
               deviceDetail && !isDeviceConnected &&
-              <View>
-                <Text style={labelStyle}>Not Connected</Text>
+              <View style={{ marginTop: 24 }}>
+                  {sectionHeader('Connectivity')}
+                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: themePalette.viewBackground, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8  }}>
+                  <View>
+                    <Text style={labelStyle}>Not Connected</Text>
+                    <Text style={{fontSize: 14, fontWeight: 400, color: themePalette.subtitleColor}}>Status</Text>
+                  </View>
+                    <View>
+                      <Icon.Button size={22} backgroundColor="transparent" underlayColor="transparent" color={colors.primaryBlue} onPress={(() => showScanPage())} name='settings-sharp' />
+                    </View>
+                  </View>
                 {
                   !peripheralId &&
-                  <View>
-                    <Text style={contentStyle}>Device is not associated on this platform.</Text>
-                    <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
-                      <Text style={contentStyle}>Please scan and associate.</Text>
-                      <Icon.Button size={18} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showScanPage())} name='cog-outline' />
+                  <View style={{ display: 'flex', flexDirection: "row", alignItems: "center", backgroundColor: themePalette.blueBox , padding: 16, borderRadius: 8, marginTop: 8, borderColor: '#C0DFFF', borderWidth: 1}}>
+                    <Icon.Button style={{padding: 0, width: 'auto'}} size={28} backgroundColor="transparent" color={colors.primaryBlue} underlayColor="transparent" onPress={(() => showScanPage())} name='information-circle-outline' />
+                    <View>
+
+                    <Text style={ { paddingHorizontal: 12, color: themePalette.blueText}}>Device is not associated on this platform. Please scan and associate.</Text>
                     </View>
+                    
                   </View>
                 }
                 {
@@ -326,7 +343,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
             }
             {
               remoteDeviceState &&
-              <View style={{ marginTop: 20 }}>
+              <View style={{ marginTop: 24 }}>
                 {sectionHeader('Current Device Status')}
                 {panelDetail('green', 'Firmware SKU', remoteDeviceState.firmwareSku)}
                 {panelDetail('green', 'Device Model', remoteDeviceState.deviceModelKey)}
@@ -349,8 +366,8 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
               deviceDetail && deviceDetail.sensorCollection &&
               <View style={{ marginTop: 20, marginBottom: 20 }}>
                 {sectionHeader('Live Sensor Data')}
-                <Text style={labelStyle}>ADC Sensors</Text>
-                <ScrollView horizontal={true}>
+                <Text style={[labelStyle, {fontSize: 18, fontWeight: 500}]}>ADC Sensors</Text>
+                <ScrollView horizontal={true} style={{ marginBottom: 24 }}>
                   {adcSensorBlock(0, deviceDetail.sensorCollection, 'radio-outline')}
                   {adcSensorBlock(1, deviceDetail.sensorCollection, 'radio-outline')}
                   {adcSensorBlock(2, deviceDetail.sensorCollection, 'radio-outline')}
@@ -360,8 +377,8 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                   {adcSensorBlock(6, deviceDetail.sensorCollection, 'radio-outline')}
                   {adcSensorBlock(7, deviceDetail.sensorCollection, 'radio-outline')}
                 </ScrollView>
-                <Text style={labelStyle}>IO Sensors</Text>
-                <ScrollView horizontal={true}>
+                <Text style={[labelStyle, {fontSize: 18, fontWeight: 500}]}>IO Sensors</Text>
+                <ScrollView horizontal={true} style={{ marginBottom: 24 }}>
                   {ioSensorBlock(0, deviceDetail.sensorCollection, 'radio-outline')}
                   {ioSensorBlock(1, deviceDetail.sensorCollection, 'radio-outline')}
                   {ioSensorBlock(2, deviceDetail.sensorCollection, 'radio-outline')}

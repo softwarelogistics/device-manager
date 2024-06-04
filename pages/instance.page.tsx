@@ -105,18 +105,15 @@ export const InstancePage = ({
   };
 
   const showDevice = (deviceSummary: Devices.DeviceSummary) => {
-    if (
-      deviceSummary.deviceTypeId == "D37B01208A6B4C4D8953C53435F1AD59" &&
-      false
-    ) {
+    if (deviceSummary.deviceTypeId === "D37B01208A6B4C4D8953C53435F1AD59") {
       navigation.navigate("seaWolfHomePage", {
         id: deviceSummary.id,
-        repoId: deviceRepoId,
+        repoId: deviceRepoId, 
       });
     } else {
       navigation.navigate("deviceProfilePage", {
         id: deviceSummary.id,
-        repoId: deviceRepoId,
+        repoId: deviceRepoId, 
       });
     }
   };
@@ -308,7 +305,7 @@ export const InstancePage = ({
                   >
                     <View
                       style={{
-                        backgroundColor: "#3377FF",
+                        backgroundColor: colors.primaryBlue,
                         borderRadius: 8,
                         height: 56,
                         width: 56,
@@ -316,14 +313,7 @@ export const InstancePage = ({
                         justifyContent: "center",
                       }}
                     >
-                      <IconFeather
-                        name="cpu"
-                        color={colors.white}
-                        size={24}
-                        style={{
-                          textAlign: "center",
-                        }}
-                      />
+                    <SLIcon icon={item.icon} />
                     </View>
 
                     <View style={{ gap: 6 }}>
@@ -375,7 +365,7 @@ export const InstancePage = ({
                   >
                     <View
                       style={{
-                        backgroundColor: "#3377FF",
+                        backgroundColor: colors.primaryBlue,
                         borderRadius: 8,
                         height: 56,
                         width: 56,
@@ -383,14 +373,7 @@ export const InstancePage = ({
                         justifyContent: "center",
                       }}
                     >
-                      <IconFeather
-                        name="cpu"
-                        color={colors.white}
-                        size={24}
-                        style={{
-                          textAlign: "center",
-                        }}
-                      />
+                    <SLIcon icon={item.icon} />
                     </View>
 
                     <View  style={{ flexGrow: 1 }}>

@@ -360,7 +360,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
             {Platform.OS != 'ios' && 
             <Picker selectedValue={selectedRepo?.id} onValueChange={repoChanged}  itemStyle={{color:themePalette.shellTextColor}} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
               {repos.map(itm =>
-                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ fontSize:20, color: themePalette.shellTextColor, backgroundColor: themePalette.background }}  />
+                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }}  />
               )}
             </Picker>
             }
@@ -371,7 +371,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
             {Platform.OS != 'ios' &&             
               <Picker selectedValue={selectedDeviceModel?.id} onValueChange={deviceTypeChanged} itemStyle={{color:themePalette.shellTextColor}} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
                 {deviceModels.map(itm =>
-                  <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ fontSize:20,color: themePalette.shellTextColor, backgroundColor: themePalette.background }}  />
+                  <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }}  />
                 )}
               </Picker>
             }
@@ -385,7 +385,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
             {Platform.OS != 'ios' && 
             <Picker selectedValue={selectedWiFiConnection} onValueChange={e => setSelectedWiFiConnection(e)} itemStyle={{color:themePalette.shellTextColor}} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
               {wifiConnections?.map(itm =>
-                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ fontSize:20, color: themePalette.shellTextColor, backgroundColor: themePalette.background }}  />
+                <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }}  />
               )}
             </Picker>
             }

@@ -42,15 +42,11 @@ export const ProfilePage = ({ navigation, props, route }: IReactPageServices) =>
     );
     
     return (<Page
-      style={{ backgroundColor: currentTheme  === 'dark' ? '#252D3D' : '#F5F7FA' }}
+      style={{ backgroundColor: themePalette.background }}
       themePalette={themePalette}
     >
-      <View style={[styles.scrollContainer,{backgroundColor: currentTheme  === 'dark' ? '#252D3D' : '#F5F7FA' }]}>
-      {currentTheme == 'light' ? (
-          <Image style={[{ marginTop: 30, marginBottom: 30, alignSelf: "center" }]} source={require('../assets/logo.png')} />
-        ) : (
-          <Image style={[{ marginTop: 30, marginBottom: 30, alignSelf: "center"}]} source={require('../assets/logo-dark-theme.png')} />
-        )}
+      <View style={[styles.scrollContainer,{backgroundColor: themePalette.background }]}>
+      <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
         <View style={styles.formGroup}>
           <IconButton color={themePalette.buttonPrimaryText} label="Switch Organization" icon="podium-outline" iconType="ion" onPress={() => showPage('changeOrgsPage')} ></IconButton>
           <IconButton color={themePalette.buttonPrimaryText} label="Settings" icon="settings-outline" iconType="ion" onPress={() => showPage('accountPage')} ></IconButton>

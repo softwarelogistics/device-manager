@@ -9,6 +9,8 @@ const standardColors = {
   primaryBlue150: '#0C3B69',
   primaryBlue175: '#061D34',
 
+
+
   primaryGray: '#363D4C',
   
   primaryOrange: '#D48D17',
@@ -55,9 +57,13 @@ const standardColors = {
   gray10: '#E9E9E9',
   gray5: '#F4F4F4',
   gray2: '#FBFBFB ',
+
+ 
 };
 
 const palettes = {
+  darkBackground: '#252D3D',
+  lightBackground: '#F5F7FA',
  accent: {
     normal: '#D48D17',
     v10: '#FBF4E8',

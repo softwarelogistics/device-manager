@@ -41,6 +41,8 @@ import { CanMonitorPage } from './pages/canmonitor.page';
 import CreateOrgPage from './pages/createOrg.page';
 import ConfirmEmailPage from './pages/confirmEmail.page';
 import AcceptInvitePage from './pages/acceptInvite.page';
+import colors from './styles.colors';
+import palettes from './styles.palettes';
 
 const Stack = createNativeStackNavigator();
 
@@ -136,7 +138,7 @@ const App = () => {
   
   return (
     <NavigationContainer theme={navigationTheme} linking={linking}>
-    <Stack.Navigator initialRouteName={initialPage} screenOptions={{ headerBackTitleVisible: false,  headerTintColor: 'white', headerStyle: { backgroundColor: '#3377FF' } }}>
+    <Stack.Navigator initialRouteName={initialPage} screenOptions={{ headerBackTitleVisible: false,  headerTintColor: palettes.primary.white, headerStyle: { backgroundColor: colors.primaryBlue } }}>
       <Stack.Screen name="accountPage" component={AccountPage} options={{ title: 'Settings' }} />
           <Stack.Screen name="oauthHandlerPage" component={OAuthHandlerPage} options={{ title: 'Third Party Login' }} />
           <Stack.Screen name="authPage" component={AuthPage} options={{ title: ' ' }} />

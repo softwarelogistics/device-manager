@@ -12,6 +12,7 @@ import AppServices from "../services/app-services";
 import { ThemePalette } from "../styles.palette.theme";
 import Page from "../mobile-ui-common/page";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
+import SLIcon from "../mobile-ui-common/sl-icon";
 
 
 
@@ -102,11 +103,8 @@ export default function HomePage({ navigation }: IReactPageServices) {
       {/* <StatusBar style="auto" /> */}
       <View style={{padding: 16, width: "100%", height: "100%", backgroundColor: themePalette.background }} >
         {/* <Image style={[{ marginTop: 30, marginBottom: 30, alignSelf: "center" }]} source={require('../assets/logo.png')} /> */}
-        {themePalette.name == 'light' ? (
-          <Image style={[{ marginTop: 30, marginBottom: 30, alignSelf: "center" }]} source={require('../assets/logo.png')} />
-        ) : (
-          <Image style={[{ marginTop: 30, marginBottom: 30, alignSelf: "center"}]} source={require('../assets/logo-dark-theme.png')} />
-        )}
+        <Image style={[{ marginTop: 30, marginBottom: 30, alignSelf: "center" }]} source={require('../assets/app-icon.png')} />
+        <Text style={[{ textAlign: 'center', marginBottom: 5, color: themePalette.shellTextColor, fontSize: 24 }]}>{user?.currentOrganization.text} Instances</Text>
         <FlatList
           contentContainerStyle={{ height: "auto"  }}
           style={{ backgroundColor: themePalette.background, width: "100%" }}
@@ -115,13 +113,13 @@ export default function HomePage({ navigation }: IReactPageServices) {
           data={instances}
           renderItem={({ item }) =>
             <Pressable onPress={() => showInstance(item)} key={item.id} >
-              <View style={[styles.listRow, { display:"flex", alignItems:"center", gap:16, padding: 8, margin: 8, height: 72, backgroundColor: themePalette.inputBackgroundColor, shadowColor: "#1F2F4C", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 2, borderRadius: 8 }]}  >
+              <View style={[styles.listRow, { display:"flex", alignItems:"center", gap:16, padding: 8, margin: 8, height: 72, backgroundColor: themePalette.inputBackgroundColor, borderRadius: 8 }]}  >
               
                 {/* <SLIcon icon={item.icon} /> */}
                 {/* <Image source={require('../assets/product-img.png')} /> */}
                 <View
                       style={{
-                        backgroundColor: "#3377FF",
+                        backgroundColor: colors.primaryBlue,
                         borderRadius: 8,
                         height: 56,
                         width: 56,
@@ -129,14 +127,7 @@ export default function HomePage({ navigation }: IReactPageServices) {
                         justifyContent: "center",
                       }}
                     >
-                      <IconFeather
-                        name="cpu"
-                        color={colors.white}
-                        size={24}
-                        style={{
-                          textAlign: "center",
-                        }}
-                      />
+                      <SLIcon icon={item.icon} />
                     </View>
                 <View style={{ flexDirection: 'column', flex: 1 }}>
                 <View >

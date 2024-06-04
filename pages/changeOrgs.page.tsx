@@ -86,7 +86,7 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
     <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
         {
           orgs && user && 
-          <View style={{ height:'auto', backgroundColor: themePalette.background, width: "100%" }}>
+          <View style={{ height:'100%', backgroundColor: themePalette.background, width: "100%" }}>
               <FlatList
                 contentContainerStyle={{ backgroundColor: themePalette.background, alignItems: "stretch" }}
                 style={{ backgroundColor: themePalette.background}}
@@ -102,7 +102,7 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
                         </View>
                         <Text style={currentOrganizationHeaderNameStyle}>{user.currentOrganization.text}</Text>
                       </View>
-                      <Text style={[styles.currentOrganizationHeader, { marginTop: 20, color: themePalette.shellTextColor }]}>Switch Organization</Text>
+                      <Text style={[styles.currentOrganizationHeader, { marginTop: 30, color: themePalette.shellTextColor, fontWeight: 600 }]}>Switch Organization:</Text>
                  </View>
                   )
                 }}

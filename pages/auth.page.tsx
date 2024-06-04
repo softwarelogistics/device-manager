@@ -39,6 +39,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
   useEffect(() => {
     let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     setSubscription(changed);
+    
     return (() => {
       if (subscription)
         AppServices.themeChangeSubscription.remove(subscription);
@@ -104,13 +105,15 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
 
   return (
     <Page>
-      <Icon.Button size={36} style={{marginTop:60}} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={closeView} name='close-outline' />
+       <View style={{padding: 16, width: "100%", height: "100%", backgroundColor: themePalette.background }} >
+      <Icon.Button size={36} style={{marginTop: 0}} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={closeView} name='close-outline' />
 
       <Image style={logoAuthImageStyle} source={require('../assets/app-icon.png')} />
       {
         isBusy &&
         <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
           <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Please Wait</Text>
+          
           <ProgressSpinner isBusy={isBusy} />
         </View>
       }
@@ -124,7 +127,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
 
           {false && <Text style={styles.authForgotPasswordLink}>Forgot Password?</Text>}
 
-          <StatusBar style="auto"  />
+          {/* <StatusBar style="auto"  /> */}
           <StdButton label="Login" onPress={() => login(email, password)} />
         </KeyboardAwareScrollView>
       }
@@ -144,6 +147,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
           
         </View>
       }
+      </View>
     </Page>
   );
 }
