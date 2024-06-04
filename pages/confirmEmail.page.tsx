@@ -14,18 +14,39 @@ import { ThemePalette } from "../styles.palette.theme";
 
 export default function ConfirmEmailPage({ navigation }: IReactPageServices) {
     const [appServices, setAppServices] = useState<AppServices>(new AppServices());
+    const [appUser, setAppUser] = useState<Users.AppUser>();
     const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
     const submitButtonWhiteTextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, styles.submitButtonTextBlack, { color: themePalette.buttonPrimaryText }]);
 
+    let loadUser = async () => {
+        let user = await appServices.userServices.getUser();
+        setAppUser(user);
+    }
+
+    let checkEmailConfirmed = async () => {
+        let currentUser = await appServices.userServices.loadCurrentUser();
+        if (currentUser?.emailConfirmed) {
+            console.log('confirmed email');
+            if (!currentUser?.currentOrganization)
+                navigation.replace('createorg');
+            else if (currentUser?.showWelcome)
+                navigation.replace('homeWelcome');
+            else
+                navigation.replace('home');
+        }
+        else {
+            console.log('not confirmed');
+        }
+    }
+
     useEffect(() => {
- 
-        appServices.userServices.getUser();
+        loadUser();
     });
 
 
     const logOut = async () => {
         await AsyncStorage.setItem("isLoggedIn", "false");
-    
+
         await AsyncStorage.removeItem("jwt");
         await AsyncStorage.removeItem("refreshtoken");
         await AsyncStorage.removeItem("refreshtokenExpires");
@@ -33,33 +54,45 @@ export default function ConfirmEmailPage({ navigation }: IReactPageServices) {
         await AsyncStorage.removeItem("userInitials");
         await AsyncStorage.removeItem("app_user");
         navigation.replace('authPage');
-      };
+    };
 
-      const resendConfirmationEmail = async () => {
+    const resendConfirmationEmail = async () => {
         await appServices.userServices.sendEmailConfirmCode();
-      };
+    };
 
     return (
         <Page>
-            <View>
-                <Text>Please confirm your email address.</Text>
+            <View >
+                <Text style={[{ margin: 30 }]} >An email was sent to {appUser?.email.toLowerCase()}. Please check your email for a confirmation link to activate your account.  If it doesn't arrive within a few minutes, please check your spam folder.  To resend the message click on Re-Send below.</Text>
                 <MciIcon.Button
-                    name="logout"
-                    style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
+                    name="refresh"
+                    style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin,
+                    { backgroundColor: colors.accentColor, borderColor: '#0000AA' }])}
                     color={colors.white}
                     backgroundColor={colors.transparent}
-                    onPress={() => logOut()}>
-                    <Text style={submitButtonWhiteTextStyle}> Logout </Text>
+                    onPress={() => checkEmailConfirmed()}>
+                    <Text style={submitButtonWhiteTextStyle}> Recheck </Text>
                 </MciIcon.Button>
+
                 <MciIcon.Button
-                    name="logout"
-                    style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
+                    name="email"
+                    style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin,
+                    { backgroundColor: colors.primaryColor, borderColor: '#0000AA' }])}
                     color={colors.white}
                     backgroundColor={colors.transparent}
                     onPress={() => resendConfirmationEmail()}>
                     <Text style={submitButtonWhiteTextStyle}> Resend Confirmation Email </Text>
                 </MciIcon.Button>
-        
+
+                <MciIcon.Button
+                    name="logout"
+                    style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin,
+                    { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
+                    color={colors.white}
+                    backgroundColor={colors.transparent}
+                    onPress={() => logOut()}>
+                    <Text style={submitButtonWhiteTextStyle}> Logout </Text>
+                </MciIcon.Button>
             </View>
         </Page>
     )

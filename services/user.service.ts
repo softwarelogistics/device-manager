@@ -174,7 +174,7 @@ export class UserService {
       AppInstanceId: environment.appInstanceid,
       AppId: environment.appId,
       DeviceId: environment.deviceId,
-      ClientType: 'mobileapp',
+      ClientType: environment.clientType,
       Email: email,
       Password: password,
       UserName: email

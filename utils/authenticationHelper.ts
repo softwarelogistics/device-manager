@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { HttpClient } from "../core/utils";
-
+import { environment } from "../settings";
 
 interface NuvIotAuthResponse {
   isSuccess: boolean,
@@ -24,11 +24,6 @@ const AuthenticationHelper = {
       response.navigationTarget = 'homePage';
     }
 
-    if (request.AppInstanceId && !AsyncStorage.getItem('appInstanceId')) {
-      console.log('appInstanceId set', request.AppInstanceId);
-      await AsyncStorage.setItem("appInstanceId", request.AppInstanceId);
-    }
-
     const postOptions = {
       method: 'POST',
       headers: {
@@ -39,7 +34,7 @@ const AuthenticationHelper = {
     };
 
     let authUrl = `${HttpClient.getApiUrl()}/api/v1/auth`;
-    console.log(authUrl);
+    console.log(`[AuthenticationHelper__login] - URL: ${authUrl}`);
 
     try
     {
@@ -51,20 +46,19 @@ const AuthenticationHelper = {
         });
 
       const fetchedJson = await fetched?.json();
-      console.log('[AuthenticationHelper__login] - success', fetchedJson.result.appUser.id, fetchedJson.result.appUser.email, fetchedJson.result.refreshTokenExpiresUTC, fetchedJson.result.accessTokenExpiresUTC);
 
       response.isSuccess = fetchedJson?.successful ?? false;
 
       if (fetchedJson?.successful) {
-        console.log('login success, saving values and tokens');
-        await AsyncStorage.setItem("isLoggedIn", "true");
+
+        console.log('[AuthenticationHelper__login] - success', fetchedJson.result.appUser.id, fetchedJson.result.appUser.email, fetchedJson.result.refreshTokenExpiresUTC, fetchedJson.result.accessTokenExpiresUTC);        await AsyncStorage.setItem("isLoggedIn", "true");
         await AsyncStorage.setItem("jwt", fetchedJson.result.accessToken);
         await AsyncStorage.setItem("refreshtoken", fetchedJson.result.refreshToken);
         await AsyncStorage.setItem("refreshtokenExpires", fetchedJson.result.refreshTokenExpiresUTC);
         await AsyncStorage.setItem("jwtExpires", fetchedJson.result.accessTokenExpiresUTC);
       }
       else if (fetchedJson.errors) {
-        console.log('login failed: ' + fetchedJson.errors[0].message);
+        console.log('[AuthenticationHelper__login] - Failed: ' + fetchedJson.errors[0].message);
 
         response.errorMessage = fetchedJson.errors[0].message;
         response.navigationTarget = undefined;
@@ -73,20 +67,37 @@ const AuthenticationHelper = {
       return response;
     }
     catch (err) { 
-      console.log('login failed: ' + err);
+      console.log('[AuthenticationHelper__login] - Failed: ' + err);
       response.error = err;
       response.navigationTarget = undefined;
       return response;
     }
   },
 
+  getAppInstanceId: async (): Promise<string> => {
+    let appInstanceId = await AsyncStorage.getItem('appInstanceId')
+    if(appInstanceId == null || appInstanceId == '') {
+      appInstanceId = AuthenticationHelper.newUuid();
+      await AsyncStorage.setItem('appInstanceId', appInstanceId);
+      console.log('[AuthenticationHelper__getAppInstanceId] - AppInstanceId not found. Created new one.', appInstanceId)
+    }
+    else
+      console.log('[AuthenticationHelper__getAppInstanceId] - AppInstanceId found.', appInstanceId)
+   
+    environment.appInstanceid = appInstanceId;
+
+    return appInstanceId;
+  },
+
   passwordLogin: async (email: string, password: string, path?: string | undefined): Promise<NuvIotAuthResponse> => {
+    let appInstanceId = await AuthenticationHelper.getAppInstanceId();
+
     let request = {
       GrantType: 'password',
-      AppInstanceId: 'ABC123',
-      AppId: 'ABC1234',
-      DeviceId: 'ABC123',
-      ClientType: 'mobileapp',
+      AppInstanceId: appInstanceId,
+      AppId: environment.appId,
+      DeviceId: environment.deviceId,
+      ClientType: environment.clientType,
       Email: email,
       Password: password,
       UserName: email,
