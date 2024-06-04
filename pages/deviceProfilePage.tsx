@@ -36,6 +36,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
   const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
+  const [timerId, setTimerId] = useState<number | undefined>(undefined);
 
   const stateRef = useRef();
 
@@ -92,6 +93,19 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     }
   }
 
+  const attemptConnect = async (peripheralId: string) => {
+    console.log(`[DeviceProfilePage__attemptConnect] - Peripheral: ${peripheralId}.`);
+
+    if(!await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE], 1)){
+      console.log('[DeviceProfilePage__attemptConnect] - Could Not Connect; will retry.');
+      setTimerId(window.setTimeout(attemptConnect, 2500, peripheralId));
+    }
+    else {
+      console.log('[DeviceProfilePage__attemptConnect] - Could Not Connect; will retry.');
+      setTimerId(undefined);
+    }
+  }
+
 
   const loadDevice = async () => {
     console.log('load fd');
@@ -111,9 +125,13 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       if(peripheralId)  {
         ConnectedDevice.onReceived = (value) => charHandler(value, fullDevice!);
         ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
-        ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
+        ConnectedDevice.onDisconnected = () =>
+          {
+            setIsDeviceConnected(false);
+            attemptConnect(peripheralId);   
+          } 
 
-        await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE]);        
+        attemptConnect(peripheralId);   
       }
                 
       appServices.wssService.onmessage = (e) => {
@@ -179,6 +197,11 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
       if(isDeviceConnected)
         await ConnectedDevice.disconnect();
+
+      if(timerId) {
+        clearTimeout(timerId);
+        setTimerId(undefined);
+      }
 
        appServices.wssService.close();
     });

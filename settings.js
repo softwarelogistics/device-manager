@@ -1,5 +1,5 @@
 export const CommonSettings = {
-    environment: 'production'
+    environment: 'development'
 }
 
 export const environment = {
