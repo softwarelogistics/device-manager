@@ -81,17 +81,17 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
   const loginExternal = async (provider: string) => {
     setIsBusy(true);
     let url = `${HttpClient.getWebUrl()}/mobile/login/oauth/${provider}?mobile_app_scheme=nuviot`;
-    if (Constants.manifest?.hostUri) {
-      let hostName = Constants.manifest?.hostUri?.split(':')[0] as string;
+
+    if (Constants.expoConfig?.hostUri) {
+      let hostName = Constants.expoConfig?.hostUri?.split(':')[0] as string;
       let localIp = hostName.replace('.', '-').replace('.', '-').replace('.', '-').replace('.', '-');
 
       url = `${HttpClient.getWebUrl()}/mobile/login/oauth/${provider}?expo_dev_ip_addr=${localIp}&mobile_app_scheme=nuviot`;      
     }
 
-    console.log('login now with: ' + url);
-
+    console.log('[AuthPage__loginExternal] - OAuth Flow: ' + url);
     await Linking.openURL(url).finally(() => setIsBusy(false));    
-    console.log('i am back and replacing');
+    console.log('[AuthPage__loginExternal] - Opened Browser, Nav to OAuth Page to Wait for Callback.');
     navigation.replace('oauthHandlerPage');
   };
 

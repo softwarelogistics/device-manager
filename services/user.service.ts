@@ -43,16 +43,21 @@ export class UserService {
 
   async loadCurrentUser(): Promise<Users.AppUser> {
     const response = await this.clientService.request<Core.FormResult<Users.AppUser, Users.AppUserView>>('/api/user');
-    if (response?.model?.firstName) {
-      let userInitials = `${response?.model?.firstName.substring(0, 1)}`;
-      if (response?.model?.lastName?.length > 1) {
-        userInitials = `${userInitials}${response?.model?.lastName.substring(0, 1)}`;
+    if(response.successful) {
+      if (response?.model?.firstName) {
+        let userInitials = `${response?.model?.firstName.substring(0, 1)}`;
+        if (response?.model?.lastName?.length > 1) {
+          userInitials = `${userInitials}${response?.model?.lastName.substring(0, 1)}`;
+        }
+        response.model.initials = userInitials;
       }
-      response.model.initials = userInitials;
+      await this.setUser(response.model);
+      await this.setIsLoggedIn(true);
+      return response.model;
     }
-    await this.setUser(response.model);
-    await this.setIsLoggedIn(true);
-    return response.model;
+    else {
+      console.error(response.errors[0].message);
+    }
   }
 
   async loadCurrentUserIfNecessary(): Promise<Users.AppUser | undefined> {
@@ -306,7 +311,8 @@ export class UserService {
     if (user) {      
       await this.nativeStorage.setItemAsync("app_user", JSON.stringify(user));
       this._user$.next(user);
-      await this.setOrg({ id: user.currentOrganization.id, name: user.currentOrganization.text });
+      if(user.currentOrganization)
+        await this.setOrg({ id: user.currentOrganization.id, name: user.currentOrganization.text });
     } else {
       await this.nativeStorage.setItemAsync('colorTheme', 'light');
       await this.nativeStorage.removeItemAsync("app_user");
@@ -317,6 +323,9 @@ export class UserService {
     return true;
   }
 
+  sendEmailConfirmCode() : Promise<Core.InvokeResult> {
+    return this.clientService.request('/api/verify/email/confirmationcode/send');
+  }
 
   async getThemeName(): Promise<string> {
     return await this.nativeStorage.getItemAsync('colorTheme') || 'light';

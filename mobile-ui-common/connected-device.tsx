@@ -32,52 +32,67 @@ export class ConnectedDevice {
         }
     }
 
-    static async connect() {
+    static async connect(retryCount: number = 5): Promise<boolean> {
         if (await PermissionsHelper.hasBLEPermissions()) {
             ConnectedDevice.connectionState = CONNECTING;
 
-            if (await ble.connectById(ConnectedDevice.peripheralId!)) {
-                console.log(`[ConnectedDevice__connect] Connected`)
-                ble.addListener('receive', (char) => ConnectedDevice.charHandler(char));
-                ble.addListener('disconnected', ConnectedDevice.disconnectHandler);
-                ConnectedDevice.connectionState = CONNECTED;            
+            console.log('atttempt to connect', retryCount);
+            let promise = ble.connectById(ConnectedDevice.peripheralId!, undefined, retryCount);
+            try {
+                let result = await promise;
+                console.log('Response result', result);
 
-                for (let charId of ConnectedDevice._subscriptions!) {
-                    let success = await ble.listenForNotifications(ConnectedDevice.peripheralId!, SVC_UUID_NUVIOT, charId);
-                    if (!success) {
-                        ConnectedDevice.errorMessage = 'Could not listen for notifications.';
-                        console.warn(`[ConnectedDevice__connect_could-not-subscribed] char-id=${charId};`)
-                    } 
-                    else
-                        console.log(`[ConnectedDevice__connect_subscribed] char-id=${charId};`)
+                if (result) {
+                    console.log(`[ConnectedDevice__connect] Connected`)
+                    ble.addListener('receive', (char) => ConnectedDevice.charHandler(char));
+                    ble.addListener('disconnected', ConnectedDevice.disconnectHandler);
+                    ConnectedDevice.connectionState = CONNECTED;
+
+                    for (let charId of ConnectedDevice._subscriptions!) {
+                        let success = await ble.listenForNotifications(ConnectedDevice.peripheralId!, SVC_UUID_NUVIOT, charId);
+                        if (!success) {
+                            ConnectedDevice.errorMessage = 'Could not listen for notifications.';
+                            console.warn(`[ConnectedDevice__connect_could-not-subscribed] char-id=${charId};`)
+                        }
+                        else
+                            console.log(`[ConnectedDevice__connect_subscribed] char-id=${charId};`)
+                    }
+
+                    if (ConnectedDevice.onConnected) {
+                        ConnectedDevice.onConnected();
+                    }
+
+                    return true;
                 }
-
-                if (ConnectedDevice.onConnected) {
-                    ConnectedDevice.onConnected();
+                else {
+                    if (ConnectedDevice.didNotConnect) ConnectedDevice.didNotConnect();
+                    return false;
                 }
             }
-            else {
-                if (ConnectedDevice.didNotConnect) ConnectedDevice.didNotConnect();
+            catch (e) {
+                return false;
             }
         }
+
+        return false;
     }
 
-    static async connectAndSubscribe(peripheralId: string, subscriptions: string[]) {
+    static async connectAndSubscribe(peripheralId: string, subscriptions: string[], retryCount: number = 5): Promise<boolean> {
         this._subscriptions = subscriptions;
         this.peripheralId = peripheralId;
-        await this.connect();
+        return await this.connect(retryCount);
     }
 
     static async disconnect() {
         console.log('hi from disconnect')
         console.log(ConnectedDevice._subscriptions);
-        if(ConnectedDevice._subscriptions){
+        if (ConnectedDevice._subscriptions) {
             for (let charId of ConnectedDevice._subscriptions!)
                 await ble.stopListeningForNotifications(ConnectedDevice.peripheralId!, SVC_UUID_NUVIOT, charId);
         }
 
         ble.removeAllListeners();
-        if((ConnectedDevice.peripheralId))
+        if ((ConnectedDevice.peripheralId))
             await ble.disconnectById(ConnectedDevice.peripheralId!);
     }
 }

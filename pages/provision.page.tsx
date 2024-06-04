@@ -216,7 +216,8 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
         if (useDefaultListener && defaultListener) {
           await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `host=${defaultListener.hostName}`);
-          await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `port=${defaultListener.connectToPort}`);
+          let port = defaultListener.listenOnPort ? defaultListener.listenOnPort : defaultListener.connectToPort;
+          await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `port=${port}`);
           if (defaultListener.userName) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `uid=${defaultListener.userName}`);
           if (defaultListener.password) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `pwd=${defaultListener.password}`);
 

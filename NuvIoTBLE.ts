@@ -415,75 +415,80 @@ export class NuvIoTBLE {
     this._cancelConnect = true;
   }
 
-  async connectById(id: string, characteristicId: string | undefined = undefined): Promise<boolean> {
-    let retryCount = 5;
-
-    ble.btEmitter?.emit('connecting', `Connecting to ${id}`);
-    this._cancelConnect = false;
-    while (!this._cancelConnect) {
-      if (this.simulatedBLE()) {
-        return true;
-      }
-      else {
-        let result = await BleManager.isPeripheralConnected(id)
-        if (result) {
-          console.log(`[BLEManager__connectById] already connected; // peripheral id: ${id}`);
-          return true;
-        }
-        else {
-          try {
-            console.log(`[BLEManager__connectById] connecting; // peripheral id: ${id}`);
-            let timeoutId = setTimeout(() => { 
-              BleManager.disconnect(id); 
-              console.log(`5 second timeout for device id ${id}`) 
-            }, 5000);     
-
-            await BleManager.connect(id);
-            // if we got here, we should clear the timeout.
-            clearTimeout(timeoutId);
-
-            console.log(`[BLEManager__connectById] connected;`);
-            
-            let services = await BleManager.retrieveServices(id);
-            if (Platform.OS == "android") {
-              await BleManager.requestMTU(id, 512);
+  connectById(id: string, characteristicId: string | undefined = undefined, retryCount: number = 5): Promise<boolean> {    
+    let promise = new Promise<boolean>(async (resolve, reject) => {
+        ble.btEmitter?.emit('connecting', `Connecting to ${id}`);
+        this._cancelConnect = false;
+        while (!this._cancelConnect && retryCount > 0) {
+          if (this.simulatedBLE()) {
+            resolve(true);
+          }
+          else {
+            let result = await BleManager.isPeripheralConnected(id)
+            if (result) {
+              console.log(`[BLEManager__connectById] already connected; // peripheral id: ${id}`);
+              resolve(true);
             }
+            else {
+              try {
+                console.log(`[BLEManager__connectById] connecting; // peripheral id: ${id}`);
+                let timeoutId = setTimeout(() => { 
+                  BleManager.disconnect(id); 
+                  console.log(`[BLEManager__connectById] 5 second timeout for device id ${id}`) 
+                  reject('Timeout exceeded');
+                }, 5000);     
 
-            if (characteristicId) {
-              console.log('[BLEManager__connectById]: checking for NuvIoT device;');
-              for (let chr of services.characteristics!) {
-                if (chr.characteristic.toLocaleLowerCase() == characteristicId.toLocaleLowerCase()) {
-                  console.log(`[BLEManager__connectById] connected to NuvIoT device;`);
-                  return true;
+                await BleManager.connect(id);
+                // if we got here, we should clear the timeout.
+                clearTimeout(timeoutId);
+
+                console.log(`[BLEManager__connectById] connected;`);
+                
+                let services = await BleManager.retrieveServices(id);
+                if (Platform.OS == "android") {
+                  await BleManager.requestMTU(id, 512);
                 }
 
-                console.log(chr.characteristic, characteristicId);
+                if (characteristicId) {
+                  console.log('[BLEManager__connectById]: checking for NuvIoT device;');
+                  for (let chr of services.characteristics!) {
+                    if (chr.characteristic.toLocaleLowerCase() == characteristicId.toLocaleLowerCase()) {
+                      console.log(`[BLEManager__connectById] connected to NuvIoT device;`);
+                      return resolve(true);
+                    }
+
+                    console.log(chr.characteristic, characteristicId);
+                  }
+
+                  console.log(`[BLEManager__connectById] not a NuvIoT device;`);
+                  await this.disconnectById(id);
+                  reject('Not a NuvIoT Device');
+                }
+                else 
+                  return resolve(true);
+
               }
+              catch (e) {
+                console.log('[BLEManager__connectById] Error - ' + e + ' id=' + id + ' retry count ' + retryCount);
+                
+                if (retryCount-- <= 0) {
+                  reject('Retry Count Exceeded');
+                }
 
-              console.log(`[BLEManager__connectById] not a NuvIoT device;`);
-              await this.disconnectById(id);
-              return false;
+                ble.btEmitter?.emit('connecting', `Connecting to ${id} - Attempt ${5 - retryCount}`);
+              }
             }
-            else 
-              return true;
-          }
-          catch (e) {
-            console.log('[BLEManager__connectById] Error - ' + e + ' id=' + id + ' retry count ' + retryCount);
-            
-            if (retryCount-- == 0)
-              return false;
-
-              ble.btEmitter?.emit('connecting', `Connecting to ${id} - Attempt ${5 - retryCount}`);
           }
         }
-      }
-    }
 
-    console.log('[BLEManager__connectById]: Connection Attempt Cancelled');
+        console.log('[BLEManager__connectById]: Connection Attempt Cancelled');
 
-    this._cancelConnect = false;
+        this._cancelConnect = false;
 
-    return false;
+        reject('Connection Attempt Cancelled');
+    });
+
+    return promise;
   }
 
   async disconnectById(id: string): Promise<boolean> {

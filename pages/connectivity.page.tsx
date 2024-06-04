@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { View, ScrollView, Text, TextInput, Switch, TouchableOpacity, ActivityIndicator, TextStyle } from "react-native";
+import { View, Text, TextInput, Switch, TouchableOpacity, ActivityIndicator, Platform, TextStyle, ActionSheetIOS, ActionSheetIOSOptions } from "react-native";
 import { StatusBar } from 'expo-status-bar';
+import { Button } from 'react-native-ios-kit';
 
 import AppServices from "../services/app-services";
 
@@ -17,6 +18,7 @@ import styles from '../styles';
 import palettes from "../styles.palettes";
 import colors from "../styles.colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Picker } from "@react-native-picker/picker";
 
 
 export const ConnectivityPage = ({ props, navigation, route }: IReactPageServices) => {
@@ -26,6 +28,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
   const [initialCall, setInitialCall] = useState<boolean>(true);
 
+  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
   const [deviceId, setDeviceId] = useState<string>();
   const [serverUrl, setServerUrl] = useState<string>();
   const [serverUid, setServerUid] = useState<string>();
@@ -40,6 +43,12 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
   const [useCellular, setUseCellular] = useState<boolean>(false);
   const [viewReady, setViewReady] = useState<boolean>(false);
   const [handler, setHandler] = useState<string | undefined>(undefined);
+
+  const [defaultListener, setDefaultListener] = useState<PipelineModules.ListenerConfiguration | undefined>(undefined);
+  const [useDefaultListener, setUseDefaultListener] = useState<boolean>(false);
+
+  const [wifiConnections, setWiFiConnections] = useState<Deployment.WiFiConnectionProfile[] | undefined>(undefined);
+  const [selectedWiFiConnection, setSelectedWiFiConnection] = useState<Deployment.WiFiConnectionProfile | undefined>(undefined);
 
   const inputStyleOverride = {
     backgroundColor: themePalette.inputBackgroundColor,
@@ -111,13 +120,47 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
     else {
       console.warn('could not connect.');
     }
+
+    let result = await appServices.deploymentServices.LoadWiFiConnectionProfiles(route.params.repoId);
+    console.log(result);
+    result.unshift({ id: 'cellular', key: 'cellular', name: 'Cellular', ssid: '', password: '', description: '' });
+    result.unshift({ id: 'none', key: 'none', name: 'No Connection', ssid: '', password: '', description: '' });
+    if(Platform.OS === 'ios') 
+      result.unshift({ id: 'cancel', key: 'cancel', name: 'Cancel', ssid: '', password: '', description: '' });
+
+    let defaultListener = await appServices.deploymentServices.LoadDefaultListenerForRepo(route.params.repoId);
+    if (defaultListener.successful) {
+      setDefaultListener(defaultListener.result);       
+      console.log(defaultListener.result);
+    }
+    
     setIsBusy(false);
   }
+
+  const getOptions = (options: string[]) : ActionSheetIOSOptions => {
+    return {
+      options: options,
+      cancelButtonIndex: 0,
+      userInterfaceStyle: themePalette.name == 'dark'  ? 'dark': 'light',
+    }
+  }
+
+  const selectWiFiConnections= () =>  {
+    if(wifiConnections == undefined) return;
+
+    ActionSheetIOS.showActionSheetWithOptions(getOptions(wifiConnections.map(item => item.name)),
+    buttonIndex => {
+         if (buttonIndex > 0 ) {
+          setSelectedWiFiConnection(wifiConnections![buttonIndex]);
+        }
+      })
+  };
+
 
   useEffect(() => {
     console.log('[ConnectivityPage__UseEffect] ' + peripheralId);
     setThemePalette(AppServices.getAppTheme());
-
+  
     switch (handler) {
       case 'save': writeChar();
         setHandler(undefined);
@@ -157,6 +200,24 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
       :
       <KeyboardAwareScrollView style={[{ backgroundColor: themePalette.background, paddingLeft: 20, paddingRight: 20 }]}>
         <View>
+        <Text style={inputLabelStyle}>WiFi Connection:</Text>
+        {Platform.OS == 'ios' && selectedWiFiConnection && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline onPress={() => selectWiFiConnections()} >{selectedWiFiConnection.name}</Button> }
+        {Platform.OS == 'ios' && !selectedWiFiConnection && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline onPress={() => selectWiFiConnections()} >-select wifi connection-</Button> }
+        {Platform.OS != 'ios' && 
+        <Picker selectedValue={selectedWiFiConnection} onValueChange={e => setSelectedWiFiConnection(e)} itemStyle={{color:themePalette.shellTextColor}} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
+          {wifiConnections?.map(itm =>
+            <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ fontSize:20, color: themePalette.shellTextColor, backgroundColor: themePalette.background }}  />
+          )}
+        </Picker>
+        }
+
+        <View style={styles.flex_toggle_row}>
+          <Text style={inputLabelStyle}>Use Default Listener:</Text>
+          <Switch onValueChange={e => setUseDefaultListener(e)} value={useDefaultListener}
+            thumbColor={(colors.primaryColor)}
+            trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+        </View>
+
           <Text style={inputLabelStyle}>Device ID:</Text>
           <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Device ID" value={deviceId} onChangeText={e => { setDeviceId(e); console.log(deviceId) }} />
 

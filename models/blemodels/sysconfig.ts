@@ -2,6 +2,7 @@ import { timestamp } from "rxjs";
 
 export class SysConfig {
   constructor(str: string) {
+    console.log(str);
     let parts = str.split(',');    
 
     this.deviceId = parts[0];
