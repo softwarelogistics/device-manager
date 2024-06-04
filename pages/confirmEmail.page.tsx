@@ -21,7 +21,6 @@ export default function ConfirmEmailPage({ navigation }: IReactPageServices) {
     let loadUser = async () => {
         let user = await appServices.userServices.getUser();
         setAppUser(user);
-
     }
 
     let checkEmailConfirmed = async () => {
