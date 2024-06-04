@@ -66,7 +66,9 @@ export default function CreateOrgPage({ navigation }: IReactPageServices) {
     return (
         <Page>
             <View>
+               <Text>NuvIoT uses organizations to organize the resources, devices and IoT applications that you will build.  You can also invite other team members to your organization.  There is no cost to create an organization.</Text>
                 <EditField onChangeText={e => { handleUserPropertyChange(e, 'name'); }} label="organization name" placeHolder='enter organization name' value={selections.name} />
+                <Text>A namespace is used to uniquely identify your organization and once set, it can not be changed.Your namespace can only contain lower case numbers and letters, it must begin with a letter and be between 6 and 20 characters.</Text>
                 <EditField onChangeText={e => { handleUserPropertyChange(e, 'namespace'); }} label="namespace" placeHolder='enter organization namespace' value={selections.namespace} />
                 <EditField onChangeText={e => { handleUserPropertyChange(e, 'webSite'); }} label="First Name" placeHolder='enter organization web site' value={selections.webSite} />
 
