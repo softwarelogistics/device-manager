@@ -54,7 +54,7 @@ const App = () => {
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
 
-  const [loadMessage, setLoadMessage] = useState<string>('Loadidddng...');
+  const [loadMessage, setLoadMessage] = useState<string>('Loading...');
   const url = Linking.useURL();
   console.log('application start');
   const linking = {
