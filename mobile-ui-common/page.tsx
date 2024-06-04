@@ -23,14 +23,10 @@ export default function Page(props: any) {
       //  setThemePalette(palette);
       })();
         
-      console.log(themePalette.background)
-
         let themeChangedSubscription = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
         let logoutSubscription = HttpClient.logoutSubscription.addListener('logout', () => { setIsAuthenticated(false) });
         let busySubscription = NetworkCallStatusService.busySubscription.addListener('busy', () => setIsBusy(true));
         let idleSubscription = NetworkCallStatusService.busySubscription.addListener('idle', () => setIsBusy(false));
-
-        console.log(' page ' + themePalette.name);
 
         return (() => {
             AppServices.themeChangeSubscription.remove(themeChangedSubscription);

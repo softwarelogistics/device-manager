@@ -16,14 +16,17 @@ export default function SplashPage({ navigation }: IReactPageServices) {
   const checkStartup = async () => {
     if ((await AsyncStorage.getItem("isLoggedIn")) == "true") {
       let user = await appServices.userServices.getUser();
-      console.log(user);
+      console.log(user?.id, user?.name, user?.userName);
+     
       if(!user!.emailConfirmed)
         navigation.replace('confirmemail')
       else if(!user!.currentOrganization)
-        navigation.replace('authPage')
+        navigation.replace('createorg')
+      else if(user!.showWelcome)
+        navigation.replace('homeWelcome')
       else
         navigation.replace('home')
-
+     
       console.log('[SplashPage__checkStartup] showing home page.');
     }
     else {
@@ -33,8 +36,6 @@ export default function SplashPage({ navigation }: IReactPageServices) {
   }
 
   let version = JSON.stringify(require("../package.json").version)
-
-  console.log('startup');
 
   version = version.replace('"', '').replace('"','');
   console.log(`[SplashPage__checkStartup] version ${version}`);
@@ -52,10 +53,6 @@ export default function SplashPage({ navigation }: IReactPageServices) {
   }
 
   useEffect(() => {
-    console.log(themePalette.name);
-
-    console.log(themePalette.shellTextColor);
-
     (async () => {
       await checkStartup();
     })();

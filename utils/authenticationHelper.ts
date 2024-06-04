@@ -40,7 +40,6 @@ const AuthenticationHelper = {
 
     let authUrl = `${HttpClient.getApiUrl()}/api/v1/auth`;
     console.log(authUrl);
-    console.log(request);
 
     try
     {
@@ -52,7 +51,7 @@ const AuthenticationHelper = {
         });
 
       const fetchedJson = await fetched?.json();
-      console.log('auth result', fetchedJson);
+      console.log('[AuthenticationHelper__login] - success', fetchedJson.result.appUser.id, fetchedJson.result.appUser.email, fetchedJson.result.refreshTokenExpiresUTC, fetchedJson.result.accessTokenExpiresUTC);
 
       response.isSuccess = fetchedJson?.successful ?? false;
 

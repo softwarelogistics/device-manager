@@ -26,7 +26,6 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
   const submitButtonWhiteTextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, styles.submitButtonTextBlack, { color: themePalette.buttonPrimaryText }]);
 
   const checkStartup = async () => {
-    console.log('check startup called.');
     let ola = await AsyncStorage.getItem('oauth_launch');
     if (ola == 'true') {
       await AsyncStorage.removeItem('oauth_launch');
@@ -35,7 +34,7 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
       let oAuthToken = await AsyncStorage.getItem('oauth_token');
       let initialPath = await AsyncStorage.getItem('oauth_path');
 
-      console.log(`OAuth Launch, User Id: ${oAuthUser}, Token: ${oAuthToken}, Path: ${initialPath}`);
+      console.log(`[OAuthHandlerPage__CheckStartup] - User Id: ${oAuthUser}, Token: ${oAuthToken}, Path: ${initialPath}`);
 
       await AsyncStorage.removeItem('oauth_launch');
       await AsyncStorage.removeItem('oauth_user');
@@ -43,14 +42,22 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
       await AsyncStorage.removeItem('oauth_path');
       finalizeLogin(oAuthUser!, oAuthToken!, initialPath!);
     }
-    else
+    else {
       setTimeout(() => checkStartup(), 1000);
+      console.log(`[OAuthHandlerPage__CheckStartup] - Not Ready`);
+  }
   }
 
   const finalizeLogin = async (userId: string, authToken: string, path: string) => {
     let appInstanceId = await AsyncStorage.getItem('appInstanceId')
-    appInstanceId = appInstanceId || AuthenticationHelper.newUuid();
-
+    if(appInstanceId == null || appInstanceId == '') {
+      appInstanceId = AuthenticationHelper.newUuid();
+      await AsyncStorage.setItem('appInstanceId', appInstanceId);
+      console.log('[OAuthHandlerPage__FinalizeLogin] - AppInstanceId not found. Created new one.', appInstanceId)
+    }
+    else
+      console.log('[OAuthHandlerPage__FinalizeLogin] - AppInstanceId found.', appInstanceId)
+   
     const request = {
       "GrantType": "single-use-token",
       "UserId": userId,
@@ -59,16 +66,15 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
       "AppInstanceId": appInstanceId,
     };
 
-    console.log('attempting external login with single use token', request);
+    console.log('[OAuthHandlerPage__FinalizeLogin] - Single Use Token', request);
 
     let loginResponse = await AuthenticationHelper.login(request)  
     if (loginResponse.isSuccess) {
-      console.log('Login success. Loading current user.');
+      console.log('[OAuthHandlerPage__FinalizeLogin] - Login success. Loading current user.');
       await appServices.userServices.loadCurrentUser();
-      console.log('Loading current user.');
-
-      console.log('GTG - Navigate home.');
-      let path = loginResponse.navigationTarget!;
+      console.log('[OAuthHandlerPage__FinalizeLogin] - Login success. Loaded current user.');
+    
+      console.log(`[OAuthHandlerPage__FinalizeLogin] - Navigation to initial page: ${path }`);
       navigation.replace(path);
     }
     else {
@@ -97,15 +103,6 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
   };
 
   useEffect(() => {
-    console.log('use effect called')
-    ~
-      // navigation.reset({
-      //   index: 0,
-      //   routes: [{name: 'oauthHandlerPage'}],
-      // });
-
-      console.log('navigation was reset.')
-
     let changedSubscription = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     if (initialCall) {
       AsyncStorage.removeItem('oauth_launch');
