@@ -206,7 +206,7 @@ export class NuviotClientService {
 
 
 
-  getFormResponse<TModel, TView>(path: string, showWaitCursor: boolean): Promise<Core.FormResult<TModel, TView>> {
+  getFormResponse<TModel, TView>(path: string, showWaitCursor: boolean = true): Promise<Core.FormResult<TModel, TView>> {
     if (path.startsWith('/')) {
       path = path.substring(1);
     }

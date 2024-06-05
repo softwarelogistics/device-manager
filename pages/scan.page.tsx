@@ -205,10 +205,8 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
               <View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 90, backgroundColor: themePalette.shell, }]}  >
                 <View style={{ flex: 3 }} key={item.peripheralId}>
                   <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>ID: {item.name}</Text>
-                  <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>ID: {item.orgId == currentOrgId ? 'My Device' : 'Not'}</Text>
                   <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>Type: {item.deviceType}</Text>
                 </View>
-                <Text style={[{ marginLeft: 10, color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>{item.peripheralId}</Text>
                 {item.provisioned && <Icon style={{ fontSize: 48, color: 'green' }} name='information-outline' />}
                 {!item.provisioned && <Icon style={{ fontSize: 48, color: 'green' }} name='add-circle-outline' />}
               </View>

@@ -46,18 +46,6 @@ export class DevicesService {
   private _deviceGroupWebSocket: WebSocket | undefined;
   private _deviceRepoWebSocket: WebSocket | undefined;
 
-  public loadDeviceRepositories(): Promise<Devices.DeviceRepoSummary[]> {
-    const promise = new Promise<Devices.DeviceRepoSummary[]>((resolve, reject) => {
-      this.nuviotClient.getListResponse<Devices.DeviceRepoSummary>('/api/devicerepos')
-        .then(listResponse => {
-          this.setDeviceRepos(listResponse.model);
-          resolve(listResponse.model);
-        })
-        .catch(err => { });
-    });
-
-    return promise;
-  }
 
   private deviceSafeInit(device: Devices.DeviceDetail) {
     console.log()
@@ -91,40 +79,28 @@ export class DevicesService {
     }
   }
 
-  getDeviceTypes(): Promise<Devices.DeviceTypeSummary[]> {
-    const promise = new Promise<Devices.DeviceTypeSummary[]>((resolve, reject) => {
-      this.nuviotClient.getListResponse<Devices.DeviceTypeSummary>(`/api/devicetypes`)
-        .then(resp => { resolve(resp.model); })
-    });
-
-    return promise;
+  async getDeviceTypes(): Promise<Devices.DeviceTypeSummary[]> {    
+    let resp =  await this.nuviotClient.getListResponse<Devices.DeviceTypeSummary>(`/api/devicetypes`);
+    return resp.model!;
   }
 
-  getDeviceTypesForInstance(instanceId: string): Promise<Devices.DeviceTypeSummary[]> {
-    const promise = new Promise<Devices.DeviceTypeSummary[]>((resolve, reject) => {
-      this.nuviotClient.getListResponse<Devices.DeviceTypeSummary>(`/api/deployment/instance/${instanceId}/devicetypes`)
-        .then(resp => { resolve(resp.model); })
-    });
+  public async loadDeviceRepositories(): Promise<Core.ListResponse<Devices.DeviceRepoSummary>> {
+    return await this.nuviotClient.getListResponse<Devices.DeviceRepoSummary>('/api/devicerepos')      
+}
 
-    return promise;
+  async getDeviceTypesForInstance(instanceId: string): Promise<Devices.DeviceTypeSummary[]> {
+      let resp = await this.nuviotClient.getListResponse<Devices.DeviceTypeSummary>(`/api/deployment/instance/${instanceId}/devicetypes`)
+      return resp.model!;
   }  
 
-  getFirmwares(): Promise<Devices.FirmwareSummary[]> {
-    const promise = new Promise<Devices.FirmwareSummary[]>((resolve, reject) => {
-      this.nuviotClient.request<Core.ListResponse<Devices.FirmwareSummary>>(`/api/firmwares`)
-        .then(resp => resolve(resp.model));
-    });
-
-    return promise;
+  async getFirmwares(): Promise<Devices.FirmwareSummary[]> {
+      let resp = await this.nuviotClient.request<Core.ListResponse<Devices.FirmwareSummary>>(`/api/firmwares`)
+      return resp.model!;
   }
 
-  getFirmware(id: string): Promise<Devices.FirmwareDetail> {
-    const promise = new Promise<Devices.FirmwareDetail>((resolve, reject) => {
-      this.nuviotClient.getFormResponse<Devices.FirmwareDetail, Devices.FirmwareView>(`/api/firmware/${id}`)
-        .then(resp => resolve(resp.model));
-    });
-
-    return promise;
+  async getFirmware(id: string): Promise<Devices.FirmwareDetail> {
+      let resp = await this.nuviotClient.getFormResponse<Devices.FirmwareDetail, Devices.FirmwareView>(`/api/firmware/${id}`);
+      return resp.model!;
   }
 
   getDeviceProperties(deviceConfigId: string): Promise<Devices.PropertyMetaData[]> {
