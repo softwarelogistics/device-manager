@@ -22,7 +22,7 @@ export class NuviotClientService {
     return API_URL;
   }
 
-  async getListResponse<TData>(path: string, filter: Core.ListFilter | undefined = undefined): Promise<Core.ListResponse<TData | undefined>> {
+  async getListResponse<TData>(path: string, filter: Core.ListFilter | undefined = undefined): Promise<Core.ListResponse<TData>> {
     if (path.startsWith('/')) {
       path = path.substring(1);
     }
@@ -206,7 +206,7 @@ export class NuviotClientService {
 
 
 
-  getFormResponse<TModel, TView>(path: string): Promise<Core.FormResult<TModel, TView>> {
+  getFormResponse<TModel, TView>(path: string, showWaitCursor: boolean): Promise<Core.FormResult<TModel, TView>> {
     if (path.startsWith('/')) {
       path = path.substring(1);
     }

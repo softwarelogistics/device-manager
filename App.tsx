@@ -50,13 +50,11 @@ const App = () => {
   const [navigationTheme, setNavigationTheme] = useState<any>();
   const [initialPage, setInitialPage] = useState<string>('splashPage');
   const [initialCall, setInitialCall] = useState<boolean>(true);
-  const [launchUrl, setLaunchUrl] = useState<string|undefined>(undefined);
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
 
   const [loadMessage, setLoadMessage] = useState<string>('Loading...');
   const url = Linking.useURL();
-  console.log('application start');
   const linking = {
     prefixes: ['exp://', 'nuviot://', 'exp://127.0.0.1:19000/--/'],
     config: {
@@ -90,12 +88,14 @@ const App = () => {
     if (queryParams && queryParams.userid && queryParams.token) {
       let userId = queryParams.userid.toString();
       let token = queryParams.token.toString();
-      let startupPage = queryParams.page ?? 'home';
+      let startupPage = path ?? 'home';
+
+      startupPage = startupPage.replace('--/','')
 
       console.log(`[App_parseSchemeUrl] success: userId=${userId}; token=${token}; startupPage = '${startupPage}'; hostname = '${hostname};`)
       await AsyncStorage.setItem('oauth_user', userId);
       await AsyncStorage.setItem('oauth_token', token);
-      await AsyncStorage.setItem('oauth_path', hostname!);
+      await AsyncStorage.setItem('oauth_path', startupPage!);
       await AsyncStorage.setItem('oauth_launch', 'true');
       setInitialPage('oauthHandlerPage');
     }
@@ -121,7 +121,6 @@ const App = () => {
 
   useEffect(() => {
     setLoadMessage('Loading...' + new Date().toLocaleTimeString());
-    console.log(loadMessage);
     if (url) {
       parseSchemeUrl(url)
     }
@@ -148,9 +147,11 @@ const App = () => {
           <Stack.Screen name="liveDevicePage" component={LiveDevicePage} options={{ title: 'Device Info' }} />
           <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
           <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
+          <Stack.Screen name="home" component={HomePage} options={{ title: 'Home' }} />
           <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home' }} />
           <Stack.Screen name="seaWolfHomePage" component={SeaWolfHomePage} options={{ title: 'SeaWolf Home' }} />
           <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />
+          <Stack.Screen name="homeWelcome" component={WelcomePage} options={{ title: 'Welcome' }} />
           <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
           <Stack.Screen name="registerPage" component={RegisterPage} options={{ title: ' ' }} />
           <Stack.Screen name="scanPage" component={ScanPage} options={{ title: 'Scan for Devices' }} />

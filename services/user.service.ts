@@ -154,10 +154,10 @@ export class UserService {
     return promise;
   }
 
-  public getDistributionLists(filter: Core.ListFilter): Promise<Core.ListResponse<Users.DistroListSummary>> {
-    const promise = new Promise<Core.ListResponse<Users.DistroListSummary>>((resolve, reject) => {
+  public getDistributionLists(filter: Core.ListFilter): Promise<Core.ListResponse<Orgs.DistroListSummary>> {
+    const promise = new Promise<Core.ListResponse<Orgs.DistroListSummary>>((resolve, reject) => {
 
-      this.clientService.getListResponse<Users.DistroListSummary>(`/api/distros`, filter)
+      this.clientService.getListResponse<Orgs.DistroListSummary>(`/api/distros`, filter)
         .then(resp => {
           resolve(resp);
         })

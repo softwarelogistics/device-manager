@@ -8,7 +8,6 @@ import AppServices from "../services/app-services";
 import { ThemePalette } from "../styles.palette.theme";
 import StdButton from "../mobile-ui-common/std-button";
 import Page from "../mobile-ui-common/page";
-import colors from "../styles.colors";
 import palettes from "../styles.palettes";
 
 export default function SplashPage({ navigation }: IReactPageServices) {
@@ -19,15 +18,14 @@ export default function SplashPage({ navigation }: IReactPageServices) {
   const checkStartup = async () => {
     if ((await AsyncStorage.getItem("isLoggedIn")) == "true") {
       let user = await appServices.userServices.getUser();
-      console.log(user);
       if(!user!.emailConfirmed)
         navigation.replace('confirmemail')
       else if(!user!.currentOrganization)
         navigation.replace('createorg')
+      else if(!user!.showWelcome)
+        navigation.replace('homeWelcome')
       else
         navigation.replace('home')
-
-      console.log('[SplashPage__checkStartup] showing home page.');
     }
     else {
       let palette = await appServices.userServices.getThemePalette();
@@ -36,8 +34,6 @@ export default function SplashPage({ navigation }: IReactPageServices) {
   }
 
   let version = JSON.stringify(require("../package.json").version)
-
-  console.log('startup');
 
   version = version.replace('"', '').replace('"','');
   console.log(`[SplashPage__checkStartup] version ${version}`);
@@ -61,11 +57,7 @@ export default function SplashPage({ navigation }: IReactPageServices) {
    
     }).catch((error) => {
       console.error("Error retrieving AsyncStorage value:", error);
-    })
-    console.log(themePalette.name);
-
-    console.log(themePalette.shellTextColor);
-
+    });
 
     checkStartup();
    

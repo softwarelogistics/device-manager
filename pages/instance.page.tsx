@@ -108,12 +108,12 @@ export const InstancePage = ({
     if (deviceSummary.deviceTypeId === "D37B01208A6B4C4D8953C53435F1AD59") {
       navigation.navigate("seaWolfHomePage", {
         id: deviceSummary.id,
-        repoId: deviceRepoId, 
+        repoId: deviceRepoId,
       });
     } else {
       navigation.navigate("deviceProfilePage", {
         id: deviceSummary.id,
-        repoId: deviceRepoId, 
+        repoId: deviceRepoId,
       });
     }
   };
@@ -211,28 +211,28 @@ export const InstancePage = ({
             justifyContent: "space-between",
           }}
         >
-   
-   <View  style={{
+
+          <View style={{
             flexDirection: "row",
             alignItems: "center",
             gap: 10
           }}>
-          <IconIonicons
-            name="grid-outline"
-            size={24}
-            color={themePalette.shellTextColor}
-            style={{ textAlign: "center" }}
-            onPress={() => toggleViewMode("grid")}
-          />
-    
-          <IconMaterialCommunityIcons
-            name="format-list-checkbox"
-            size={24}
-            color={themePalette.shellTextColor}
-            style={{ textAlign: "center" }}
-            onPress={() => toggleViewMode("list")}
-          />
-   </View>
+            <IconIonicons
+              name="grid-outline"
+              size={24}
+              color={themePalette.shellTextColor}
+              style={{ textAlign: "center" }}
+              onPress={() => toggleViewMode("grid")}
+            />
+
+            <IconMaterialCommunityIcons
+              name="format-list-checkbox"
+              size={24}
+              color={themePalette.shellTextColor}
+              style={{ textAlign: "center" }}
+              onPress={() => toggleViewMode("list")}
+            />
+          </View>
 
           {Platform.OS == "ios" && deviceModelFilter && (
             <Button
@@ -273,7 +273,7 @@ export const InstancePage = ({
               width: '100%',
               height: '100%',
               overflow: "visible"
-       
+
             }}
           >
             {viewMode === "grid" &&
@@ -313,7 +313,7 @@ export const InstancePage = ({
                         justifyContent: "center",
                       }}
                     >
-                    <SLIcon icon={item.icon} />
+                      <SLIcon icon={item.icon} />
                     </View>
 
                     <View style={{ gap: 6 }}>
@@ -331,10 +331,10 @@ export const InstancePage = ({
                       <Text
                         style={{
                           color: themePalette.subtitleColor,
-                          fontSize: 14,
+                          fontSize: 12,
                         }}
                       >
-                        Subtitle text
+                        {item.deviceType}
                       </Text>
                     </View>
                   </View>
@@ -343,7 +343,7 @@ export const InstancePage = ({
             {viewMode === "list" &&
               devices &&
               devices.map((item, key) => (
-                <Pressable onPress={() => showDevice(item)} key={item.id} style={{width: '100%'}}>
+                <Pressable onPress={() => showDevice(item)} key={item.id} style={{ width: '100%' }}>
                   <View
                     style={[
                       styles.listRow,
@@ -373,10 +373,10 @@ export const InstancePage = ({
                         justifyContent: "center",
                       }}
                     >
-                    <SLIcon icon={item.icon} />
+                      <SLIcon icon={item.icon} />
                     </View>
 
-                    <View  style={{ flexGrow: 1 }}>
+                    <View style={{ flexGrow: 1 }}>
                       <Text
                         style={{
                           color: themePalette.shellTextColor,
@@ -391,10 +391,10 @@ export const InstancePage = ({
                           fontSize: 14,
                         }}
                       >
-                        Subtitle text
+                        {item.deviceType}
                       </Text>
                     </View>
-                 
+
                     <ChevronIcons
                       name="chevron-right"
                       color={themePalette.subtitleColor}
@@ -403,7 +403,7 @@ export const InstancePage = ({
                         textAlign: "center",
                       }}
                     />
-                
+
                   </View>
                 </Pressable>
               ))}

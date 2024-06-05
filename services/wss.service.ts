@@ -1,12 +1,9 @@
 import { NuviotClientService } from "./nuviot-client.service";
 
 class WssService {
-
     ws: WebSocket | undefined;
 
-    constructor(private client: NuviotClientService) {
-
-    }
+    constructor(private client: NuviotClientService) {}
 
     onmessage: ((event: WebSocketMessageEvent) => void) | undefined;
 
@@ -31,10 +28,7 @@ class WssService {
             console.log('[WssService__onclose] web socket closed;');
         }
 
-        this.ws.onerror = () => {
-
-        };
-
+        this.ws.onerror = () => {};
     }
 
     close() {

@@ -84,7 +84,6 @@ export class ConnectedDevice {
     }
 
     static async disconnect() {
-        console.log('hi from disconnect')
         console.log(ConnectedDevice._subscriptions);
         if (ConnectedDevice._subscriptions) {
             for (let charId of ConnectedDevice._subscriptions!)

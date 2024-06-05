@@ -12,6 +12,7 @@ import { NuvIoTEventEmitter } from '../utils/NuvIoTEventEmitter';
 import { DeploymentService } from './deployment.service';
 import WssService from './wss.service';
 import { CommonSettings } from '../settings';
+import { OrgService } from './orgservice';
 
 class AppServices {
     private static _appTheme: ThemePalette;
@@ -31,7 +32,7 @@ class AppServices {
         this.deviceGroupsServices = new DeviceGroupService(this.client);
         this.deviceServices = new DevicesService(this.deviceGroupsServices, this.client);
         this.wssService = new WssService(this.client);
-
+        this.orgsService = new OrgService(this.client);
         this.userServices = new UserService(this.httpClient, this.client, this.errorReporter, this.storage);
     }
 
@@ -56,6 +57,7 @@ class AppServices {
     deviceGroupsServices: DeviceGroupService;
     deviceServices: DevicesService;
     userServices: UserService;
+    orgsService: OrgService;
     wssService: WssService;
 }
 

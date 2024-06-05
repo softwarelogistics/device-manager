@@ -14,6 +14,8 @@ import { ThemePalette } from "../styles.palette.theme";
 import colors from "../styles.colors";
 import styles from '../styles';
 import Page from "../mobile-ui-common/page";
+import IconButton from "../mobile-ui-common/icon-button";
+import { environment } from "../settings";
 
 export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageServices) => {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
@@ -45,7 +47,7 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
     else {
       setTimeout(() => checkStartup(), 1000);
       console.log(`[OAuthHandlerPage__CheckStartup] - Not Ready`);
-  }
+    }
   }
 
   const finalizeLogin = async (userId: string, authToken: string, path: string) => {
@@ -59,11 +61,13 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
       console.log('[OAuthHandlerPage__FinalizeLogin] - AppInstanceId found.', appInstanceId)
    
     const request = {
-      "GrantType": "single-use-token",
-      "UserId": userId,
-      "SingleUseToken": authToken,
-      "AppId": "nuviot-devicemgr",
-      "AppInstanceId": appInstanceId,
+      GrantType: "single-use-token",
+      UserId: userId,
+      SingleUseToken: authToken,
+      DeviceId: environment.deviceId,
+      ClientType: environment.clientType,
+      AppId: environment.appId,
+      AppInstanceId: appInstanceId,
     };
 
     console.log('[OAuthHandlerPage__FinalizeLogin] - Single Use Token', request);
@@ -130,28 +134,13 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
         {failedAuth &&
           <View>
             <Text></Text>
-
-            <MciIcon.Button
-              name="logout"
-              style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
-              color={colors.white}
-              backgroundColor={colors.transparent}
-              onPress={() => logOut()}>
-              <Text style={submitButtonWhiteTextStyle}> Log Out </Text>
-            </MciIcon.Button>
+            <IconButton iconType="mci" label="Logout" icon="logout" onPress={() => logOut()} color={colors.errorColor}></IconButton>
           </View>
         }
         {!failedAuth &&
           <View>
             <Text style={{ color: themePalette.shellTextColor }}>Please Wait</Text>
-            <MciIcon.Button
-              name="logout"
-              style={ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: colors.errorColor, borderColor: '#AA0000' }])}
-              color={colors.white}
-              backgroundColor={colors.transparent}
-              onPress={() => logOut()}>
-              <Text style={submitButtonWhiteTextStyle}> Try Again </Text>
-            </MciIcon.Button>
+            <IconButton iconType="mci" label="Logout" icon="logout" onPress={() => logOut()} color={colors.errorColor}></IconButton>
           </View>
         }
       </View>

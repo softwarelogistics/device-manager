@@ -33,7 +33,7 @@ namespace Core {
     export interface KeyValuePair<TKey, TValue> {
         key: TKey;
         value: TValue;
-      }
+    }
 
     export interface SummaryData {
         id: string;
@@ -290,16 +290,71 @@ namespace Core {
         note: string;
     }
 
+
+    export interface FormConditional {
+        field: string;
+        value: string;
+        forCreate: boolean;
+        forUpdate: boolean;
+        notEquals: boolean;
+        visibleFields: string[];
+        requiredFields: string[];
+        readOnlyFields: string[];
+    }
+
+    export interface FormConditionals {
+        conditionalFields: string[];
+        conditionals: FormConditional[];
+    }
+
+
+    export interface FormAdditionalAction {
+        title: string;
+        icon: string;
+        help: string;
+        key: string;
+        forCreate: boolean;
+        forEdit: boolean;
+    }
+
+    export interface IFormHost {
+        saveForm(emitSaved: boolean): Promise<boolean>
+        cancelForm(): void;
+        isDirtyCheck(): boolean;
+    }
+
     export interface FormResult<TModel, TView> {
         resultId: string;
         successful: boolean;
         model: TModel;
-        title: string;
-        help: string;
+        modelTitle: string;
+        modelName: string;
+        isEditing: boolean;
+        modelHelp: string;
         formFields: string[];
+        formFieldsAdvanced?: string[];
+        formFieldsAdvancedCol2?: string[];
+        formFieldsSimple?: string[];
+        formFieldsCol2?: string[];
+        formInlineFields?: string[];
+        formFieldsBottom?: string[];
+        formFieldsTab?: string[];
+        formAdditionalActions?: FormAdditionalAction[];
+        conditionalFields?: FormConditionals;
         view: TView;
-        errors: ErrorMessage[];
-        warnings: ErrorMessage[];
+        errors?: ErrorMessage[];
+        warnings?: ErrorMessage[];
+        icon?: string;
+        deleteUrl?: string;
+        factoryUrl?: string;
+        getUrl?: string;
+        getListUrl?: string;
+        saveUrl?: string;
+        updateUrl?: string;
+        helpUrl?: string;
+        onModelToView?(): void;
+        onViewToModel?(): void;
+        formHost?: IFormHost;
     }
 
     export interface IView {

@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { ActivityIndicator, Platform, View, Text, TextStyle, TouchableOpacity, ScrollView, ViewStyle } from "react-native";
-import ScrollIndicator from 'react-native-scroll-indicator';
 import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
 import { ThemePalette } from "../styles.palette.theme";
@@ -9,6 +8,7 @@ import palettes from "../styles.palettes";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import fontSizes from "../styles.fontSizes";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useInterval } from 'usehooks-ts'
 import { PermissionsHelper } from "../services/ble-permissions";
 import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { BLENuvIoTDevice } from "../models/device/device-local";
@@ -37,6 +37,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
   const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
   const [timerId, setTimerId] = useState<number | undefined>(undefined);
+  const [pageVisible, setPageVisible] = useState<boolean>(true);
 
   const stateRef = useRef();
 
@@ -93,22 +94,47 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     }
   }
 
-  const attemptConnect = async (peripheralId: string) => {
-    console.log(`[DeviceProfilePage__attemptConnect] - Peripheral: ${peripheralId}.`);
+  useInterval(async () => {
+    if(peripheralId && !isDeviceConnected){
+      await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE], 1)
+        }
+      }, pageVisible ? 6000 : null  
+  )
 
-    if(!await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE], 1)){
-      console.log('[DeviceProfilePage__attemptConnect] - Could Not Connect; will retry.');
-      setTimerId(window.setTimeout(attemptConnect, 2500, peripheralId));
+  // const attemptConnect = async (peripheralId: string) => {
+  //   console.log(`[DeviceProfilePage__attemptConnect] - Peripheral: ${peripheralId}.`);
+
+  //   if(!await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE], 1)){
+  //     console.log('[DeviceProfilePage__attemptConnect] - Could Not Connect; will retry.');
+  //     let timerId = window.setTimeout(attemptConnect, 2500, peripheralId)
+  //     setTimerId(timerId);
+  //   }
+  //   else {
+  //     console.log('[DeviceProfilePage__attemptConnect] - Connected!; will retry.');
+  //     setTimerId(undefined);
+  //   }
+  // }
+
+
+  const handleWSMessage = (e: any) => {
+    let json = e.data;
+    let wssMessage = JSON.parse(json);
+    let wssPayload = wssMessage.payloadJSON;
+    let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
+
+    console.log('got message');
+
+    if (deviceDetail) {
+      deviceDetail.sensorCollection = device.sensorCollection;
+      deviceDetail.lastContact = device.lastContact;        
+      console.log(deviceDetail.lastContact);
+      setDeviceDetail(deviceDetail);
     }
-    else {
-      console.log('[DeviceProfilePage__attemptConnect] - Could Not Connect; will retry.');
-      setTimerId(undefined);
-    }
+    else 
+      console.log('device detail is null');
   }
 
-
   const loadDevice = async () => {
-    console.log('load fd');
     let fullDevice = await appServices.deviceServices.getDevice(repoId, id);    
     if (fullDevice) {
       await appServices.wssService.init('device', fullDevice.id);
@@ -125,32 +151,16 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       if(peripheralId)  {
         ConnectedDevice.onReceived = (value) => charHandler(value, fullDevice!);
         ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
-        ConnectedDevice.onDisconnected = () =>
-          {
-            setIsDeviceConnected(false);
-            attemptConnect(peripheralId);   
-          } 
-
-        attemptConnect(peripheralId);   
+        ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
       }
                 
-      appServices.wssService.onmessage = (e) => {
-        let json = e.data;
-        let wssMessage = JSON.parse(json);
-        let wssPayload = wssMessage.payloadJSON;
-        let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
-
-        if (fullDevice) {
-          fullDevice.sensorCollection = device.sensorCollection;
-        }
-      }
+      appServices.wssService.onmessage = (e) => handleWSMessage(e);
     }
     else {
       console.error("[DeviceProfilePage__loadDevice] - Could Not Load Device");
       setErrorMessage('Sorry - Could Not Load Device.');
     }
   }
-
 
   const showPage = async (pageName: String) => {
     ble.removeAllListeners();
@@ -160,6 +170,8 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     appServices.wssService.close();
     let params = { peripheralId: peripheralId, repoId: repoId, deviceId: id }
     navigation.navigate(pageName, params);
+ 
+    setPageVisible(false);
   }
 
   const showConfigurePage = async () => {
@@ -192,18 +204,18 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
     const focusSubscription = navigation.addListener('focus', () => {
         loadDevice();
+        setPageVisible(true);
+        
+      console.log("FOCUS SUBSCRIPTION FIRED!");
     });
 
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
       if(isDeviceConnected)
         await ConnectedDevice.disconnect();
 
-      if(timerId) {
-        clearTimeout(timerId);
-        setTimerId(undefined);
-      }
-
-       appServices.wssService.close();
+      setPageVisible(false);
+      appServices.wssService.close();
+      console.log("BLUR SUBSCRIPTION FIRED!");
     });
 
     return (() => {
@@ -261,12 +273,12 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     let sensorName = sensor?.name ?? `Sensor ${idx + 1}`;
 
     return (
-      <View style={[{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 120, width: 120, backgroundColor: themePalette.viewBackground, marginRight: 8, borderRadius: 8 }]}>
+      <View style={[{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop:10, height: 130, width: 120, backgroundColor: themePalette.viewBackground, marginRight: 8, borderRadius: 8 }]}>
           <View style={[{ display: "flex", justifyContent: 'center', alignItems: 'center', width: 56, height: 56, backgroundColor: colors.primaryBlue, borderRadius: 8, marginBottom: 8 }]}>
           <Icon style={{ textAlign: 'center', color: sensor ? 'white' : '#d0d0d0' }} size={24} onPress={showConfigurePage} name={icon} />
         </View>
         <Text style={{ textAlign: "center", textAlignVertical: "center", color: themePalette.shellTextColor }}>{sensorName}</Text>
-        {/* <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : '#d0d0d0' }}>{sensor?.value ?? '-'}</Text> */}
+         <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : '#d0d0d0' }}>{sensor?.value ?? '-'}</Text> 
       </View>)
   }
 
@@ -276,7 +288,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     let sensorName = sensor?.name ?? `Sensor ${idx + 1}`;
 
     return (
-    <View style={[{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 120, width: 120, backgroundColor: themePalette.viewBackground, marginRight: 8, borderRadius: 8 }]}>
+    <View style={[{ display: "flex", flexDirection: "column", alignItems: "center",  paddingTop: 10, height: 130, width: 120, backgroundColor: themePalette.viewBackground, marginRight: 8, borderRadius: 8 }]}>
       <View style={[{ display: "flex", justifyContent: 'center', alignItems: 'center', width: 56, height: 56, backgroundColor: colors.primaryBlue, borderRadius: 8, marginBottom: 8 }]}>
           <Icon style={{ textAlign: 'center', color: sensor ? 'white' : '#d0d0d0' }} size={24} onPress={showConfigurePage} name={icon} />
       </View>

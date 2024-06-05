@@ -34,12 +34,12 @@ export default function HomePage({ navigation }: IReactPageServices) {
     let user = await appServices.userServices.getUser();
     setUser(user);
     let instances = await appServices.deploymentServices.GetInstances();
-      setInstances(instances!.model!);
+    setInstances(instances!.model!);
   }
 
   useEffect(() => {
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
-    setSubscription(changed);
+    //let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
+   // setSubscription(changed);
 
     const focusSubscription = navigation.addListener("focus", () => {
       loadInstances();
@@ -78,7 +78,11 @@ export default function HomePage({ navigation }: IReactPageServices) {
   const myListEmpty = () => {
     return (
       <View style={{ alignItems: "center" }}>
-        <Text style={styles.item}> No Instances have been Created. </Text>
+        <Text style={[{ textAlign: 'center', marginBottom: 5, marginTop:20, color: themePalette.shellTextColor, fontSize: 16 }]}>
+          The NuVIoT device manager is a companion applications that can be used to provision and configure devices connected 
+        to NuVIoT application instances.</Text>
+        <Text style={[{ textAlign: 'center', marginBottom: 5, color: themePalette.shellTextColor, fontSize: 16 }]}>
+          You currently don't have any IoT applications.</Text>
       </View>
     );
   };
@@ -133,7 +137,7 @@ export default function HomePage({ navigation }: IReactPageServices) {
                 <View >
                 <Text style={{ color: themePalette.name === 'light' ? colors.darkTitle : colors.white  , marginBottom: 3, fontSize: 16 }}>{item.name}</Text>
               </View>
-                <Text style={{ color:themePalette.subtitleColor, fontSize: 14 }}>Subtitle text</Text>
+                <Text style={{ color:themePalette.subtitleColor, fontSize: 14 }}>{item.description}</Text>
               </View>
               
               <Icon
