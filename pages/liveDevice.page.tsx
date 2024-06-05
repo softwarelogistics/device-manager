@@ -17,7 +17,6 @@ import { IOValues } from "../models/blemodels/iovalues";
 import { ThemePalette } from "../styles.palette.theme";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import palettes from "../styles.palettes";
-import colors from "../styles.colors";
 import Page from "../mobile-ui-common/page";
 import { NetworkCallStatusService } from "../services/network-call-status-service";
 
@@ -42,6 +41,10 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
   const peripheralId = route.params.id;
+  const instanceRepoId = route.params.instanceRepoId;
+  const deviceRepoId = route.params.deviceRepoId;
+  const deviceId = route.params.deviceId;
+  const isOwnedDevice = route.params.owned;
 
   const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
   const chevronBarVerticalStyle: ViewStyle = ViewStylesHelper.combineViewStyles([{ height: 39 }]);
@@ -91,20 +94,22 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         let sysConfig = new SysConfig(sysConfigStr);
         setSysConfig(sysConfig);
 
-        try {
-          NetworkCallStatusService.beginCall('Loading Device Details from Server.')
-          console.log(`Requesting Device: repoid: ${sysConfig.repoId}, ${sysConfig.id}`);
-          let device = await appServices.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
-          setDeviceDetail(device);
-        }
-        catch (e) {
-          alert(e);
-          
-          return;
-        }
-        finally
-        {
-          NetworkCallStatusService.endCall();
+        if(isOwnedDevice) {
+          try {
+            NetworkCallStatusService.beginCall('Loading Device Details from Server.')
+            console.log(`Requesting Device: repoid: ${sysConfig.repoId}, ${sysConfig.id}`);
+            let device = await appServices.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
+            setDeviceDetail(device);
+          }
+          catch (e) {
+            alert(e);
+            
+            return;
+          }
+          finally
+          {
+            NetworkCallStatusService.endCall();
+          }
         }
       }
       else {
@@ -154,7 +159,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
     }
 
-    navigation.navigate('configureDevice', { peripheralId: peripheralId, repoId: deviceDetail?.deviceRepository.id, deviceId: deviceDetail?.id });
+    navigation.navigate('configureDevice', { peripheralId: peripheralId, deviceRepoId:deviceRepoId, instanceRepoId:instanceRepoId, deviceId: deviceId });
   }
 
   const loadDevice = async () => {
@@ -202,7 +207,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} >
-          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => showConfigurePage()} name='ios-settings-sharp' />
+          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => showConfigurePage()} name='cog-outline' />
         </View>),
     });
 
@@ -239,21 +244,21 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const connectionBlock = (color: string, icon: string, label: string, status: boolean) => {
     return <View style={[{ flex: 1, margin: 2, justifyContent: 'center', }]}>
       {status &&
-        <View style={{ backgroundColor: color, borderRadius: 8 }}>
-          <Text style={{ fontSize: 20, textAlign: "center", color: 'white' }}>{label}</Text>
+        <View style={{ height:120, backgroundColor: color, borderRadius: 8 }}>
+          <Text style={{ fontSize: 18, textAlign: "center", color: 'white' }}>{label}</Text>
           <View >
-            <Icon style={{ textAlign: 'center', }} size={64} color="white" onPress={showConfigurePage} name={icon} />
+            <Icon style={{ textAlign: 'center', }} size={64} color="white" name={icon} />
           </View>
-          <Text style={{ textAlign: "center", color: 'white' }}>Connected</Text>
+          <Text style={{ textAlign: "center", textAlignVertical:"bottom", color: 'white' }}>Connected</Text>
         </View>
       }
       {!status &&
-        <View style={{ backgroundColor: '#e0e0e0', borderRadius: 8 }}>
-          <Text style={{ fontSize: 20, textAlign: "center", color: 'black' }}>{label}</Text>
+        <View style={{ height:120, backgroundColor: '#e0e0e0', borderRadius: 8 }}>
+          <Text style={{ fontSize: 18, textAlign: "center", color: 'black' }}>{label}</Text>
           <View >
-            <Icon style={{ textAlign: 'center', }} size={64} color="gray" onPress={showConfigurePage} name={icon} />
+            <Icon style={{ textAlign: 'center', }} size={64} color="gray" name={icon} />
           </View>
-          <Text style={{ textAlign: "center", fontWeight: '500', color: 'black' }}>Not Connected</Text>
+          <Text style={{ textAlign: "center", textAlignVertical:"bottom", fontWeight: '500', color: 'black' }}>Not Connected</Text>
         </View>
       }
     </View>
@@ -294,24 +299,33 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
             </View>
           }
           {
-            !deviceDetail &&
+            (!deviceDetail && isOwnedDevice) &&
             <View>
               {sectionHeader('Device Not Configured')}
             </View>
           }
+                    {
+            (!isOwnedDevice) &&
+            <View>
+              {sectionHeader('You do not own this device.')}
+            </View>
+          }
           {
             remoteDeviceState &&
-            <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >
-              {connectionBlock('orange', 'wifi-outline', 'WiFi', remoteDeviceState.wifiStatus == 'Connected')}
-              {connectionBlock('orange', 'cellular-outline', 'Cellular', remoteDeviceState.cellularConnected)}
-              {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
-
+            <View>
+              {sectionHeader('Current Device Status')}
+              <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >              
+                {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
+                {connectionBlock('orange', 'wifi-outline', 'WiFi', remoteDeviceState.wifiStatus == 'Connected')}
+                {connectionBlock('orange', 'cellular-outline', 'Cellular', remoteDeviceState.cellularConnected)}                
+                {connectionBlock('orange', 'cloud', 'Cloud', remoteDeviceState.isCloudConnected)}
+              </View>
             </View>
           }
           {
             remoteDeviceState &&
             <View style={{ marginTop: 20 }}>
-              {sectionHeader('Current Device Status')}
+              {sectionHeader('Device Configuration')}
               {panelDetail('green', 'Firmware SKU', remoteDeviceState.firmwareSku)}
               {panelDetail('green', 'Firmware Rev', remoteDeviceState.firmwareRevision)}
               {panelDetail('green', 'Commissioned', remoteDeviceState.commissioned ? 'Yes' : 'No')}

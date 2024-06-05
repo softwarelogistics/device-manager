@@ -121,7 +121,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
       console.warn('could not connect.');
     }
 
-    let result = await appServices.deploymentServices.LoadWiFiConnectionProfiles(route.params.repoId);
+    let result = await appServices.deploymentServices.LoadWiFiConnectionProfiles(route.params.instanceRepoId);
     console.log(result);
     result.unshift({ id: 'cellular', key: 'cellular', name: 'Cellular', ssid: '', password: '', description: '' });
     result.unshift({ id: 'none', key: 'none', name: 'No Connection', ssid: '', password: '', description: '' });

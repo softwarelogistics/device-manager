@@ -24,7 +24,6 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
   const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
 
   const loadUserOrgs = async () => {
-    console.log('load orgs');
     await appServices.userServices.getOrgsForCurrentUser()
       .then(orgResult => {
         setOrgs(orgResult.model);

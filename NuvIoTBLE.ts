@@ -376,7 +376,7 @@ export class NuvIoTBLE {
         return responseStr
       }
       catch (e) {
-        console.error("[BLEManager__readCharacteristic] failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
+        console.log("[BLEManager__readCharacteristic] failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
         return null;
       }
     }
@@ -390,7 +390,7 @@ export class NuvIoTBLE {
       return true;
     }
     catch (e) {
-      console.error("[BLEManager__writeCharacteristic] failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
+      console.log("[BLEManager__writeCharacteristic] failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
       return false;
     }
   }
@@ -403,7 +403,7 @@ export class NuvIoTBLE {
       return true;
     }
     catch (e) {
-      console.error("[BLEManager__writeNoResponseCharacteristic] failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId + ', value=' + value);
+      console.log("[BLEManager__writeNoResponseCharacteristic] failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId + ', value=' + value);
       return false;
     }
   }
@@ -435,7 +435,7 @@ export class NuvIoTBLE {
                 let timeoutId = setTimeout(() => { 
                   BleManager.disconnect(id); 
                   console.log(`[BLEManager__connectById] 5 second timeout for device id ${id}`) 
-                  reject('Timeout exceeded');
+                  return false;
                 }, 5000);     
 
                 await BleManager.connect(id);
@@ -462,17 +462,17 @@ export class NuvIoTBLE {
 
                   console.log(`[BLEManager__connectById] not a NuvIoT device;`);
                   await this.disconnectById(id);
-                  reject('Not a NuvIoT Device');
+                  return resolve(false);
                 }
                 else 
                   return resolve(true);
 
               }
               catch (e) {
-                console.log('[BLEManager__connectById] Error - ' + e + ' id=' + id + ' retry count ' + retryCount);
+                console.log(`[BLEManager__connectById] Error - ${e}, id=${id} retry count ${retryCount}`);
                 
                 if (retryCount-- <= 0) {
-                  reject('Retry Count Exceeded');
+                  return resolve(false);
                 }
 
                 ble.btEmitter?.emit('connecting', `Connecting to ${id} - Attempt ${5 - retryCount}`);
@@ -485,7 +485,7 @@ export class NuvIoTBLE {
 
         this._cancelConnect = false;
 
-        reject('Connection Attempt Cancelled');
+        return resolve(false);
     });
 
     return promise;

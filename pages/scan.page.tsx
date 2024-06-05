@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Text, Platform, View, TouchableOpacity, FlatList, ActivityIndicator, Pressable } from 'react-native';
 import { Peripheral } from 'react-native-ble-manager'
-import { ble, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
+import { ble } from '../NuvIoTBLE'
 
 import AppServices from "../services/app-services";
 
@@ -21,6 +21,7 @@ import { scanUtils } from "../services/scan-utils";
 export default function ScanPage({ navigation, props, route }: IReactPageServices) {
   const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
 
+  const [appService, setAppServices] = useState<AppServices>(new AppServices());
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
   const [discoveredPeripherals, setDiscoveredPeripherals] = useState<Peripheral[]>([]);
 
@@ -29,6 +30,7 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
   const [busyMessage, setBusyMessage] = useState<String>('Busy');
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
   const [initialCall, setInitialCall] = useState<boolean>(true);
+  const [currentOrgId, setCurrentOrgId] = useState<string>('');
   
   const deviceRepoId = route.params.repoId;
 
@@ -124,7 +126,7 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
 
   const showDevice = async (device: BLENuvIoTDevice) => {
     if (device.provisioned)
-      navigation.navigate('liveDevicePage', { id: device.peripheralId });
+      navigation.navigate('liveDevicePage', { id: device.peripheralId, owned: device.orgId == currentOrgId, instanceRepoId: deviceRepoId, deviceRepoId: device.repoId, deviceId: device.id, instanceId: route.params.instanceId});
     else
       navigation.navigate('provisionPage', { id: device.peripheralId, repoId: deviceRepoId, instanceId: route.params.instanceId });
   }
@@ -165,7 +167,10 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
       ),
     });
 
-    const focusSubscription = navigation.addListener('focus', () => { });
+    const focusSubscription = navigation.addListener('focus', async () => {
+      let user = await appService.userServices.getUser();
+      setCurrentOrgId(user!.currentOrganization!.id  )
+     });
     const blurSubscription = navigation.addListener('beforeRemove', () => { stopScanning();});
 
     return (() => {
@@ -200,10 +205,11 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
               <View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 90, backgroundColor: themePalette.shell, }]}  >
                 <View style={{ flex: 3 }} key={item.peripheralId}>
                   <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>ID: {item.name}</Text>
+                  <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>ID: {item.orgId == currentOrgId ? 'My Device' : 'Not'}</Text>
                   <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>Type: {item.deviceType}</Text>
                 </View>
                 <Text style={[{ marginLeft: 10, color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>{item.peripheralId}</Text>
-                {item.provisioned && <Icon style={{ fontSize: 48, color: themePalette.listItemIconColor }} name='ios-information-circle' />}
+                {item.provisioned && <Icon style={{ fontSize: 48, color: 'green' }} name='information-outline' />}
                 {!item.provisioned && <Icon style={{ fontSize: 48, color: 'green' }} name='add-circle-outline' />}
               </View>
             </Pressable>

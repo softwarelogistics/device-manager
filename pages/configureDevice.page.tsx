@@ -29,12 +29,13 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   const [initialCall, setInitialCall] = useState<boolean>(true);
 
   const deviceId = route.params.deviceId;
-  const repoId = route.params.repoId;
+  const deviceRepoId = route.params.deviceRepoId;
+  const instanceRepoId = route.params.instanceRepoId;
   const peripheralId = route.params.peripheralId;
 
-  if (!peripheralId || !deviceId || !repoId) {
+  if (!peripheralId || !deviceId || !instanceRepoId || !deviceRepoId) {
     console.error(route.params);
-    throw 'Must provide peripheralId, repoId and deviceId in the route.params'
+    throw 'Must provide peripheralId, instanceRepoId, deviceRepoId, and deviceId in the route.params'
   }
 
   const primaryButtonStyle: ViewStyle = ViewStylesHelper.combineViewStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
@@ -47,13 +48,13 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   }
 
   const showPage = async (pageName: string) => {
-    await safeNavigate(pageName, { peripheralId: peripheralId, repoId: repoId, deviceId: deviceId });
+    await safeNavigate(pageName, { peripheralId: peripheralId, deviceRepoId: deviceRepoId, instanceRepoId: instanceRepoId, deviceId: deviceId });
   }
 
   const restartDevice = async () => {
     setIsBusy(true);
     if (await ble.connectById(peripheralId!)) {
-      await ble.writeNoResponseCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
+      await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
       await ble.disconnectById(peripheralId!);
       setIsBusy(false);
       await alert('Success resetting device.');
@@ -67,7 +68,7 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   const factoryReset = async () => {
     setIsBusy(true);
     if (await ble.connectById(peripheralId!)) {
-      let writeSuccess = await ble.writeNoResponseCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `factoryreset=1`);
+      let writeSuccess = await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `factoryreset=1`);
       
       await ble.disconnectById(peripheralId!);
       setIsBusy(false);

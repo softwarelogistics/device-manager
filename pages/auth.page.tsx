@@ -1,5 +1,5 @@
+import { CommonActions } from '@react-navigation/native';
 import React, { useState, useEffect } from "react";
-import { StatusBar } from 'expo-status-bar';
 import styles from '../styles';
 import * as Linking from 'expo-linking';
 import { Image, Text, View } from 'react-native';
@@ -9,21 +9,20 @@ import AppServices from "../services/app-services";
 import { ThemePalette } from "../styles.palette.theme";
 import Constants from 'expo-constants'
 import NavButton from "../mobile-ui-common/nav-button";
-import { callToActionView, logoAuthImageStyle } from "../mobile-ui-common/control-styles";
+import { logoAuthImageStyle } from "../mobile-ui-common/control-styles";
 import EditField from "../mobile-ui-common/edit-field";
-import StdButton from "../mobile-ui-common/std-button";
-import ThemeSwitcher from "../mobile-ui-common/theme-switcher";
 import ProgressSpinner from "../mobile-ui-common/progress-spinner";
 import Page from "../mobile-ui-common/page";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
-import Icon from "react-native-vector-icons/Ionicons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { HttpClient } from "../core/utils";
+import IconButton from '../mobile-ui-common/icon-button';
 
 export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
+  const [initialLoad, setInitialLoad] = useState<boolean>(true);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,7 +38,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
   useEffect(() => {
     let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     setSubscription(changed);
-    
+
     return (() => {
       if (subscription)
         AppServices.themeChangeSubscription.remove(subscription);
@@ -72,9 +71,9 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
   };
 
   const closeView = () => {
-    if(isSignInEmail) 
+    if (isSignInEmail)
       setIsSignInEmail(false);
-    else 
+    else
       navigation.replace("splashPage");
   }
 
@@ -86,11 +85,11 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
       let hostName = Constants.expoConfig?.hostUri?.split(':')[0] as string;
       let localIp = hostName.replace('.', '-').replace('.', '-').replace('.', '-').replace('.', '-');
 
-      url = `${HttpClient.getWebUrl()}/mobile/login/oauth/${provider}?expo_dev_ip_addr=${localIp}&mobile_app_scheme=nuviot`;      
+      url = `${HttpClient.getWebUrl()}/mobile/login/oauth/${provider}?expo_dev_ip_addr=${localIp}&mobile_app_scheme=nuviot`;
     }
 
     console.log('[AuthPage__loginExternal] - OAuth Flow: ' + url);
-    await Linking.openURL(url).finally(() => setIsBusy(false));    
+    await Linking.openURL(url).finally(() => setIsBusy(false));
     console.log('[AuthPage__loginExternal] - Opened Browser, Nav to OAuth Page to Wait for Callback.');
     navigation.replace('oauthHandlerPage');
   };
@@ -99,54 +98,59 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
     navigation.replace('registerPage');
   }
 
+
   React.useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
-  }, [navigation]);
+  });
 
   return (
     <Page>
-       <View style={{padding: 16, width: "100%", height: "100%", backgroundColor: themePalette.background }} >
-      <Icon.Button size={36} style={{marginTop: 0}} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={closeView} name='close-outline' />
+      <View style={{ marginTop: 40, padding: 16, width: "100%", height: "100%", backgroundColor: themePalette.background }} >
 
-      <Image style={logoAuthImageStyle} source={require('../assets/app-icon.png')} />
-      {
-        isBusy &&
-        <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-          <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Please Wait</Text>
-          
-          <ProgressSpinner isBusy={isBusy} />
-        </View>
-      }
-      {
-        !isBusy && isSignInEmail &&
-        <KeyboardAwareScrollView style={styles.formGroup}>
+        <Image style={logoAuthImageStyle} source={require('../assets/app-icon.png')} />
+        {
+          isBusy &&
+          <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
+            <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Please Wait</Text>
 
-          <Text style={[styles.header, { color: themePalette.shellTextColor }]}>Login with Email</Text>
-          <EditField onChangeText={e => setEmail(e)} label='Email' placeHolder="please enter email" />
-          <EditField onChangeText={e => setPassword(e)} label='Password' secureTextEntry={true} placeHolder="password" />
+            <ProgressSpinner isBusy={isBusy} />
+          </View>
+        }
+        {
+          !isBusy && isSignInEmail &&
+          <KeyboardAwareScrollView style={styles.formGroup}>
 
-          {false && <Text style={styles.authForgotPasswordLink}>Forgot Password?</Text>}
+            <View style={styles.formGroup}>
+              <Text style={[styles.header, { color: themePalette.shellTextColor }]}>Login with Email</Text>
+              <EditField onChangeText={e => setEmail(e)} label='Email' placeHolder="please enter email" />
+              <EditField onChangeText={e => setPassword(e)} label='Password' secureTextEntry={true} placeHolder="password" />
 
-          {/* <StatusBar style="auto"  /> */}
-          <StdButton label="Login" onPress={() => login(email, password)} />
-        </KeyboardAwareScrollView>
-      }
-      {
-        !isBusy && !isSignInEmail && externalProviders &&
-        <View style={styles.formGroup}>
-          {
-            externalProviders && externalProviders.map((provider: any, i: number) => {
-              return (<NavButton key={i} label={provider.name} imageUrl={provider.logo} onPress={() => loginExternal(provider.name)}></NavButton>)
-            })
-          }
-          {
-            externalProviders.length > 0 &&
-            <Text style={[styles.header, styles.mt_20, { color: themePalette.shellTextColor }]}>OR</Text>
-          }
-          <NavButton label="Sign in with Email" imageUrl={require('../assets/loginicons/email.png')} onPress={() => setIsSignInEmail(true)}></NavButton>
-          
-        </View>
-      }
+              {false && <Text style={styles.authForgotPasswordLink}>Forgot Password?</Text>}
+
+              {/* <StatusBar style="auto"  /> */}
+              <IconButton color={themePalette.buttonPrimaryText} label="Log In" icon="login" iconType="mci" onPress={() => login(email, password)} ></IconButton>
+              <IconButton color={themePalette.buttonPrimaryText} label="Cancel" icon="arrow-collapse-left" iconType="mci" onPress={() => setIsSignInEmail(false)} ></IconButton>
+            </View>
+          </KeyboardAwareScrollView>
+        }
+        {
+          !isBusy && !isSignInEmail && externalProviders &&
+          <View style={styles.formGroup}>
+            {
+              externalProviders && externalProviders.map((provider: any, i: number) => {
+                return (<NavButton key={i} label={provider.name} imageUrl={provider.logo} onPress={() => loginExternal(provider.name)}></NavButton>)
+              })
+            }
+            {
+              externalProviders.length > 0 &&
+              <Text style={[styles.header, styles.mt_20, { color: themePalette.shellTextColor }]}>OR</Text>
+            }
+            <NavButton label="Sign in with Email" imageUrl={require('../assets/loginicons/email.png')} onPress={() => setIsSignInEmail(true)}></NavButton>
+
+            <IconButton color={themePalette.buttonPrimaryText} label="Cancel" icon="arrow-collapse-left" iconType="mci" onPress={() => closeView()} ></IconButton>
+
+          </View>
+        }
       </View>
     </Page>
   );

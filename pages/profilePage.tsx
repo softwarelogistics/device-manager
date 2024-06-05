@@ -8,7 +8,7 @@ import styles from '../styles';
 import { IReactPageServices } from "../services/react-page-services";
 import { ThemePalette } from "../styles.palette.theme";
 import Page from "../mobile-ui-common/page";
-import { useFocusEffect } from "@react-navigation/native";
+import { CommonActions, useFocusEffect } from "@react-navigation/native";
 
 
 export const ProfilePage = ({ navigation, props, route }: IReactPageServices) => {
@@ -26,15 +26,23 @@ export const ProfilePage = ({ navigation, props, route }: IReactPageServices) =>
         await AsyncStorage.removeItem("refreshtoken");
         await AsyncStorage.removeItem("refreshtokenExpires");
         await AsyncStorage.removeItem("jwtExpires");
-        navigation.popToTop();
-        navigation.replace('authPage');
-      };
+        
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [
+              { name: 'authPage' },
+            ],
+          })
+        );     };
 
       useFocusEffect(
         React.useCallback(() => {
             AsyncStorage.getItem("active_theme").then((value) => {
-                setCurrentTheme(value);
-                console.log("AsyncStorage value from profile:", value);
+              if(!value)
+                value = 'light';
+              setCurrentTheme(value);
+
             }).catch((error) => {
                 console.error("Error retrieving AsyncStorage value:", error);
             });

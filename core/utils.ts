@@ -147,7 +147,7 @@ export class HttpClient {
             let result = await fetch(url, options);
 
             if (result.status == 401) {
-                console.error('failed: Not Authorized');
+                console.error('failed: Not Authorized', url);
                 alert('Sorry, you have been logged out.');
                 throw new Error('could not renew token');
             }

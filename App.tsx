@@ -53,6 +53,8 @@ const App = () => {
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
 
+  const myStack = Stack;
+
   const [loadMessage, setLoadMessage] = useState<string>('Loading...');
   const url = Linking.useURL();
   const linking = {
@@ -185,5 +187,6 @@ const styles = StyleSheet.create({
   },
 });
 
+export {Stack};
 
 export default App;

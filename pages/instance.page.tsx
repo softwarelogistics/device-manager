@@ -274,10 +274,17 @@ export const InstancePage = ({
               height: '100%',
               overflow: "visible"
 
-            }}
-          >
+            }}>
+            {!devices || devices.length == 0 && 
+            <View style={{ alignItems: "center" }}>
+              <Text style={[{ textAlign: 'center', marginBottom: 5, marginTop:20, color: themePalette.shellTextColor, fontSize: 16 }]}>
+                No devices found
+              </Text>            
+
+            </View>
+              }
             {viewMode === "grid" &&
-              devices &&
+              devices && devices.length > 0 &&
               devices.map((item, key) => (
                 <Pressable onPress={() => showDevice(item)} key={item.id}>
                   <View
@@ -341,7 +348,7 @@ export const InstancePage = ({
                 </Pressable>
               ))}
             {viewMode === "list" &&
-              devices &&
+              devices && devices.length > 0 &&
               devices.map((item, key) => (
                 <Pressable onPress={() => showDevice(item)} key={item.id} style={{ width: '100%' }}>
                   <View

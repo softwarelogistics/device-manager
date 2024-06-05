@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { StatusBar } from 'expo-status-bar';
 import { Text, Platform, View, Image, TextInput, TouchableOpacity, TextStyle, ViewStyle, FlatList, Pressable, ActivityIndicator } from 'react-native';
 import Icon from "react-native-vector-icons/Entypo";
-import IconFeather from "react-native-vector-icons/Feather";
 import IconIonicons from "react-native-vector-icons/Ionicons";
 import { IReactPageServices } from "../services/react-page-services";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -15,18 +13,11 @@ import { Subscription } from "../utils/NuvIoTEventEmitter";
 import SLIcon from "../mobile-ui-common/sl-icon";
 
 
-
-
-
-
-
 export default function HomePage({ navigation }: IReactPageServices) {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
 
-  const [initialCall, setInitialCall] = useState<boolean>(true);
   const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
-  const [userInitials, setUserInitials] = useState<string>('?');
   const [instances, setInstances] = useState<Deployment.DeploymentInstanceSummary[]>([]);
   const [user, setUser] = useState<Users.AppUser>();
 
@@ -87,20 +78,17 @@ export default function HomePage({ navigation }: IReactPageServices) {
     );
   };
 
-
-  
-
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} onTouchStart={() => showPage('profilePage')}>
         {/* <Image source={require('../assets/settings.png')} style={{ width: 24, height: 24 }} /> */}
-        <IconIonicons name="settings-outline" color={colors.white} size={24} />
-    
+        <IconIonicons name="cog-outline" color={colors.white} size={24} />    
       </View>
       )
     });
   });
+
 
   return (
     <Page >

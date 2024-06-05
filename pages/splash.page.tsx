@@ -9,6 +9,8 @@ import { ThemePalette } from "../styles.palette.theme";
 import StdButton from "../mobile-ui-common/std-button";
 import Page from "../mobile-ui-common/page";
 import palettes from "../styles.palettes";
+import { CommonActions } from "@react-navigation/native";
+import IconButton from "../mobile-ui-common/icon-button";
 
 export default function SplashPage({ navigation }: IReactPageServices) {
   const [appServices, setAppServices] = useState<AppServices>(new AppServices());
@@ -43,7 +45,14 @@ export default function SplashPage({ navigation }: IReactPageServices) {
   }, [navigation]);
 
   const login = async () => {
-    navigation.replace('authPage');
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [
+          { name: 'authPage' },
+        ],
+      })
+    );
   }
 
   const register = async () => {
@@ -52,15 +61,16 @@ export default function SplashPage({ navigation }: IReactPageServices) {
 
   useEffect(() => {
     AsyncStorage.getItem("active_theme").then((value) => {
+      if(!value)
+        value = 'light';
+
       setCurrentTheme(value);
-      console.log("AsyncStorage value:", value);
    
     }).catch((error) => {
       console.error("Error retrieving AsyncStorage value:", error);
     });
 
-    checkStartup();
-   
+    checkStartup();   
   }, []);
 
   return (
@@ -69,8 +79,8 @@ export default function SplashPage({ navigation }: IReactPageServices) {
         <StatusBar style="auto" />
         <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
 
-        <Text style={[styles.label, styles.mt_20, { color:  currentTheme  === 'dark' ? palettes.primary.white : palettes.primary.black, marginBottom:20 }]}>The Device Manager Application is used to Provision and Configure hardware devices that work with the NuvIoT ecosystem.</Text>
-        <StdButton style={[styles.mt_20, {marginTop:20}]}  onPress={login} label="Login" />
+        <Text style={[styles.labelTitle, styles.mt_20, { color:  currentTheme  === 'dark' ? palettes.primary.white : palettes.primary.black, marginBottom:20 }]}>The Device Manager Application is used to Provision and Configure hardware devices that work with the NuvIoT ecosystem.</Text>
+        <IconButton color={themePalette.buttonPrimaryText} label="Log In" icon="login" iconType="mci" onPress={() => login()} ></IconButton>
         
         <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://www.nuviot.com')}> NuvIoT</Text>
         <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://app.termly.io/document/terms-of-use-for-saas/90eaf71a-610a-435e-95b1-c94b808f8aca')}> Terms and Conditions</Text>
