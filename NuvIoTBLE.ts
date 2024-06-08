@@ -113,6 +113,9 @@ export class NuvIoTBLE {
     //       See /user.service.ts/getSimulateDevices() [on or about line 328] for more detail.
 
     if (!this.simulatedBLE()) {
+      if(!BleManagerModule)
+        throw 'BleManagerModule is not available.';
+
       this.emitter = new NativeEventEmitter(BleManagerModule);
       this.btEmitter = new NuvIoTEventEmitter();
     }

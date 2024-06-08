@@ -49,10 +49,7 @@ export const ProfilePage = ({ navigation, props, route }: IReactPageServices) =>
         }, [])
     );
     
-    return (<Page
-      style={{ backgroundColor: themePalette.background }}
-      themePalette={themePalette}
-    >
+    return (<Page style={{ backgroundColor: themePalette.background }} themePalette={themePalette}>
       <View style={[styles.scrollContainer,{backgroundColor: themePalette.background }]}>
       <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
         <View style={styles.formGroup}>

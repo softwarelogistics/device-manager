@@ -328,6 +328,8 @@ namespace Core {
         successful: boolean;
         model: TModel;
         modelTitle: string;
+        title: string;
+        help: string;
         modelName: string;
         isEditing: boolean;
         modelHelp: string;

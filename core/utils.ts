@@ -129,9 +129,9 @@ export class HttpClient {
         params?: HttpParams | {
             [param: string]: string | string[];
         };
-        reportProgress?: boolean;
+        reportProgress?: false;
         responseType?: 'json';
-        withCredentials?: boolean;
+        withCredentials?: true;
     }): Promise<T> {
 
         if (await this.checkJWTExpire()) {

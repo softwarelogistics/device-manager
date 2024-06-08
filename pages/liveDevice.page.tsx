@@ -244,19 +244,19 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const connectionBlock = (color: string, icon: string, label: string, status: boolean) => {
     return <View style={[{ flex: 1, margin: 2, justifyContent: 'center', }]}>
       {status &&
-        <View style={{ height:120, backgroundColor: color, borderRadius: 8 }}>
-          <Text style={{ fontSize: 18, textAlign: "center", color: 'white' }}>{label}</Text>
+        <View style={{ height:110, backgroundColor: color, borderRadius: 8 }}>
+          <Text style={{ textAlign: "center", color: 'white' }}>{label}</Text>
           <View >
-            <Icon style={{ textAlign: 'center', }} size={64} color="white" name={icon} />
+            <Icon style={{ textAlign: 'center', }} size={48} color="white" name={icon} />
           </View>
           <Text style={{ textAlign: "center", textAlignVertical:"bottom", color: 'white' }}>Connected</Text>
         </View>
       }
       {!status &&
-        <View style={{ height:120, backgroundColor: '#e0e0e0', borderRadius: 8 }}>
-          <Text style={{ fontSize: 18, textAlign: "center", color: 'black' }}>{label}</Text>
+        <View style={{ height:110, backgroundColor: '#e0e0e0', borderRadius: 8 }}>
+          <Text style={{  textAlign: "center", color: 'black' }}>{label}</Text>
           <View >
-            <Icon style={{ textAlign: 'center', }} size={64} color="gray" name={icon} />
+            <Icon style={{ textAlign: 'center', }} size={48} color="gray" name={icon} />
           </View>
           <Text style={{ textAlign: "center", textAlignVertical:"bottom", fontWeight: '500', color: 'black' }}>Not Connected</Text>
         </View>

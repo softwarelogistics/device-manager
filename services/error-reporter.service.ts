@@ -12,8 +12,15 @@ export class ErrorReporterService {
     return this._errorMsgs$.asObservable();
   }
 
-  addErrors(errs: Core.ErrorMessage[]) {
-    this._errorMsgs$.next(errs);
+  addErrors(errs: Core.ErrorMessage[] | undefined) {
+    console.log(errs);
+    if (errs) {
+      for (let err of errs) {
+        this.addError(err);
+        console.log(err);
+        alert(err.message);
+      }
+    }
   }
 
   addError(err: Core.ErrorMessage) {
@@ -21,9 +28,7 @@ export class ErrorReporterService {
   }
 
   addErrorMessage(msg: string) {
-    this._errorMsgs$.next([{
-      message: msg
-    }]);
+    this._errorMsgs$.next([{ message: msg }]);
 
     console.log('adding error message: ' + msg);
 

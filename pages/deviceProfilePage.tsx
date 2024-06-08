@@ -168,7 +168,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
     await ConnectedDevice.disconnect();
     appServices.wssService.close();
-    let params = { peripheralId: peripheralId, repoId: repoId, deviceId: id }
+    let params = { peripheralId: peripheralId, instanceRepoId: repoId, deviceRepoId: repoId, deviceId: id }
     navigation.navigate(pageName, params);
  
     setPageVisible(false);
@@ -360,11 +360,10 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                   !peripheralId &&
                   <View style={{ display: 'flex', flexDirection: "row", alignItems: "center", backgroundColor: themePalette.blueBox , padding: 16, borderRadius: 8, marginTop: 8, borderColor: '#C0DFFF', borderWidth: 1}}>
                     <Icon.Button style={{padding: 0, width: 'auto'}} size={28} backgroundColor="transparent" color={colors.primaryBlue} underlayColor="transparent" onPress={(() => showScanPage())} name='information-circle-outline' />
+                  
                     <View>
-
-                    <Text style={ { paddingHorizontal: 12, color: themePalette.blueText}}>Device is not associated on this platform. Please scan and associate.</Text>
-                    </View>
-                    
+                      <Text style={ { paddingHorizontal: 4, color: themePalette.blueText}}>Device is not associated on this platform. Please scan and associate.</Text>
+                    </View>                    
                   </View>
                 }
                 {

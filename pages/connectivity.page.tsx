@@ -19,6 +19,7 @@ import palettes from "../styles.palettes";
 import colors from "../styles.colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Picker } from "@react-native-picker/picker";
+import Page from "../mobile-ui-common/page";
 
 
 export const ConnectivityPage = ({ props, navigation, route }: IReactPageServices) => {
@@ -122,45 +123,79 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
     }
 
     let result = await appServices.deploymentServices.LoadWiFiConnectionProfiles(route.params.instanceRepoId);
-    console.log(result);
     result.unshift({ id: 'cellular', key: 'cellular', name: 'Cellular', ssid: '', password: '', description: '' });
     result.unshift({ id: 'none', key: 'none', name: 'No Connection', ssid: '', password: '', description: '' });
-    if(Platform.OS === 'ios') 
+    if (Platform.OS === 'ios')
       result.unshift({ id: 'cancel', key: 'cancel', name: 'Cancel', ssid: '', password: '', description: '' });
 
-    let defaultListener = await appServices.deploymentServices.LoadDefaultListenerForRepo(route.params.repoId);
+    setWiFiConnections(result);
+
+    let defaultListener = await appServices.deploymentServices.LoadDefaultListenerForRepo(route.params.instanceRepoId);
     if (defaultListener.successful) {
-      setDefaultListener(defaultListener.result);       
-      console.log(defaultListener.result);
+      setDefaultListener(defaultListener.result);
     }
-    
+
     setIsBusy(false);
   }
 
-  const getOptions = (options: string[]) : ActionSheetIOSOptions => {
+  const getOptions = (options: string[]): ActionSheetIOSOptions => {
     return {
       options: options,
       cancelButtonIndex: 0,
-      userInterfaceStyle: themePalette.name == 'dark'  ? 'dark': 'light',
+      userInterfaceStyle: themePalette.name == 'dark' ? 'dark' : 'light',
     }
   }
 
-  const selectWiFiConnections= () =>  {
-    if(wifiConnections == undefined) return;
+  const iOSselectWiFiConnection = () => {
+    if (wifiConnections == undefined) return;
 
     ActionSheetIOS.showActionSheetWithOptions(getOptions(wifiConnections.map(item => item.name)),
-    buttonIndex => {
-         if (buttonIndex > 0 ) {
+      buttonIndex => {
+        if (buttonIndex > 0) {
           setSelectedWiFiConnection(wifiConnections![buttonIndex]);
+          setUseWiFi(true);
+          setWiFiSSID(wifiConnections![buttonIndex].ssid);
+          setWiFiPWD(wifiConnections![buttonIndex].password);
+        }
+        else {
+          setUseWiFi(false);
+          setWiFiSSID('');
+          setWiFiPWD('');
         }
       })
   };
+
+  const androidSelectWiFiConnection = (e: string) => {
+    console.log(e);
+    let selected = wifiConnections?.find(cn=>cn.id == e)
+    console.log(selected);
+    setSelectedWiFiConnection(selected);
+
+    if(e == 'cellular') {
+      setUseCellular(true);
+      setUseWiFi(false);
+      setWiFiSSID('');
+      setWiFiPWD('');
+    }
+    else if(e == 'none') {
+      setUseWiFi(false);
+      setWiFiSSID('');
+      setWiFiPWD('');
+    }
+    else {      
+      if(selected)
+        setUseWiFi(true);
+        setUseCellular(false);
+        setWiFiSSID(selected!.ssid);
+        setWiFiPWD(selected!.password);
+      }
+    }
 
 
   useEffect(() => {
     console.log('[ConnectivityPage__UseEffect] ' + peripheralId);
     setThemePalette(AppServices.getAppTheme());
-  
+
     switch (handler) {
       case 'save': writeChar();
         setHandler(undefined);
@@ -174,8 +209,6 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
         </View>),
     });
 
-
-
     return (() => {
       console.log('[ConnectivityPage__UseEffect_Return] ' + peripheralId);
     });
@@ -187,82 +220,88 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
     if (peripheralId) {
       getData();
     }
-    else 
+    else
       throw 'peripheralId not set from calling page, must pass in as a parameter.'
   }
 
   return (
-    isBusy ?
-      <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-        <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Please Wait</Text>
-        <ActivityIndicator size="large" color={colors.primaryColor} animating={isBusy} />
-      </View>
-      :
-      <KeyboardAwareScrollView style={[{ backgroundColor: themePalette.background, paddingLeft: 20, paddingRight: 20 }]}>
-        <View>
-        <Text style={inputLabelStyle}>WiFi Connection:</Text>
-        {Platform.OS == 'ios' && selectedWiFiConnection && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline onPress={() => selectWiFiConnections()} >{selectedWiFiConnection.name}</Button> }
-        {Platform.OS == 'ios' && !selectedWiFiConnection && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline onPress={() => selectWiFiConnections()} >-select wifi connection-</Button> }
-        {Platform.OS != 'ios' && 
-        <Picker selectedValue={selectedWiFiConnection} onValueChange={e => setSelectedWiFiConnection(e)} itemStyle={{color:themePalette.shellTextColor}} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
-          {wifiConnections?.map(itm =>
-            <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ fontSize:20, color: themePalette.shellTextColor, backgroundColor: themePalette.background }}  />
-          )}
-        </Picker>
-        }
-
-        <View style={styles.flex_toggle_row}>
-          <Text style={inputLabelStyle}>Use Default Listener:</Text>
-          <Switch onValueChange={e => setUseDefaultListener(e)} value={useDefaultListener}
-            thumbColor={(colors.primaryColor)}
-            trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+    <Page style={[styles.container, { backgroundColor: themePalette.background, padding: 20 }]}>
+      {isBusy ?
+        <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
+          <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Please Wait</Text>
+          <ActivityIndicator size="large" color={colors.primaryColor} animating={isBusy} />
         </View>
+        :
+        <KeyboardAwareScrollView>
+          <View  style={{ padding: 20 }}>
+            <Text style={inputLabelStyle}>WiFi Connection:</Text>
+            {Platform.OS == 'ios' && selectedWiFiConnection && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => iOSselectWiFiConnection()} >{selectedWiFiConnection.name}</Button>}
+            {Platform.OS == 'ios' && !selectedWiFiConnection && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => iOSselectWiFiConnection()} >-select wifi connection-</Button>}
+            {Platform.OS != 'ios' &&
+              <Picker selectedValue={selectedWiFiConnection} onValueChange={e => androidSelectWiFiConnection(e)} itemStyle={{ color: themePalette.shellTextColor }} style={{ backgroundColor: themePalette.background, color: themePalette.shellTextColor }} >
+                {wifiConnections?.map(itm =>
+                  <Picker.Item key={itm.id} label={itm.name} value={itm.id} style={{ color: themePalette.shellTextColor, backgroundColor: themePalette.background }} />
+                )}
+              </Picker>
+            }
 
-          <Text style={inputLabelStyle}>Device ID:</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Device ID" value={deviceId} onChangeText={e => { setDeviceId(e); console.log(deviceId) }} />
-
-          <Text style={inputLabelStyle}>Server Host Name:</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Server URL" value={serverUrl} onChangeText={e => setServerUrl(e)} />
-
-          <Text style={inputLabelStyle}>Server Type:</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Server Type (mqtt/rest)" value={serverType } onChangeText={e => setServerType(e)} />
-
-          <Text style={inputLabelStyle}>Server User Id:</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Server URL" value={serverUid} onChangeText={e => setServerUid(e)} />
-
-          <Text style={inputLabelStyle}>Server Host Password:</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="enter server password" value={serverPwd} onChangeText={e => setServerPwd(e)} />
-
-          <Text style={inputLabelStyle}>Server Port Number:</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Port Number" value={port} onChangeText={e => setPort(e)} />
-
-          <Text style={inputLabelStyle}>WiFi SSID:</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Wifi SSID" value={wifiSSID} onChangeText={e => setWiFiSSID(e)} />
-
-          <Text style={inputLabelStyle}>WiFi PWD:</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter WiFi Password" value={wifiPWD} onChangeText={e => setWiFiPWD(e)} />
-
-          <View style={styles.flex_toggle_row}>
-            <Text style={inputLabelStyle}>Commissioned:</Text>
-            <Switch onValueChange={e => setCommissioned(e)} value={commissioned}
-              thumbColor={(colors.primaryColor)}
-              trackColor={{ false: colors.accentColor, true: colors.accentColor }} />          
+            <View style={styles.flex_toggle_row}>
+              <Text style={inputLabelStyle}>Use Default Listener:</Text>
+              <Switch onValueChange={e => setUseDefaultListener(e)} value={useDefaultListener}
+                thumbColor={(colors.primaryColor)}
+                trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
             </View>
 
-          <View style={styles.flex_toggle_row}>
-            <Text style={inputLabelStyle}>Use WiFi:</Text>
-            <Switch onValueChange={e => setUseWiFi(e)} value={useWiFi}
-              thumbColor={(colors.primaryColor)}
-              trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
-          </View>
+            <View style={styles.flex_toggle_row}>
+              <Text style={inputLabelStyle}>Commissioned:</Text>
+              <Switch onValueChange={e => setCommissioned(e)} value={commissioned}
+                thumbColor={(colors.primaryColor)}
+                trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+            </View>
 
-          <View style={styles.flex_toggle_row}>
-            <Text style={inputLabelStyle}>Use Cellular:</Text>
-            <Switch onValueChange={e => setUseCellular(e)} value={useCellular}
-              thumbColor={(colors.primaryColor)}
-              trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+            <View style={styles.flex_toggle_row}>
+              <Text style={inputLabelStyle}>Use WiFi:</Text>
+              <Switch onValueChange={e => setUseWiFi(e)} value={useWiFi}
+                thumbColor={(colors.primaryColor)}
+                trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+            </View>
+
+            <View style={styles.flex_toggle_row}>
+              <Text style={inputLabelStyle}>Use Cellular:</Text>
+              <Switch onValueChange={e => setUseCellular(e)} value={useCellular}
+                thumbColor={(colors.primaryColor)}
+                trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+            </View>
+
+            <Text style={inputLabelStyle}>Device ID:</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Device ID" value={deviceId} onChangeText={e => { setDeviceId(e); console.log(deviceId) }} />
+
+            <Text style={inputLabelStyle}>Server Host Name:</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Server URL" value={serverUrl} onChangeText={e => setServerUrl(e)} />
+
+            <Text style={inputLabelStyle}>Server Type:</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Server Type (mqtt/rest)" value={serverType} onChangeText={e => setServerType(e)} />
+
+            <Text style={inputLabelStyle}>Server User Id:</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Server URL" value={serverUid} onChangeText={e => setServerUid(e)} />
+
+            <Text style={inputLabelStyle}>Server Host Password:</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="enter server password" value={serverPwd} onChangeText={e => setServerPwd(e)} />
+
+            <Text style={inputLabelStyle}>Server Port Number:</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Port Number" value={port} onChangeText={e => setPort(e)} />
+
+            <Text style={inputLabelStyle}>WiFi SSID:</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Wifi SSID" value={wifiSSID} onChangeText={e => setWiFiSSID(e)} />
+
+            <Text style={inputLabelStyle}>WiFi PWD:</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter WiFi Password" value={wifiPWD} onChangeText={e => setWiFiPWD(e)} />
+
+    
           </View>
-        </View>
-      </KeyboardAwareScrollView>
+        </KeyboardAwareScrollView>
+      }
+    </Page>
+
   );
 }

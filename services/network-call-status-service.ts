@@ -1,5 +1,4 @@
 
-import { BehaviorSubject, Observable } from 'rxjs';
 import { NuvIoTEventEmitter } from '../utils/NuvIoTEventEmitter';
 
 
@@ -13,7 +12,10 @@ export class NetworkCallStatusService {
     constructor() { }
     static _activeCallCount: number = 0;
 
-    static beginCall(msg: String = 'loading') {
+    static beginCall(msg: String = 'loading', path: string | undefined = undefined) {
+        if(path)
+            console.log(path);
+
         this._activeCallCount++;
         this._loadingMessages.push(msg);
 

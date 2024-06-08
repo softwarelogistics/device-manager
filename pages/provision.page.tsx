@@ -99,14 +99,12 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   }
 
   const load = async () => {
-    console.log('l1');
     setBusyMessage("Loading Repositories");
     let repos = (await appServices.deviceServices.loadDeviceRepositories()).model!;
     setSelectedRepo(repos.find(rep => rep.id == route.params.repoId));
     repos.unshift({ id: "-1", key: 'select', name: '-select-', isPublic: false, description: '', repositoryType: '' });
 
     setRepos(repos);
-    console.log('l2');
     setBusyMessage("Loading Device Models");
     let deviceTypes = await appServices.deviceServices.getDeviceTypesForInstance(route.params.instanceId);
     deviceTypes.unshift({ id: "cancel", key: 'cancel', name: 'Cancel', description: '' });
@@ -115,22 +113,17 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     setBusyMessage("Loading System Configuration.");
     loadSysConfigAsync(deviceTypes);
 
-    console.log('l3');
     setBusyMessage("Loading Connection Profiles");
     let result = await appServices.deploymentServices.LoadWiFiConnectionProfiles(route.params.repoId);
-    console.log('l31');
     if(!result) {
       result = [];
     }
 
-    console.log('l32');
-    console.log('wifi',result);
     result.unshift({ id: 'cellular', key: 'cellular', name: 'Cellular', ssid: '', password: '', description: '' });
     result.unshift({ id: 'none', key: 'none', name: 'No Connection', ssid: '', password: '', description: '' });
     if(Platform.OS === 'ios') 
       result.unshift({ id: 'cancel', key: 'cancel', name: 'Cancel', ssid: '', password: '', description: '' });
 
-    console.log('l4');
     setWiFiConnections(result);
 
     setBusyMessage("Loading Server Information");
@@ -140,7 +133,6 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
       console.log(defaultListener.result);
     }
 
-    console.log('l5');
     setIsReady(true);
   }
 

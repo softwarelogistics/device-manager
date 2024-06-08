@@ -1,12 +1,16 @@
-import { HttpClient, HttpHeaders } from '../core/utils';
+import { CookieService, HttpClient, HttpHeaders } from '../core/utils';
 import { ErrorReporterService } from './error-reporter.service';
 import { NetworkCallStatusService } from './network-call-status-service';
 import { CommonSettings } from '../settings';
+import { NavService } from './NavService';
 
 
 export class NuviotClientService {
   constructor(private http: HttpClient,
+    private navService: NavService,
     private errorReporter: ErrorReporterService) { }
+
+
 
   getIsDevEnv() {
     return CommonSettings.environment == "development";
@@ -20,6 +24,34 @@ export class NuviotClientService {
   getWebUrl() {
     const API_URL = this.getIsDevEnv() ? "https://dev.nuviot.com" : "https://www.nuviot.com";
     return API_URL;
+  }
+
+  redirectToLogin() {
+    this.navService.redirectToLogin();
+  }
+
+  nextHandler<TResponse>(resolve: any, response: any, showWaitCursor: boolean = true, reportError: boolean = true): void {
+    if (showWaitCursor) NetworkCallStatusService.endCall();
+
+    if (response.successful === false) {
+      console.log('nope...it ait working', console.log(response.errors));
+      if (reportError)
+        this.errorReporter.addErrors(response.errors);
+    }
+
+    resolve(response);
+  }
+
+  errorHandler<TResponse>(resolve: any, err: any, showWaitCursor: boolean = true, reportError: boolean = true): void {
+    if (showWaitCursor) NetworkCallStatusService.endCall();
+    if (err.status == 401) {
+      this.redirectToLogin();
+    }
+    else if (reportError) {
+      this.errorReporter.addMessage(err.message);
+    }
+
+    resolve({ successful: false, warnings: [], errors: [{ message: err.message }] });
   }
 
   async getListResponse<TData>(path: string, filter: Core.ListFilter | undefined = undefined): Promise<Core.ListResponse<TData>> {
@@ -57,12 +89,19 @@ export class NuviotClientService {
       }
     }
 
-    NetworkCallStatusService.beginCall();
+    NetworkCallStatusService.beginCall("Please Wait", url);
 
     try {
-      let response = await this.http.get(url, { headers: headers })
+      let response = await this.http.get(url, { headers: headers, method: 'GET' })
       NetworkCallStatusService.endCall();
-      return response as Core.ListResponse<TData>;
+      var listResponse = response as Core.ListResponse<TData>;
+      if (listResponse.successful) {
+        return listResponse;
+      }
+      else {
+        this.errorReporter.addErrors(listResponse.errors);
+        return listResponse;
+      }
     }
     catch (e: any) {
       NetworkCallStatusService.endCall();
@@ -149,41 +188,35 @@ export class NuviotClientService {
     return promise;
   }
 
-  request<TData>(path: string): Promise<TData> {
+  request<TData>(path: string, showWaitCursor: boolean = true): Promise<TData> {
     if (path.startsWith('/')) {
       path = path.substring(1);
     }
-    NetworkCallStatusService.beginCall();
+
     const promise = new Promise<TData>((resolve, reject) => {
       let url = `${this.getApiUrl()}/${path}`;
-      let fullPath = url;
-      this.http.get<TData>(fullPath)
-        .then((response) => {
-          NetworkCallStatusService.endCall();
-          resolve(response);
-        }).catch(
-          (err) => {
-            console.error(err);            
-            NetworkCallStatusService.endCall();
-            this.errorReporter.addMessage(err.message);
-            if (reject) {
-              reject(err.message);
-            }
-          });
-    });
+      if (showWaitCursor) NetworkCallStatusService.beginCall('Please Wait', url);
+      this.http.get<TData>(url)
+        .then((response) => { this.nextHandler<TData>(resolve, response, showWaitCursor);})
+        .catch((err) => { this.errorHandler<TData>(resolve, err, showWaitCursor); });
+      });
 
     return promise;
   }
 
+  responseHandler<TData>(resolve: any, showWaitCursor: boolean = true, reportError: boolean = true): any {
+
+  }
 
   get(path: string): Promise<Core.InvokeResult> {
     if (path.startsWith('/')) {
       path = path.substring(1);
     }
-    NetworkCallStatusService.beginCall();
+    NetworkCallStatusService.beginCall('Please Wait', path);
     const promise = new Promise<Core.InvokeResult>((resolve, reject) => {
       this.http.get<Core.InvokeResult>(`${this.getApiUrl()}/${path}`)
         .then((response) => {
+
           NetworkCallStatusService.endCall();
           if (!response.successful) {
             this.errorReporter.addMessage(response.errors[0].message);
@@ -204,16 +237,14 @@ export class NuviotClientService {
     return promise;
   }
 
-
-
-  getFormResponse<TModel, TView>(path: string, showWaitCursor: boolean = true): Promise<Core.FormResult<TModel, TView>> {
+  getFormResponse<TModel, TView>(path: string, showWaitCursor: boolean = true): Promise<Core.FormResult<TModel, TView> | undefined> {
     if (path.startsWith('/')) {
       path = path.substring(1);
     }
 
     NetworkCallStatusService.beginCall();
 
-    const promise = new Promise<Core.FormResult<TModel, TView>>((resolve, reject) => {
+    const promise = new Promise<Core.FormResult<TModel, TView> | undefined>((resolve, reject) => {
       this.http.get<Core.FormResult<TModel, TView>>(`${this.getApiUrl()}/${path}`)
         .then((response) => {
           NetworkCallStatusService.endCall();
@@ -226,21 +257,11 @@ export class NuviotClientService {
         },
           (err) => {
             console.error(err);
-            NetworkCallStatusService.endCall(); 
+            NetworkCallStatusService.endCall();
             this.errorReporter.addMessage(err.message);
-          let result: Core.FormResult<TModel, TView> = {
-              resultId: '-1',
-              successful: false,
-              model: null as TModel,
-              view: null as TView,
-              title: 'Error',
-              errors: [{ message: err.message ?? err }],
-              warnings: [],
-              help: '',
-              formFields: []
-            };
-            resolve(result);
-  
+
+            resolve(undefined);
+
             //throw err.message ?? err;
           });
     });

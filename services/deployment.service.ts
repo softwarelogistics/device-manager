@@ -45,7 +45,7 @@ export class DeploymentService {
   }
 
   public GetInstance(id: string) : Promise<Core.FormResult<Deployment.DeploymentInstance,Deployment.DeploymentInstanceSummary>> {
-    return this.nuviotClient.getFormResponse(`/api/deployment/instance/${id}`);
+    return this.nuviotClient.getFormResponse<Deployment.DeploymentInstance,Deployment.DeploymentInstanceSummary>(`/api/deployment/instance/${id}`);
   }
 
   public GetWebSocketUrl(channel: string, id: string): Promise<Core.InvokeResultEx<string>> {

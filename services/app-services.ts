@@ -13,6 +13,7 @@ import { DeploymentService } from './deployment.service';
 import WssService from './wss.service';
 import { CommonSettings } from '../settings';
 import { OrgService } from './orgservice';
+import { NavService } from './NavService';
 
 class AppServices {
     private static _appTheme: ThemePalette;
@@ -24,9 +25,10 @@ class AppServices {
         this.errorReporter = new ErrorReporterService();
         this.networkCallStatusService = new NetworkCallStatusService();
 
+        this.navService = new NavService();
         this.httpClient = new HttpClient(this.storage);
 
-        this.client = new NuviotClientService(this.httpClient,  this.errorReporter);
+        this.client = new NuviotClientService(this.httpClient, this.navService, this.errorReporter);
         
         this.deploymentServices = new DeploymentService(this.client);
         this.deviceGroupsServices = new DeviceGroupService(this.client);
@@ -59,6 +61,7 @@ class AppServices {
     userServices: UserService;
     orgsService: OrgService;
     wssService: WssService;
+    navService: NavService;
 }
 
 export default AppServices;
