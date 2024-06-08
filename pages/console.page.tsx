@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { View, Text, TextStyle, ScrollView, Button } from "react-native";
 import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
-import { ThemePalette } from "../styles.palette.theme";
 import styles from '../styles';
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import fontSizes from "../styles.fontSizes";
@@ -19,7 +18,7 @@ interface ConsoleOutput {
 }
 
 export const ConsolePage = ({ props, navigation, route }: IReactPageServices) => {
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
+  const themePalette = AppServices.getAppTheme();
 
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [consoleOutput, setConsoleOutput] = useState<ConsoleOutput[]>([]);
