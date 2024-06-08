@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, View, Text, TextInput, TextStyle } from "react-native";
+import { View, Text, TextStyle } from "react-native";
 
 import { IReactPageServices } from "../services/react-page-services";
-import AppServices from "../services/app-services";
 
 import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { RemoteDeviceState } from "../models/blemodels/state";
@@ -11,24 +10,19 @@ import { IOValues } from "../models/blemodels/iovalues";
 import { IOConfig } from "../models/blemodels/ioconfig";
 
 import ViewStylesHelper from "../utils/viewStylesHelper";
-import { ThemePalette } from "../styles.palette.theme";
 import styles from '../styles';
 import fontSizes from "../styles.fontSizes";
+import AppServices from "../services/app-services";
+import { useFocusEffect } from "@react-navigation/native";
 
 export const TempSensorPage = ({ props, navigation, route }: IReactPageServices) => {
-
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-  const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
-  const [theme, setTheme] = useState<string>('');
-
-  let [pageInitialized, setPageInitialized] = useState<boolean>();
-
   let [adcPorts, setADCPorts] = useState<IOConfig[]>([]);
   let [ioPorts, setIOPorts] = useState<IOConfig[]>([]);
   let [ioValues, setIOValues] = useState<IOValues | undefined>();
   let [isConnected, setIsConnected] = useState<boolean>(false);
 
-  const staticLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (theme === 'dark' ? '700' : '400') }]);
+  const themePalette = AppServices.instance.getAppTheme();
+  const staticLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette.name === 'dark' ? '700' : '400') }]);
 
   const getDeviceProperties = async (peripheralId: string) => {
     try {
@@ -84,28 +78,12 @@ export const TempSensorPage = ({ props, navigation, route }: IReactPageServices)
     console.log('is connected', isConnected);
   }
 
+  useFocusEffect(() => {
+    getDeviceProperties(route.params.id);
+  })
+
   useEffect(() => {
-    console.log("starting sensor page with address " + route.params.id);
-
-    let timerId = window.setInterval(() => getDeviceProperties(route.params.id), 8000);
-
-    const promisesToKeep: Promise<any>[] = [
-      appServices.userServices.getThemeName(),
-      appServices.userServices.getThemePalette()
-    ];
-
-    (async () => {
-      await Promise.all(promisesToKeep)
-        .then(responses => {
-          setTheme(responses[0]);
-          setThemePalette(responses[1]);
-        });
-    })();
-
     return (() => {
-      clearInterval(timerId);
-      console.log('Leaving sensors page.');
-      console.log(timerId);
     })
   }, []);
 

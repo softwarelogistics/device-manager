@@ -27,8 +27,6 @@ const DISCONNECTED_PAGE_SUSPENDED = 4;
 
 
 export const SeaWolfHomePage = ({ navigation, props, route }: IReactPageServices) => {
-    const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
-    const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
     const [label, setLabel] = useState<string | undefined>("RPM");
     const [stepMarker, setStepMarker] = useState(18);
     const [marker, setMarker] = useState(50);
@@ -40,6 +38,8 @@ export const SeaWolfHomePage = ({ navigation, props, route }: IReactPageServices
     const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
     const [deviceInRange, setDeviceInRange] = useState<boolean>(false);
     const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
+
+    const themePalette = AppServices.instance.getAppTheme();
    
     const Label = () => (
         <View>

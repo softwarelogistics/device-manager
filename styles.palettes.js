@@ -9,8 +9,6 @@ const standardColors = {
   primaryBlue150: '#0C3B69',
   primaryBlue175: '#061D34',
 
-
-
   primaryGray: '#363D4C',
   
   primaryOrange: '#D48D17',

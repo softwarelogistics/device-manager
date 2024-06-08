@@ -7,37 +7,29 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from '../styles';
 import colors from "../styles.colors";
 import AppServices from "../services/app-services";
-import { ThemePalette } from "../styles.palette.theme";
 import Page from "../mobile-ui-common/page";
-import { Subscription } from "../utils/NuvIoTEventEmitter";
 import SLIcon from "../mobile-ui-common/sl-icon";
 
 
 export default function HomePage({ navigation }: IReactPageServices) {
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
-  const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [instances, setInstances] = useState<Deployment.DeploymentInstanceSummary[]>([]);
   const [user, setUser] = useState<Users.AppUser>();
+  const themePalette = AppServices.instance.getAppTheme();
 
   const loadInstances = async () => {
-    let user = await appServices.userServices.getUser();
+    let user = await  AppServices.instance.userServices.getUser();
     setUser(user);
-    let instances = await appServices.deploymentServices.GetInstances();
+    let instances = await AppServices.instance.deploymentServices.GetInstances();
     setInstances(instances!.model!);
   }
 
   useEffect(() => {
-    //let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
-   // setSubscription(changed);
 
     const focusSubscription = navigation.addListener("focus", () => {
       loadInstances();
     });
 
     return (() => {
-      if (subscription) AppServices.themeChangeSubscription.remove(subscription);
       focusSubscription();
     });
   }, []);
@@ -109,34 +101,17 @@ export default function HomePage({ navigation }: IReactPageServices) {
               
                 {/* <SLIcon icon={item.icon} /> */}
                 {/* <Image source={require('../assets/product-img.png')} /> */}
-                <View
-                      style={{
-                        backgroundColor: colors.primaryBlue,
-                        borderRadius: 8,
-                        height: 56,
-                        width: 56,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
+                <View style={{ backgroundColor: colors.primaryBlue, borderRadius: 8, height: 56, width: 56, alignItems: "center", justifyContent: "center",}}>
                       <SLIcon icon={item.icon} />
                     </View>
                 <View style={{ flexDirection: 'column', flex: 1 }}>
-                <View >
+              <View >
                 <Text style={{ color: themePalette.name === 'light' ? colors.darkTitle : colors.white  , marginBottom: 3, fontSize: 16 }}>{item.name}</Text>
               </View>
                 <Text style={{ color:themePalette.subtitleColor, fontSize: 14 }}>{item.description}</Text>
               </View>
-              
-              <Icon
-                name="chevron-right"
-                color={themePalette.subtitleColor}
-                size={24}
-                style={{
-                  textAlign: "center",
-                  marginRight: 8
-                }}
-              />
+            
+              <Icon name="chevron-right" color={themePalette.subtitleColor} size={24} style={{ textAlign: "center", marginRight: 8}} />
               </View>
             </Pressable>
           }

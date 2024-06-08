@@ -46,6 +46,7 @@ namespace Users {
     country: string;
     postalCode: string;
     currentOrganization: OrganizationSummary;
+    currentOrganizationInitials: string;
     email: string;
     emailSignature: string;
     phoneNumber: string;

@@ -1,23 +1,20 @@
 
 import React, { useState, useEffect } from "react";
-import { StatusBar } from 'expo-status-bar';
 import styles from '../styles';
 import * as Linking from 'expo-linking';
-import { StyleSheet, Image, Text, PermissionsAndroid, ActivityIndicator, View, TextInput, TouchableOpacity, ViewStyle, ImageStyle, TextStyle } from 'react-native';
+import { Image, Text, PermissionsAndroid, ActivityIndicator, View, TextInput, TouchableOpacity, ViewStyle, ImageStyle, TextStyle } from 'react-native';
 import { IReactPageServices } from "../services/react-page-services";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import Icon from "react-native-vector-icons/Ionicons";
 import colors from "../styles.colors";
 import AppServices from "../services/app-services";
-import { ThemePalette } from "../styles.palette.theme";
 
 export const RegisterPage = ({ navigation, props, route }: IReactPageServices) => {
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-  const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
-
+  
   const [isBusy, setIsBusy] = useState(false);
-  const [externalProviders, setExternalProviders] = useState<string[]>(['GitHub', 'Microsoft', 'Google', 'LinkedIn', 'Twitter']);
-  const [hostname, setHostname] = useState<string | undefined>('192-168-254-15');
+
+  const hostName = '192-168-254-15';
+  const externalProviders = ['GitHub', 'Microsoft', 'Google', 'LinkedIn', 'Twitter'];
 
   const login = async () => {
     navigation.replace('authPage');
@@ -29,6 +26,8 @@ export const RegisterPage = ({ navigation, props, route }: IReactPageServices) =
     await Linking.openURL(url).finally(() => setIsBusy(false));
   };
 
+  const themePalette = AppServices.instance.getAppTheme();
+
   const logoAuthImageStyle: ImageStyle = ViewStylesHelper.combineImageStyles([styles.logoImage, styles.mt_10]);
   const submitButtonExternalLoginStyle = ViewStylesHelper.combineViewStyles([styles.submitButton, styles.buttonExternalLogin, { backgroundColor: themePalette.buttonTertiary, borderColor: themePalette.buttonTertiaryBorderColor }]);
   const submitButtonExternalLoginTextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, styles.submitButtonTextBlack, { color: themePalette.buttonTertiaryText }]);
@@ -36,14 +35,6 @@ export const RegisterPage = ({ navigation, props, route }: IReactPageServices) =
   const callToActionView = ViewStylesHelper.combineTextStyles([styles.pt_10, styles.mt_20]);
 
   useEffect(() => {
-    (async () => {
-      setIsBusy(true);
-      await appServices.userServices.getThemePalette()
-        .then(response => {
-          setThemePalette(response);
-        })
-        .finally(() => setIsBusy(false));
-    })();
   }, []);
 
   return (

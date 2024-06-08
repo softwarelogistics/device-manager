@@ -7,10 +7,6 @@ import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
 import AuthenticationHelper from "../utils/authenticationHelper";
 
-import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
-
-import ViewStylesHelper from "../utils/viewStylesHelper";
-import { ThemePalette } from "../styles.palette.theme";
 import colors from "../styles.colors";
 import styles from '../styles';
 import Page from "../mobile-ui-common/page";
@@ -18,14 +14,9 @@ import IconButton from "../mobile-ui-common/icon-button";
 import { environment } from "../settings";
 
 export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageServices) => {
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
-
-  const [timer, setTimer] = useState<NodeJS.Timer | null>(null)
   const [failedAuth, setFailedAuth] = useState<boolean>(false);
   const [initialCall, setInitialCall] = useState<boolean>(true);
-
-  const submitButtonWhiteTextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, styles.submitButtonTextBlack, { color: themePalette.buttonPrimaryText }]);
+  const themePalette = AppServices.instance.getAppTheme();
 
   const checkStartup = async () => {
     let ola = await AsyncStorage.getItem('oauth_launch');
@@ -75,7 +66,7 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
     let loginResponse = await AuthenticationHelper.login(request)  
     if (loginResponse.isSuccess) {
       console.log('[OAuthHandlerPage__FinalizeLogin] - Login success. Loading current user.');
-      await appServices.userServices.loadCurrentUser();
+      await AppServices.instance.userServices.loadCurrentUser();
       console.log('[OAuthHandlerPage__FinalizeLogin] - Login success. Loaded current user.');
     
       console.log(`[OAuthHandlerPage__FinalizeLogin] - Navigation to initial page: ${path }`);
@@ -107,7 +98,6 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
   };
 
   useEffect(() => {
-    let changedSubscription = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
     if (initialCall) {
       AsyncStorage.removeItem('oauth_launch');
       AsyncStorage.removeItem('oauth_user');
@@ -121,8 +111,7 @@ export const OAuthHandlerPage = ({ props, navigation, route }: IReactPageService
       }, 1000);
 
 
-      return () => {
-        AppServices.themeChangeSubscription.remove(changedSubscription);
+      return () => {    
       }
     }
   }, []);

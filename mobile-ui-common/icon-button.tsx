@@ -2,12 +2,8 @@ import { useEffect, useState } from "react";
 import { Image, Text, TextStyle, TouchableOpacity, View } from 'react-native';
 import AppServices from "../services/app-services";
 import styles from "../styles"
-import { ThemePalette } from "../styles.palette.theme";
-import { Subscription } from "../utils/NuvIoTEventEmitter";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import Icon from "react-native-vector-icons/Ionicons";
-import FaIcon from "react-native-vector-icons/FontAwesome5";
-import OctIcon from "react-native-vector-icons/Octicons";
 import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import colors from "../styles.colors";
 import fontSizes from "../styles.fontSizes";
@@ -22,19 +18,13 @@ export interface IconButtonProperties {
 }
 
 export default function IconButton(props: IconButtonProperties) {
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
-  const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
+  const themePalette = AppServices.instance.getAppTheme();
 
   const profilePagePrimaryButtonStyle = ViewStylesHelper.combineTextStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
   const submitButtonWhiteTextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, styles.submitButtonTextBlack, { color: themePalette.buttonPrimaryText }]);
 
   useEffect(() => {
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
-    setSubscription(changed);
-    return (() => {
-      if (subscription)
-        AppServices.themeChangeSubscription.remove(subscription);
-    })
+    
   }, []);
 
   const renderIonIcon = () => {
@@ -60,5 +50,4 @@ export default function IconButton(props: IconButtonProperties) {
     {props.iconType == 'mci' && renderMciIcon()}              
   </View>
   )
-
 }

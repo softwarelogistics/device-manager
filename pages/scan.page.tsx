@@ -19,9 +19,6 @@ import { PermissionsHelper } from "../services/ble-permissions";
 import { scanUtils } from "../services/scan-utils";
 
 export default function ScanPage({ navigation, props, route }: IReactPageServices) {
-  const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
-
-  const [appService, setAppServices] = useState<AppServices>(new AppServices());
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
   const [discoveredPeripherals, setDiscoveredPeripherals] = useState<Peripheral[]>([]);
 
@@ -32,6 +29,7 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [currentOrgId, setCurrentOrgId] = useState<string>('');
   
+  const themePalette = AppServices.instance.getAppTheme();
   const deviceRepoId = route.params.repoId;
 
   const checkPermissions = async () => {
@@ -155,21 +153,17 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
 
   useEffect(() => {
     ble.peripherals = [];
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
-    setSubscription(changed);
-    var palette = AppServices.getAppTheme()
-    setThemePalette(palette);
 
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} >
-          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor}  onPress={() => startScan()} name='refresh-outline' />
+          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor}  onPress={() => startScan()} name='refresh-outline' />
         </View>
       ),
     });
 
     const focusSubscription = navigation.addListener('focus', async () => {
-      let user = await appService.userServices.getUser();
+      let user = await AppServices.instance.userServices.getUser();
       setCurrentOrgId(user!.currentOrganization!.id  )
      });
     const blurSubscription = navigation.addListener('beforeRemove', () => { stopScanning();});
@@ -177,9 +171,6 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
     return (() => {
       focusSubscription();
       blurSubscription();
-
-      if (subscription)
-        AppServices.themeChangeSubscription.remove(subscription);
     });
   }, []);
 

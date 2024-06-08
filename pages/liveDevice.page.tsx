@@ -14,11 +14,11 @@ import { IReactPageServices } from "../services/react-page-services";
 import { RemoteDeviceState } from "../models/blemodels/state";
 import { SysConfig } from "../models/blemodels/sysconfig";
 import { IOValues } from "../models/blemodels/iovalues";
-import { ThemePalette } from "../styles.palette.theme";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import palettes from "../styles.palettes";
 import Page from "../mobile-ui-common/page";
 import { NetworkCallStatusService } from "../services/network-call-status-service";
+import { useFocusEffect } from "@react-navigation/native";
 
 const IDLE = 0;
 const CONNECTING = 1;
@@ -29,10 +29,7 @@ const DISCONNECTED_PAGE_SUSPENDED = 4;
 let simData = new SimulatedData();
 
 export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices) => {
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-  const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
 
-  const [initialCall, setInitialCall] = useState<boolean>(true);
   const [deviceDetail, setDeviceDetail] = useState<Devices.DeviceDetail | undefined | any>();
   const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined>(undefined);
   const [sensorValues, setSensorValues] = useState<IOValues | undefined>(undefined);
@@ -45,6 +42,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const deviceRepoId = route.params.deviceRepoId;
   const deviceId = route.params.deviceId;
   const isOwnedDevice = route.params.owned;
+  const themePalette = AppServices.instance.getAppTheme();
 
   const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
   const chevronBarVerticalStyle: ViewStyle = ViewStylesHelper.combineViewStyles([{ height: 39 }]);
@@ -98,7 +96,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
           try {
             NetworkCallStatusService.beginCall('Loading Device Details from Server.')
             console.log(`Requesting Device: repoid: ${sysConfig.repoId}, ${sysConfig.id}`);
-            let device = await appServices.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
+            let device = await AppServices.instance.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
             setDeviceDetail(device);
           }
           catch (e) {
@@ -176,20 +174,11 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     await connectToBLE();
   }
 
+  useFocusEffect(() => {
+    loadDevice();    
+  });
+
   useEffect(() => {
-    if (initialCall) {
-      setThemePalette(AppServices.getAppTheme());
-
-      loadDevice();
-      setInitialCall(false);
-    }
-
-    const focusSubscription = navigation.addListener('focus', () => {
-      if (connectionState == DISCONNECTED_PAGE_SUSPENDED) {
-        loadDevice();
-      }
-    });
-
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
       if (connectionState == CONNECTING) {
         ble.cancelConnect();
@@ -212,13 +201,8 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     });
 
     return (() => {
-      focusSubscription();
       blurSubscription();
     });
-  });
-
-  React.useLayoutEffect(() => {
-
   });
 
   const sectionHeader = (sectionHeader: string) => {

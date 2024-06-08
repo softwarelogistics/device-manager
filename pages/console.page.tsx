@@ -18,12 +18,12 @@ interface ConsoleOutput {
 }
 
 export const ConsolePage = ({ props, navigation, route }: IReactPageServices) => {
-  const themePalette = AppServices.getAppTheme();
+  
 
-  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [consoleOutput, setConsoleOutput] = useState<ConsoleOutput[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
   const [isDeviceConnected, setIsDeviceConnected] = useState<boolean>(false);
+  const themePalette = AppServices.instance.getAppTheme();
 
   const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
 

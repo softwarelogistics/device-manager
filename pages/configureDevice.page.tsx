@@ -6,29 +6,21 @@ import AppServices from "../services/app-services";
 
 import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { IReactPageServices } from "../services/react-page-services";
-import { RemoteDeviceState } from "../models/blemodels/state";
 import { SimulatedData } from "../services/simulatedData";
-import { ThemePalette } from "../styles.palette.theme";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 
 import styles from '../styles';
-import fontSizes from "../styles.fontSizes";
 import palettes from "../styles.palettes";
 import Page from "../mobile-ui-common/page";
-import { Subscription } from "../utils/NuvIoTEventEmitter";
 import colors from "../styles.colors";
-import { PermissionsHelper } from "../services/ble-permissions";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 let simData = new SimulatedData();
 
 export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServices) => {
   const [isBusy, setIsBusy] = useState<boolean>(false);
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
-  const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
 
-  const [initialCall, setInitialCall] = useState<boolean>(true);
-
+  const themePalette = AppServices.instance.getAppTheme();
   const deviceId = route.params.deviceId;
   const deviceRepoId = route.params.deviceRepoId;
   const instanceRepoId = route.params.instanceRepoId;
@@ -43,8 +35,6 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);
 
   const safeNavigate = async (pageName: string, args: any) => {
-    setInitialCall(true);
-
     navigation.navigate(pageName, args)
   }
 
@@ -87,12 +77,8 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
     }
   }
 
-  useEffect(() => {
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
-    setSubscription(changed);
-
+  useEffect(() => {    
     return (() => {
-      if (subscription) AppServices.themeChangeSubscription.remove(subscription);
     });
   }, []);
 
@@ -102,8 +88,8 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
    <KeyboardAwareScrollView>
        {
         isBusy ?
-          <View style={[styles.spinnerView, { backgroundColor: AppServices.getAppTheme().background }]}>
-            <Text style={{ color: AppServices.getAppTheme().shellTextColor, fontSize: 25 }}>Please Wait</Text>
+          <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
+            <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Please Wait</Text>
             <ActivityIndicator size="large" color={colors.accentColor} animating={isBusy} />
           </View>
           :

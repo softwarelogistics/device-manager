@@ -1,6 +1,5 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import { NavigationContainer, DefaultTheme, useNavigationContainerRef } from '@react-navigation/native';
+import { StyleSheet } from 'react-native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import * as Linking from 'expo-linking';
@@ -51,7 +50,6 @@ const App = () => {
   const [initialPage, setInitialPage] = useState<string>('splashPage');
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
 
   const [loadMessage, setLoadMessage] = useState<string>('Loading...');
   const url = Linking.useURL();
@@ -65,8 +63,7 @@ const App = () => {
   };
 
   const handleThemeChange = () => {
-    let current = AppServices.getAppTheme();
-    setThemePalette(current)
+    let current = AppServices.instance.getAppTheme();
 
     const navTheme = {
       ...DefaultTheme,
@@ -104,7 +101,7 @@ const App = () => {
   const initialLoad = async () => {
     let themeName = (await AsyncStorage.getItem("active_theme")) ?? "light";
     let theme = ThemePaletteService.getThemePalette(themeName);
-    AppServices.setAppTheme(theme);
+    AppServices.instance.setAppTheme(theme);
 
     const navTheme = {
       ...DefaultTheme,
@@ -128,11 +125,8 @@ const App = () => {
     if (initialCall) {
       initialLoad();
     }
-
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => handleThemeChange())
-    setSubscription(changed);
-
-    return (() => { if (subscription) AppServices.themeChangeSubscription.remove(subscription); })
+    
+    return (() => {  })
   },[url]);
   
   return (

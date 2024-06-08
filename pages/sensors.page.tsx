@@ -16,6 +16,7 @@ import styles from '../styles';
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import palettes from "../styles.palettes";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
+import { useFocusEffect } from "@react-navigation/native";
 
 const IDLE = 0;
 const CONNECTING = 1;
@@ -26,14 +27,8 @@ const DISCONNECTED_PAGE_SUSPENDED = 4;
 interface SelectableOption {
   label: string;
   value: string;
-
 }
-
-
 export const SensorsPage = ({ props, navigation, route }: IReactPageServices) => {
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
- 
-  const [initialCall, setInitialCall] = useState<boolean>(true);
   const [connectionState, setConnectionState] = useState<number>(IDLE);
 
   const [portName, setPortName] = useState('');
@@ -50,14 +45,15 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
 
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
 
-  let peripheralId = route.params.peripheralId;
-  let repoId = route.params.repoId;
-  let deviceId = route.params.deviceId;
-  
+  const peripheralId = route.params.peripheralId;
+  const repoId = route.params.repoId;
+  const deviceId = route.params.deviceId;
+  const themePalette = AppServices.instance.getAppTheme();
+
   console.log(peripheralId, repoId, deviceId);
 
   const [selectedPort, setPort] = useState<SelectableOption | undefined>(undefined);
-  const ports : SelectableOption[] = [
+  const ports: SelectableOption[] = [
     { label: '-select port-', value: '-1' },
     { label: 'Analog Port 1', value: 'adc1' },
     { label: 'Analog Port 2', value: 'adc2' },
@@ -86,7 +82,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
   ];
 
   const [analogDeviceType, setAnalogDeviceType] = useState<SelectableOption | undefined>(undefined);
-  const adcPortType : SelectableOption[] = [
+  const adcPortType: SelectableOption[] = [
     { label: 'None', value: '0' },
     { label: 'ADC', value: '1' },
     { label: 'CT', value: '2' },
@@ -97,7 +93,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
   ];
 
   const [digitalDeviceType, setDigitalDeviceType] = useState<SelectableOption | undefined>(undefined);
-  const ioPortType : SelectableOption[] = [
+  const ioPortType: SelectableOption[] = [
     { label: 'None', value: '0' },
     { label: 'Input', value: '1' },
     { label: 'Output', value: '2' },
@@ -158,7 +154,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
     console.log('write char is called.' + connectionState);
     console.log('write char is called.' + setCmd);
 
-    if (connectionState == CONNECTED) {    
+    if (connectionState == CONNECTED) {
       await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, `setioview=${selectedPort}`);
       await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, setCmd);
       await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
@@ -176,8 +172,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
         let parts = str.split(',');
         if (parts.length > 5) {
           setPortName(parts[1]);
-          setAnalogDeviceType(adcPortType.find(prt=>prt.value == parts[2]));
-          setDigitalDeviceType(ioPortType.find(prt=>prt.value == parts[2]));
+          setAnalogDeviceType(adcPortType.find(prt => prt.value == parts[2]));
+          setDigitalDeviceType(ioPortType.find(prt => prt.value == parts[2]));
           setScaler(parts[3]);
           setCalibration(parts[4]);
           setZero(parts[5]);
@@ -189,7 +185,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
   }
 
   const portChanged = async (port: string) => {
-    setPort(ports.find(prt=>prt.value == port));
+    setPort(ports.find(prt => prt.value == port));
 
     setIsAdcPortSelected(port.startsWith('adc'));
     setIsDigitalPortSelected(port.startsWith('io'));
@@ -201,8 +197,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
 
   const resetConfig = () => {
     setPortName(selectedPort!.label);
-    setAnalogDeviceType(adcPortType.find(prt=>prt.value == '0'));
-    setDigitalDeviceType(ioPortType.find(prt=>prt.value == '0'));
+    setAnalogDeviceType(adcPortType.find(prt => prt.value == '0'));
+    setDigitalDeviceType(ioPortType.find(prt => prt.value == '0'));
     setScaler('1');
     setZero('0');
     setCalibration('1');
@@ -219,72 +215,64 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
   }
 
   const selectPort = () => {
-    if(!ports) return;
+    if (!ports) return;
 
     ActionSheetIOS.showActionSheetWithOptions(getOptions(ports.map(item => item.label)),
-    buttonIndex => {
-         if (buttonIndex > 0 ) {
+      buttonIndex => {
+        if (buttonIndex > 0) {
           setPort(ports[buttonIndex]);
           portChanged(ports[buttonIndex].value);
         }
       })
   }
 
-  const getOptions = (options: string[]) : ActionSheetIOSOptions => {
+  const getOptions = (options: string[]): ActionSheetIOSOptions => {
     return {
       options: options,
       cancelButtonIndex: 0,
-      userInterfaceStyle: themePalette.name == 'dark'  ? 'dark': 'light',
+      userInterfaceStyle: themePalette.name == 'dark' ? 'dark' : 'light',
     }
   }
 
   const selectADCDeviceType = () => {
-    if(!ports) return;
+    if (!ports) return;
 
     ActionSheetIOS.showActionSheetWithOptions(getOptions(adcPortType.map(item => item.label)),
-    buttonIndex => {
-         if (buttonIndex > 0 ) {
+      buttonIndex => {
+        if (buttonIndex > 0) {
           setPort(ports[buttonIndex]);
         }
       })
   }
 
 
-  
+
   const selectIODeviceType = () => {
-    if(!ports) return;
+    if (!ports) return;
 
     ActionSheetIOS.showActionSheetWithOptions(getOptions(ioPortType.map(item => item.label)),
-    buttonIndex => {
-         if (buttonIndex > 0 ) {
+      buttonIndex => {
+        if (buttonIndex > 0) {
           setPort(ports[buttonIndex]);
         }
       })
   }
+
+  useFocusEffect(() => {
+    if (connectionState == DISCONNECTED_PAGE_SUSPENDED) {
+      loadDevice();
+    }
+  }
+  )
 
   useEffect(() => {
     console.log('[Sensors__useEffect] ' + peripheralId);
-
-    if (initialCall) {
-      console.log('[Sensors__useEffect__initialCall] ' + peripheralId);
-
-      setInitialCall(false);
-      loadDevice();
-    }
 
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} >
           <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={writeChar} name='save' />
         </View>),
-    });
-
-    const focusSubscription = navigation.addListener('focus', () => {
-      console.log('[Sensors__useEffect__focus] ' + peripheralId);
-
-      if (connectionState == DISCONNECTED_PAGE_SUSPENDED) {
-        loadDevice();
-      }
     });
 
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
@@ -301,14 +289,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
       }
     });
 
-    
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()) );
-    setSubscription(changed);
-
     return (() => {
-      if (subscription)AppServices.themeChangeSubscription.remove(subscription);
-    
-      focusSubscription();
       blurSubscription();
     });
   }, []);
@@ -320,9 +301,9 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
         <View >
           <StatusBar style="auto" />
           <Text style={inputLabelStyle}>Port:</Text>
-          {Platform.OS == 'ios' && selectedPort && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline  onPress={() => selectPort()} >{selectedPort.label}</Button> }
-          {Platform.OS == 'ios' && !selectedPort && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline onPress={() => selectPort()} >-select port-</Button> }
-          {Platform.OS != 'ios' && 
+          {Platform.OS == 'ios' && selectedPort && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectPort()} >{selectedPort.label}</Button>}
+          {Platform.OS == 'ios' && !selectedPort && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectPort()} >-select port-</Button>}
+          {Platform.OS != 'ios' &&
             <Picker selectedValue={selectedPort?.value} onValueChange={portChanged} >
               {ports.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
             </Picker>
@@ -332,10 +313,10 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
             isAdcPortSelected &&
             <View>
               <Text style={inputLabelStyle}>ADC Type:</Text>
-              {Platform.OS == 'ios' && analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline  onPress={() => selectADCDeviceType()} >{analogDeviceType.label}</Button> }
-              {Platform.OS == 'ios' && !analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline onPress={() => selectADCDeviceType()} >-select device type-</Button> }
-              {Platform.OS != 'ios' && 
-                <Picker selectedValue={analogDeviceType?.value} onValueChange={(value) => setAnalogDeviceType(adcPortType.find(prt=>prt.value == value))} >
+              {Platform.OS == 'ios' && analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectADCDeviceType()} >{analogDeviceType.label}</Button>}
+              {Platform.OS == 'ios' && !analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectADCDeviceType()} >-select device type-</Button>}
+              {Platform.OS != 'ios' &&
+                <Picker selectedValue={analogDeviceType?.value} onValueChange={(value) => setAnalogDeviceType(adcPortType.find(prt => prt.value == value))} >
                   {adcPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
                 </Picker>
               }
@@ -346,10 +327,10 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
             isDigitalPortSelected &&
             <View>
               <Text style={inputLabelStyle}>Digitial Port Type:</Text>
-              {Platform.OS == 'ios' && analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline  onPress={() => selectIODeviceType()} >{analogDeviceType.label}</Button> }
-              {Platform.OS == 'ios' && !analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin:20 }} inline onPress={() => selectIODeviceType()} >-select device type-</Button> }
-              {Platform.OS != 'ios' &&               
-                <Picker selectedValue={digitalDeviceType?.value} onValueChange={(value) => setDigitalDeviceType(ioPortType.find(prt=>prt.value == value))} >
+              {Platform.OS == 'ios' && analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectIODeviceType()} >{analogDeviceType.label}</Button>}
+              {Platform.OS == 'ios' && !analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectIODeviceType()} >-select device type-</Button>}
+              {Platform.OS != 'ios' &&
+                <Picker selectedValue={digitalDeviceType?.value} onValueChange={(value) => setDigitalDeviceType(ioPortType.find(prt => prt.value == value))} >
                   {ioPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
                 </Picker>
               }
@@ -359,7 +340,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
           {
             hasAnyPort &&
             <View>
-              <Text style={inputLabelStyle}>Port Name:</Text>              
+              <Text style={inputLabelStyle}>Port Name:</Text>
               <TextInput style={inputStyleWithBottomMargin} placeholder="name" value={portName} onChangeText={e => setPortName(e)} />
               <Text style={inputLabelStyle}>Raw Scaler:</Text>
               <TextInput style={inputStyleWithBottomMargin} placeholder="scaler" value={scaler} onChangeText={e => setScaler(e)} />
@@ -371,7 +352,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
               <View style={{ flexDirection: "column" }}>
                 <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.accent1.normal }]} onPress={() => writeChar()}><Text style={primaryButtonTextStyle}> Write </Text></TouchableOpacity>
                 <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.alert.warning }]} onPress={() => resetConfig()}><Text style={primaryButtonTextStyle}> Reset </Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.alert.error}]} onPress={() => restartDevice()}><Text style={primaryButtonTextStyle}> Restart </Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.alert.error }]} onPress={() => restartDevice()}><Text style={primaryButtonTextStyle}> Restart </Text></TouchableOpacity>
               </View>
             </View>
           }

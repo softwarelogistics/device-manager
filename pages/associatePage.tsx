@@ -21,8 +21,6 @@ import { NetworkCallStatusService } from "../services/network-call-status-servic
 import Page from "../mobile-ui-common/page";
 
 export default function AssociatePage({ navigation, props, route }: IReactPageServices) {
-  const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
 
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
   const [discoveredPeripherals, setDiscoveredPeripherals] = useState<Peripheral[]>([]);
@@ -33,6 +31,7 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
   const [initialCall, setInitialCall] = useState<boolean>(true);
   
+  const themePalette = AppServices.instance.getAppTheme();
   const deviceRepoId = route.params.deviceRepoId;
   const deviceId = route.params.deviceId;
 
@@ -145,9 +144,8 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
 
   const selectDevice = async (device: BLENuvIoTDevice) => {
     console.log('Select device');
-
     
-    let existingDevice = await appServices.deviceServices.getDevice(deviceRepoId, deviceId);
+    let existingDevice = await AppServices.instance.deviceServices.getDevice(deviceRepoId, deviceId);
 
     if (Platform.OS === 'ios')
       existingDevice!.iosBLEAddress = device.peripheralId;
@@ -168,7 +166,7 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
     setIsBusy(false);
     console.log('after BT D');
 
-    await appServices.deviceServices.updateDevice(existingDevice!);
+    await AppServices.instance.deviceServices.updateDevice(existingDevice!);
 
     navigation.goBack();
   }
@@ -196,15 +194,11 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
 
   useEffect(() => {
     ble.peripherals = [];
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
-    setSubscription(changed);
-    var palette = AppServices.getAppTheme()
-    setThemePalette(palette);
 
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: 'row' }} >
-          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={palette.shellNavColor}  onPress={() => startScan()} name='refresh-outline' />
+          <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor}  onPress={() => startScan()} name='refresh-outline' />
         </View>
       ),
     });
@@ -215,9 +209,6 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
     return (() => {
       focusSubscription();
       blurSubscription();
-
-      if (subscription)
-        AppServices.themeChangeSubscription.remove(subscription);
     });
   }, []);
 

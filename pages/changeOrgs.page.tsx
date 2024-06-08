@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { IReactPageServices } from "../services/react-page-services";
+import { StatusBar } from "expo-status-bar";
 import { View, Text, FlatList, ActivityIndicator, Pressable, Alert, ViewStyle, TextStyle } from "react-native";
 import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import OctIcon from "react-native-vector-icons/Octicons";
@@ -12,7 +13,6 @@ import colors from "../styles.colors";
 import fontSizes from "../styles.fontSizes";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import palettes from "../styles.palettes";
-import { ThemePalette } from "../styles.palette.theme";
 import Page from "../mobile-ui-common/page";
 
 export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) => {
@@ -20,16 +20,16 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [orgs, setOrgs] = useState<Users.OrgUser[]>();
   const [user, setUser] = useState<Users.AppUser>();
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-  const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
+  
+  const themePalette = AppServices.instance.getAppTheme();
 
   const loadUserOrgs = async () => {
-    await appServices.userServices.getOrgsForCurrentUser()
+    await AppServices.instance.userServices.getOrgsForCurrentUser()
       .then(orgResult => {
         setOrgs(orgResult.model);
       })
       .then(async () => {
-        await appServices.userServices.getUser()
+        await AppServices.instance.userServices.getUser()
           .then(user => {
             setUser(user);
           });
@@ -38,12 +38,12 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
 
   const setNewUserOrg = async (org: Users.OrgUser) => {
     console.log('ChangeOrgPage__setNewUserOrg, Org=' + org.organizationName);
-    let result = await appServices.userServices.changeOrganization(org.orgId);
+    let result = await AppServices.instance.userServices.changeOrganization(org.orgId);
     if (result) {
-      appServices.userServices.refreshToken();
+      AppServices.instance.userServices.refreshToken();
     }
 
-    let user = await appServices.userServices.getUser();
+    let user = await AppServices.instance.userServices.getUser();
     setUser(user);
 
     Alert.alert('Organization Changed', `Welcome to the ${user?.currentOrganization.text}!`)
@@ -64,8 +64,6 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
       setInitialCall(false);
       loadUserOrgs();
     }
-    var palette = AppServices.getAppTheme()
-    setThemePalette(palette);
   });
 
   const currentOrganizationHeaderCircleStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.iconButtonCircle, styles.alignCenter, { color: colors.white, fontSize: 72, marginTop: 16, textAlign: 'center' }]);
@@ -83,6 +81,7 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
   let idx: number = 0;
   return (
     <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
+      <StatusBar style="auto" />
         {
           orgs && user && 
           <View style={{ height:'100%', backgroundColor: themePalette.background, width: "100%" }}>

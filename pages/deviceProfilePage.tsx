@@ -2,21 +2,16 @@ import { useEffect, useState, useRef } from "react";
 import { ActivityIndicator, Platform, View, Text, TextStyle, TouchableOpacity, ScrollView, ViewStyle } from "react-native";
 import AppServices from "../services/app-services";
 import { IReactPageServices } from "../services/react-page-services";
-import { ThemePalette } from "../styles.palette.theme";
 import styles from '../styles';
 import palettes from "../styles.palettes";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import fontSizes from "../styles.fontSizes";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useInterval } from 'usehooks-ts'
-import { PermissionsHelper } from "../services/ble-permissions";
 import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
-import { BLENuvIoTDevice } from "../models/device/device-local";
-import { StatusBar } from "expo-status-bar";
 import { RemoteDeviceState } from "../models/blemodels/state";
 import Page from "../mobile-ui-common/page";
 import { IOValues } from "../models/blemodels/iovalues";
-import Moment from 'moment';
 import { ConnectedDevice } from "../mobile-ui-common/connected-device";
 import colors from "../styles.colors";
 
@@ -26,8 +21,6 @@ interface ConsoleOutput {
 }
 
 export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServices) => {
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-  const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
   const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined | null>(undefined);
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [deviceDetail, setDeviceDetail] = useState<Devices.DeviceDetail | undefined | any>();
@@ -45,6 +38,8 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
   const repoId = route.params.repoId;
   const id = route.params.id;
+
+  const themePalette = AppServices.instance.getAppTheme();
 
   const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
   const chevronBarVerticalStyle: ViewStyle = ViewStylesHelper.combineViewStyles([{ height: 39 }]);
@@ -136,9 +131,9 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   }
 
   const loadDevice = async () => {
-    let fullDevice = await appServices.deviceServices.getDevice(repoId, id);    
+    let fullDevice = await AppServices.instance.deviceServices.getDevice(repoId, id);    
     if (fullDevice) {
-      await appServices.wssService.init('device', fullDevice.id);
+      await AppServices.instance.wssService.init('device', fullDevice.id);
       setDeviceDetail(fullDevice);
 
       let peripheralId: string | undefined;
@@ -155,7 +150,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
         ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
       }
                 
-      appServices.wssService.onmessage = (e) => handleWSMessage(e);
+      AppServices.instance.wssService.onmessage = (e) => handleWSMessage(e);
     }
     else {
       console.error("[DeviceProfilePage__loadDevice] - Could Not Load Device");
@@ -168,7 +163,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     console.log(deviceDetail);
     let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
     await ConnectedDevice.disconnect();
-    appServices.wssService.close();
+    AppServices.instance.wssService.close();
     let params = { peripheralId: peripheralId, instanceRepoId: repoId, deviceRepoId: repoId, deviceId: id }
     navigation.navigate(pageName, params);
  
@@ -194,8 +189,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       ble.peripherals = [];
     }
 
-    let palette = AppServices.getAppTheme()
-    setThemePalette(palette);
 
     navigation.setOptions({
       headerRight: () => (
@@ -215,7 +208,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
         await ConnectedDevice.disconnect();
 
       setPageVisible(false);
-      appServices.wssService.close();
+      AppServices.instance.wssService.close();
       console.log("BLUR SUBSCRIPTION FIRED!");
     });
 
@@ -358,7 +351,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: themePalette.viewBackground, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8  }}>
                   <View>
                     <Text style={labelStyle}>Not Connected</Text>
-                    <Text style={{fontSize: 14, fontWeight: 400, color: themePalette.subtitleColor}}>Search</Text>
+                    <Text style={{fontSize: 14, fontWeight: "400", color: themePalette.subtitleColor}}>Search</Text>
                   </View>
                     <View>
                       <Icon.Button size={22} backgroundColor="transparent" underlayColor="transparent" color={colors.primaryBlue} onPress={(() => showScanPage())} name='bluetooth-outline' />
@@ -403,7 +396,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
               deviceDetail && deviceDetail.sensorCollection &&
               <View style={{ marginTop: 20, marginBottom: 20 }}>
                 {sectionHeader('Live Sensor Data')}
-                <Text style={[labelStyle, {fontSize: 18, fontWeight: 500}]}>ADC Sensors</Text>
+                <Text style={[labelStyle, {fontSize: 18, fontWeight: "500"}]}>ADC Sensors</Text>
                 <ScrollView horizontal={true} style={{ marginBottom: 24 }}>
                   {adcSensorBlock(0, deviceDetail.sensorCollection, 'radio-outline')}
                   {adcSensorBlock(1, deviceDetail.sensorCollection, 'radio-outline')}
@@ -414,7 +407,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                   {adcSensorBlock(6, deviceDetail.sensorCollection, 'radio-outline')}
                   {adcSensorBlock(7, deviceDetail.sensorCollection, 'radio-outline')}
                 </ScrollView>
-                <Text style={[labelStyle, {fontSize: 18, fontWeight: 500}]}>IO Sensors</Text>
+                <Text style={[labelStyle, {fontSize: 18, fontWeight: "500"}]}>IO Sensors</Text>
                 <ScrollView horizontal={true} style={{ marginBottom: 24 }}>
                   {ioSensorBlock(0, deviceDetail.sensorCollection, 'radio-outline')}
                   {ioSensorBlock(1, deviceDetail.sensorCollection, 'radio-outline')}

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { View, ScrollView, Text, TextInput, Switch, TouchableOpacity, ActivityIndicator, TextStyle } from "react-native";
-import { StatusBar } from 'expo-status-bar';
 
 import AppServices from "../services/app-services";
 
@@ -17,14 +16,11 @@ import styles from '../styles';
 import palettes from "../styles.palettes";
 import colors from "../styles.colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useFocusEffect } from "@react-navigation/native";
 
 
 export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServices) => {
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
-
   const peripheralId = route.params.peripheralId;
-
-  const [initialCall, setInitialCall] = useState<boolean>(true);
 
   const [isBusy, setIsBusy] = useState<boolean>(true);
 
@@ -37,6 +33,8 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
   const [viewReady, setViewReady] = useState<boolean>(false);
   const [handler, setHandler] = useState<string | undefined>(undefined);
 
+  const themePalette = AppServices.instance.getAppTheme();
+
   const inputStyleOverride = {
     backgroundColor: themePalette.inputBackgroundColor,
     borderColor: palettes.gray.v80,
@@ -46,8 +44,8 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
   };
 
   const inputStyleWithBottomMargin: TextStyle = ViewStylesHelper.combineTextStyles([styles.inputStyle, inputStyleOverride]);
-  const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, { color: themePalette.shellTextColor, fontWeight: (AppServices.getAppTheme().name === 'dark' ? '700' : '400') }]);
-  const placeholderTextColor: string = AppServices.getAppTheme().name === 'dark' ? themePalette.shellNavColor : palettes.gray.v50;
+  const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, { color: themePalette.shellTextColor, fontWeight: (themePalette.name === 'dark' ? '700' : '400') }]);
+  const placeholderTextColor: string = themePalette.name === 'dark' ? themePalette.shellNavColor : palettes.gray.v50;
 
   const writeChar = async () => {
     if (!peripheralId) {
@@ -98,10 +96,15 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
     setIsBusy(false);
   }
 
-  useEffect(() => {
-    console.log('[ConnectivityPage__UseEffect] ' + peripheralId);
-    setThemePalette(AppServices.getAppTheme());
+  useFocusEffect(() => {
+    if (peripheralId) {
+      getData();
+    }
+    else 
+      throw 'peripheralId not set from calling page, must pass in as a parameter.'
+  });
 
+  useEffect(() => {
     switch (handler) {
       case 'save': writeChar();
         setHandler(undefined);
@@ -116,21 +119,10 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
     });
 
 
-
     return (() => {
       console.log('[ConnectivityPage__UseEffect_Return] ' + peripheralId);
     });
   }, [handler]);
-
-  if (initialCall) {
-    setInitialCall(false);
-
-    if (peripheralId) {
-      getData();
-    }
-    else 
-      throw 'peripheralId not set from calling page, must pass in as a parameter.'
-  }
 
   return (
     isBusy ?

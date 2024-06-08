@@ -2,43 +2,25 @@ import { useEffect, useState } from "react";
 import { View, Text, Image } from "react-native";
 import AppServices from "../services/app-services";
 import styles from "../styles";
-import { ThemePalette } from "../styles.palette.theme";
 import ProgressSpinner from "../mobile-ui-common/progress-spinner";
 import { useNavigation } from "@react-navigation/native";
 import { HttpClient } from "../core/utils";
 import { NetworkCallStatusService } from "../services/network-call-status-service";
 import StdButton from "./std-button";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {Stack } from "../App";
 
 export default function Page(props: any) {
-    const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-    const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
     const [isBusy, setIsBusy] = useState(false);
     const navigation = useNavigation();
-    const [currentTheme, setCurrentTheme] = useState('light')
+
+    const themePalette = AppServices.instance.getAppTheme();
 
     useEffect(() => {
-        // (async () => {
-        //     let palette = await appServices.userServices.getThemePalette();
-        //     setThemePalette(palette);
-        //   })();
-
-        AsyncStorage.getItem("active_theme").then((value) => {
-            setCurrentTheme(value);
-
-        }).catch((error) => {
-            console.error("Error retrieving AsyncStorage value:", error);
-        })
-
-        let themeChangedSubscription = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
         let logoutSubscription = HttpClient.logoutSubscription.addListener('logout', () => { setIsAuthenticated(false) });
         let busySubscription = NetworkCallStatusService.busySubscription.addListener('busy', () => setIsBusy(true));
         let idleSubscription = NetworkCallStatusService.busySubscription.addListener('idle', () => setIsBusy(false));
 
         return (() => {
-            AppServices.themeChangeSubscription.remove(themeChangedSubscription);
             HttpClient.logoutSubscription.remove(logoutSubscription);
             NetworkCallStatusService.busySubscription.remove(busySubscription);
             NetworkCallStatusService.busySubscription.remove(idleSubscription);

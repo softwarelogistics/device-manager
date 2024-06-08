@@ -18,11 +18,9 @@ import colors from "../styles.colors";
 import fontSizes from "../styles.fontSizes";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import { ThemePalette, ThemePaletteService } from "../styles.palette.theme";
-import palettes from "../styles.palettes";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Page from "../mobile-ui-common/page";
 import EditField from "../mobile-ui-common/edit-field";
-import { Subscription } from "../utils/NuvIoTEventEmitter";
 import { ble, NuvIoTBLE } from "../NuvIoTBLE";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -38,16 +36,6 @@ export const AccountPage = ({
   navigation,
   route,
 }: IReactPageServices) => {
-  const [appServices, setAppServices] = useState<AppServices>(
-    new AppServices()
-  );
-  const [themePalette, setThemePalette] = useState<ThemePalette>(
-    {} as ThemePalette
-  );
-  const [previousColorTheme, setPreviousColorTheme] = useState<string>();
-  const [subscription, setSubscription] = useState<Subscription | undefined>(
-    undefined
-  );
 
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [simulatedBLD, setSimulatedBLE] = useState<boolean>(ble.simulatedBLE());
@@ -59,6 +47,8 @@ export const AccountPage = ({
     email: "",
     phoneNumber: "",
   });
+
+  const themePalette: ThemePalette = AppServices.instance.getAppTheme();
 
   const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([
     styles.label,
@@ -80,16 +70,16 @@ export const AccountPage = ({
   const setDarkTheme = async () => {
     let nextPalette = ThemePaletteService.getThemePalette("dark");
     await AsyncStorage.setItem("active_theme", "dark");
-    AppServices.setAppTheme(nextPalette);
-    AppServices.themeChangeSubscription?.emit("changed", "dark");
+    AppServices.instance.setAppTheme(nextPalette);
+    AppServices.instance.themeChangeSubscription?.emit("changed", "dark");
     setSelectionProperty("colorTheme", "dark");
   };
 
   const setLightTheme = async () => {
     let nextPalette = ThemePaletteService.getThemePalette("light");
     await AsyncStorage.setItem("active_theme", "light");
-    AppServices.setAppTheme(nextPalette);
-    AppServices.themeChangeSubscription?.emit("changed", "light");
+    AppServices.instance.setAppTheme(nextPalette);
+    AppServices.instance.themeChangeSubscription?.emit("changed", "light");
     setSelectionProperty("colorTheme", "light");
   };
 
@@ -128,8 +118,8 @@ export const AccountPage = ({
       user.lastName = selections.lastName;
       user.phoneNumber = selections.phoneNumber;
 
-      await appServices.userServices.updateUser(user);
-      await appServices.userServices.setUser(user!).then((success) => {
+      await AppServices.instance.userServices.updateUser(user);
+      await AppServices.instance.userServices.setUser(user!).then((success) => {
         if (success) {
           navigation.navigate("homePage");
         } else {
@@ -150,21 +140,17 @@ export const AccountPage = ({
       setInitialCall(false);
     }
 
-    setThemePalette(AppServices.getAppTheme());
 
     if (!user) {
       (async () => {
         const promisesToKeep: Promise<any>[] = [
-          appServices.userServices.getThemeName(),
+          AppServices.instance.userServices.getThemeName(),
         ];
         await Promise.all(promisesToKeep).then(async (responses) => {
           const colorTheme: string = responses[0];
-          setPreviousColorTheme(colorTheme);
-
           const simulationEnabled: boolean = responses[1];
-          await appServices.userServices.getUser().then(async (response) => {
+          await AppServices.instance.userServices.getUser().then(async (response) => {
             if (response) {
-              setThemePalette(response.themePalette);
               setUser(response);
               setSelections({
                 firstName: response.firstName,
@@ -187,17 +173,8 @@ export const AccountPage = ({
       console.error("Error retrieving AsyncStorage value:", error);
     })
 
-    
-
     console.log("userEffect: selections", selections);
-    let changed = AppServices.themeChangeSubscription.addListener(
-      "changed",
-      () => setThemePalette(AppServices.getAppTheme())
-    );
-    setSubscription(changed);
     return () => {
-      if (subscription)
-        AppServices.themeChangeSubscription.remove(subscription);
     };
   }, [selections]);
 

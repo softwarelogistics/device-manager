@@ -11,16 +11,18 @@ import { ThemePalette, ThemePaletteService } from '../styles.palette.theme';
 import { NuvIoTEventEmitter } from '../utils/NuvIoTEventEmitter';
 import { DeploymentService } from './deployment.service';
 import WssService from './wss.service';
-import { CommonSettings } from '../settings';
 import { OrgService } from './orgservice';
 import { NavService } from './NavService';
 
 class AppServices {
-    private static _appTheme: ThemePalette;
+    private _appTheme: ThemePalette;
+    private static _instanceCount : number = 0;
 
-    public static themeChangeSubscription: NuvIoTEventEmitter = new  NuvIoTEventEmitter();
+    public themeChangeSubscription: NuvIoTEventEmitter = new  NuvIoTEventEmitter();
 
     constructor() {
+        AppServices._instanceCount += 1;
+        this._appTheme = ThemePaletteService.getThemePalette('light');
         this.storage = new NativeStorageService();
         this.errorReporter = new ErrorReporterService();
         this.networkCallStatusService = new NetworkCallStatusService();
@@ -36,17 +38,14 @@ class AppServices {
         this.wssService = new WssService(this.client);
         this.orgsService = new OrgService(this.client);
         this.userServices = new UserService(this.httpClient, this.client, this.errorReporter, this.storage);
+        console.log(`[AppServices__constructor] - AppServices initialized. ${AppServices._instanceCount}`);
     }
 
-    static getAppTheme(): ThemePalette {
-        if(!this._appTheme) {
-            return ThemePaletteService.getThemePalette('light');
-        }
-
+    getAppTheme(): ThemePalette {
         return this._appTheme;
     }
 
-    static setAppTheme(palette: ThemePalette) {
+    setAppTheme(palette: ThemePalette) {
         this._appTheme = palette;                
     }
 
@@ -62,6 +61,8 @@ class AppServices {
     orgsService: OrgService;
     wssService: WssService;
     navService: NavService;
+
+    static instance: AppServices = new AppServices();
 }
 
 export default AppServices;

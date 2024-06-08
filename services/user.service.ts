@@ -332,7 +332,9 @@ export class UserService {
   }
 
   async getThemePalette(): Promise<ThemePalette> {
-    const theme = await this.getThemeName();
+    let theme = await this.getThemeName();
+    if(!theme)
+      theme = 'light';
     return ThemePaletteService.getThemePalette(theme);
   }
 

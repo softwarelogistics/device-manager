@@ -33,28 +33,14 @@ export const InstancePage = ({
   props,
   route,
 }: IReactPageServices) => {
-  const [appServices, setAppServices] = useState<AppServices>(
-    new AppServices()
-  );
-  const [themePalette, setThemePalette] = useState<ThemePalette>(
-    {} as ThemePalette
-  );
   const [initialCall, setInitialCall] = useState<boolean>(true);
-  const [subscription, setSubscription] = useState<Subscription | undefined>(
-    undefined
-  );
-  const [deviceModelFilter, setDeviceModelFilter] = useState<
-    Core.EntityHeader | undefined
-  >(undefined);
+  
+  const [deviceModelFilter, setDeviceModelFilter] = useState<Core.EntityHeader | undefined>(undefined);
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  const [allDevices, setAllDevices] = useState<
-    Devices.DeviceSummary[] | undefined
-  >(undefined);
-  const [devices, setDevices] = useState<Devices.DeviceSummary[] | undefined>(
-    undefined
-  );
+  const [allDevices, setAllDevices] = useState<Devices.DeviceSummary[] | undefined>(undefined);
+  const [devices, setDevices] = useState<Devices.DeviceSummary[] | undefined>();
 
   const [deviceModels, setDeviceModels] = useState<Core.EntityHeader[]>([]);
 
@@ -62,8 +48,10 @@ export const InstancePage = ({
   const deviceRepoId = route.params.repoId;
   const instanceName = route.params.instanceName;
 
+  const themePalette = AppServices.instance.getAppTheme();
+
   const loadDevices = async () => {
-    let result = await appServices.deviceServices.getDevicesForRepoAsync(
+    let result = await AppServices.instance.deviceServices.getDevicesForRepoAsync(
       deviceRepoId
     );
     let uniqueDeviceModels: Core.EntityHeader[] = [];
@@ -147,8 +135,6 @@ export const InstancePage = ({
   };
 
   useEffect(() => {
-    let palette = AppServices.getAppTheme();
-    setThemePalette(palette);
 
     navigation.setOptions({
       headerRight: () => (
@@ -156,7 +142,7 @@ export const InstancePage = ({
           <IconIonicons.Button
             backgroundColor="transparent"
             underlayColor="transparent"
-            color={palette.shellNavColor}
+            color={themePalette.shellNavColor}
             onPress={() => addDevice()}
             name="add-outline"
           />
@@ -168,15 +154,7 @@ export const InstancePage = ({
       loadDevices();
       setInitialCall(false);
     }
-
-    let changed = AppServices.themeChangeSubscription.addListener(
-      "changed",
-      () => setThemePalette(AppServices.getAppTheme())
-    );
-    setSubscription(changed);
     return () => {
-      if (subscription)
-        AppServices.themeChangeSubscription.remove(subscription);
     };
   }, []);
 

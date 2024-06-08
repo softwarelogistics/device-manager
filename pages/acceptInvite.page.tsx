@@ -6,8 +6,6 @@ import Page from "../mobile-ui-common/page";
 import { View, Text } from "react-native";
 
 export default function AcceptInvitePage({ navigation }: IReactPageServices) {
-    const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-
     return (
         <Page>
             <View>

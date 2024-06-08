@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Switch, TouchableOpacity, ActivityIndicator, Platform, TextStyle, ActionSheetIOS, ActionSheetIOSOptions } from "react-native";
-import { StatusBar } from 'expo-status-bar';
 import { Button } from 'react-native-ios-kit';
 
 import AppServices from "../services/app-services";
@@ -23,13 +22,10 @@ import Page from "../mobile-ui-common/page";
 
 
 export const ConnectivityPage = ({ props, navigation, route }: IReactPageServices) => {
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
-
   const peripheralId = route.params.peripheralId;
 
   const [initialCall, setInitialCall] = useState<boolean>(true);
 
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
   const [deviceId, setDeviceId] = useState<string>();
   const [serverUrl, setServerUrl] = useState<string>();
   const [serverUid, setServerUid] = useState<string>();
@@ -51,6 +47,8 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
   const [wifiConnections, setWiFiConnections] = useState<Deployment.WiFiConnectionProfile[] | undefined>(undefined);
   const [selectedWiFiConnection, setSelectedWiFiConnection] = useState<Deployment.WiFiConnectionProfile | undefined>(undefined);
 
+  const themePalette = AppServices.instance.getAppTheme();
+
   const inputStyleOverride = {
     backgroundColor: themePalette.inputBackgroundColor,
     borderColor: palettes.gray.v80,
@@ -60,8 +58,8 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
   };
 
   const inputStyleWithBottomMargin: TextStyle = ViewStylesHelper.combineTextStyles([styles.inputStyle, inputStyleOverride]);
-  const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, { color: themePalette.shellTextColor, fontWeight: (AppServices.getAppTheme().name === 'dark' ? '700' : '400') }]);
-  const placeholderTextColor: string = AppServices.getAppTheme().name === 'dark' ? themePalette.shellNavColor : palettes.gray.v50;
+  const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, { color: themePalette.shellTextColor, fontWeight: (themePalette.name === 'dark' ? '700' : '400') }]);
+  const placeholderTextColor: string = themePalette.name === 'dark' ? themePalette.shellNavColor : palettes.gray.v50;
 
   const writeChar = async () => {
     if (!peripheralId) {
@@ -122,7 +120,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
       console.warn('could not connect.');
     }
 
-    let result = await appServices.deploymentServices.LoadWiFiConnectionProfiles(route.params.instanceRepoId);
+    let result = await AppServices.instance.deploymentServices.LoadWiFiConnectionProfiles(route.params.instanceRepoId);
     result.unshift({ id: 'cellular', key: 'cellular', name: 'Cellular', ssid: '', password: '', description: '' });
     result.unshift({ id: 'none', key: 'none', name: 'No Connection', ssid: '', password: '', description: '' });
     if (Platform.OS === 'ios')
@@ -130,7 +128,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
     setWiFiConnections(result);
 
-    let defaultListener = await appServices.deploymentServices.LoadDefaultListenerForRepo(route.params.instanceRepoId);
+    let defaultListener = await AppServices.instance.deploymentServices.LoadDefaultListenerForRepo(route.params.instanceRepoId);
     if (defaultListener.successful) {
       setDefaultListener(defaultListener.result);
     }
@@ -165,7 +163,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
       })
   };
 
-  const androidSelectWiFiConnection = (e: string) => {
+  const androidSelectWiFiConnection = (e: any) => {
     console.log(e);
     let selected = wifiConnections?.find(cn=>cn.id == e)
     console.log(selected);
@@ -193,8 +191,6 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
 
   useEffect(() => {
-    console.log('[ConnectivityPage__UseEffect] ' + peripheralId);
-    setThemePalette(AppServices.getAppTheme());
 
     switch (handler) {
       case 'save': writeChar();

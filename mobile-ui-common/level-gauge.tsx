@@ -29,16 +29,10 @@ export const LevelGauge: React.FC<ILevelGaugeProps> = ({
 
 
   const ANGLE_OFFSET = 90;
-
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
-
   const ref = useCanvasRef();
-
   const animatedGaugeFillValue = useValue(0);
-
   const animatedArrowValue = useRef(new Animated.Value(0));
-  ;
-
+  
   useEffect(() => {
 
     console.log('LevelGauge useEffect');

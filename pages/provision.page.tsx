@@ -20,11 +20,10 @@ import Page from "../mobile-ui-common/page";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
 import EditField from "../mobile-ui-common/edit-field";
 import { NetworkCallStatusService } from "../services/network-call-status-service";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function ProvisionPage({ navigation, route }: IReactPageServices) {
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
-
+  
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [isReady, setIsReady] = useState<boolean>(false);
     
@@ -48,16 +47,18 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   const [defaultListener, setDefaultListener] = useState<PipelineModules.ListenerConfiguration | undefined>(undefined);
   const [useDefaultListener, setUseDefaultListener] = useState<boolean>(false);
 
+
+  const themePalette = AppServices.instance.getAppTheme();
   const peripheralId = route.params.id;
 
   const inputStyleOverride = {
-    backgroundColor: AppServices.getAppTheme().inputBackgroundColor,
+    backgroundColor: themePalette.inputBackgroundColor,
     borderColor: palettes.gray.v80,
-    color: AppServices.getAppTheme().shellTextColor,
+    color: themePalette.shellTextColor,
     marginBottom: 20,
     paddingLeft: 4
   };
-  const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, { color: AppServices.getAppTheme().shellTextColor, fontWeight: (themePalette.name === 'dark' ? '700' : '400') }]);
+  const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, { color: themePalette.shellTextColor, fontWeight: (themePalette.name === 'dark' ? '700' : '400') }]);
   const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);
 
   const loadSysConfigAsync = async (deviceTypes: Devices.DeviceTypeSummary[]) => {
@@ -100,13 +101,13 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
   const load = async () => {
     setBusyMessage("Loading Repositories");
-    let repos = (await appServices.deviceServices.loadDeviceRepositories()).model!;
+    let repos = (await AppServices.instance.deviceServices.loadDeviceRepositories()).model!;
     setSelectedRepo(repos.find(rep => rep.id == route.params.repoId));
     repos.unshift({ id: "-1", key: 'select', name: '-select-', isPublic: false, description: '', repositoryType: '' });
 
     setRepos(repos);
     setBusyMessage("Loading Device Models");
-    let deviceTypes = await appServices.deviceServices.getDeviceTypesForInstance(route.params.instanceId);
+    let deviceTypes = await AppServices.instance.deviceServices.getDeviceTypesForInstance(route.params.instanceId);
     deviceTypes.unshift({ id: "cancel", key: 'cancel', name: 'Cancel', description: '' });
     setDeviceModels(deviceTypes);
 
@@ -114,7 +115,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     loadSysConfigAsync(deviceTypes);
 
     setBusyMessage("Loading Connection Profiles");
-    let result = await appServices.deploymentServices.LoadWiFiConnectionProfiles(route.params.repoId);
+    let result = await AppServices.instance.deploymentServices.LoadWiFiConnectionProfiles(route.params.repoId);
     if(!result) {
       result = [];
     }
@@ -127,7 +128,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     setWiFiConnections(result);
 
     setBusyMessage("Loading Server Information");
-    let defaultListener = await appServices.deploymentServices.LoadDefaultListenerForRepo(route.params.repoId);
+    let defaultListener = await AppServices.instance.deploymentServices.LoadDefaultListenerForRepo(route.params.repoId);
     if (defaultListener.successful) {
       setDefaultListener(defaultListener.result);       
       console.log(defaultListener.result);
@@ -175,7 +176,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
     setBusyMessage('Provisioning device on the server.');
     setIsBusy(true);
-    let newDevice = await appServices.deviceServices.createDevice(selectedRepo!.id)
+    let newDevice = await AppServices.instance.deviceServices.createDevice(selectedRepo!.id)
     console.log(deviceName, deviceId);
     newDevice.deviceType = { id: selectedDeviceModel!.id, key: selectedDeviceModel!.key, text: selectedDeviceModel!.name };
     newDevice.deviceConfiguration = { id: selectedDeviceModel!.defaultDeviceConfigId!, key: '', text: selectedDeviceModel!.defaultDeviceConfigName! };
@@ -187,7 +188,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     else
       newDevice.macAddress = peripheralId;
 
-    let result = await appServices.deviceServices.addDevice(newDevice, replace, false);
+    let result = await AppServices.instance.deviceServices.addDevice(newDevice, replace, false);
     if (result.successful) {
       newDevice = result.result;
       if (await ble.connectById(peripheralId)) {
@@ -330,19 +331,14 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     setSelectedRepo(repo);
   }
 
+  useFocusEffect(() => {
+    init();
+    NetworkCallStatusService.reset();
+    setInitialCall(false);      
+  });
 
   useEffect(() => {
-    if (initialCall) {
-      init();
-      NetworkCallStatusService.reset();
-      setInitialCall(false);      
-    }
-
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
-    setSubscription(changed);
-
     return (() => {
-      if (subscription) AppServices.themeChangeSubscription.remove(subscription);
     });
 
   }, []);
@@ -353,7 +349,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
       <StatusBar style="auto" />
       {isReady &&
         <ScrollView>
-          <View style={[styles.scrollContainer, { backgroundColor: AppServices.getAppTheme().background }]}>
+          <View style={[styles.scrollContainer, { backgroundColor: themePalette.background }]}>
 
             <Text style={inputLabelStyle}>Repositories:</Text>
 

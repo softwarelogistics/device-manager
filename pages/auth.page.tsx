@@ -1,4 +1,3 @@
-import { CommonActions } from '@react-navigation/native';
 import React, { useState, useEffect } from "react";
 import styles from '../styles';
 import * as Linking from 'expo-linking';
@@ -6,7 +5,6 @@ import { Image, Text, View } from 'react-native';
 import { IReactPageServices } from "../services/react-page-services";
 import AuthenticationHelper from '../utils/authenticationHelper';
 import AppServices from "../services/app-services";
-import { ThemePalette } from "../styles.palette.theme";
 import Constants from 'expo-constants'
 import NavButton from "../mobile-ui-common/nav-button";
 import { logoAuthImageStyle } from "../mobile-ui-common/control-styles";
@@ -19,8 +17,6 @@ import { HttpClient } from "../core/utils";
 import IconButton from '../mobile-ui-common/icon-button';
 
 export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
-  const [appServices, setAppServices] = useState<AppServices>(new AppServices());
-  const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme() as ThemePalette);
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [initialLoad, setInitialLoad] = useState<boolean>(true);
 
@@ -35,15 +31,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
   { name: 'Twitter', logo: require('../assets/loginicons/twitter.png') }]);
   //const [externalProviders, setExternalProviders] = useState<string[]>([]);
 
-  useEffect(() => {
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
-    setSubscription(changed);
-
-    return (() => {
-      if (subscription)
-        AppServices.themeChangeSubscription.remove(subscription);
-    })
-  }, []);
+  let themePalette  = AppServices.instance.getAppTheme();
 
   const login = async (email: string, password: string) => {
 
@@ -52,7 +40,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
     let loginResponse = await AuthenticationHelper.passwordLogin(email, password);
     if (loginResponse.isSuccess) {
       console.log(loginResponse);
-      let user = await appServices.userServices.loadCurrentUser();
+      let user = await AppServices.instance.userServices.loadCurrentUser();
       console.log(user);
       setIsBusy(false);
       if (user != null) {
@@ -69,6 +57,12 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
       }
     }
   };
+
+  useEffect(() => {
+
+    return (() => {
+    })
+  }, []);
 
   const closeView = () => {
     if (isSignInEmail)
@@ -97,7 +91,6 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
   const register = async () => {
     navigation.replace('registerPage');
   }
-
 
   React.useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });

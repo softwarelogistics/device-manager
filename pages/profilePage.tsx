@@ -6,15 +6,15 @@ import IconButton from "../mobile-ui-common/icon-button";
 import AppServices from "../services/app-services";
 import styles from '../styles';
 import { IReactPageServices } from "../services/react-page-services";
-import { ThemePalette } from "../styles.palette.theme";
 import Page from "../mobile-ui-common/page";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
 
 
 export const ProfilePage = ({ navigation, props, route }: IReactPageServices) => {
-    const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
     const [currentTheme, setCurrentTheme] = useState('light')
-    
+
+    const themePalette = AppServices.instance.getAppTheme();
+
     const showPage = (pageName: string) => {
         navigation.navigate(pageName);
     };

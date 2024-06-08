@@ -235,7 +235,7 @@ class BatteryLevel {
 }
 
 export const CanMonitorPage = ({ props, navigation, route }: IReactPageServices) => {
-    const [themePalette, setThemePalette] = useState<ThemePalette>(AppServices.getAppTheme());
+    
 
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
     const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
@@ -244,15 +244,16 @@ export const CanMonitorPage = ({ props, navigation, route }: IReactPageServices)
     const [isDeviceConnected, setIsDeviceConnected] = useState<boolean>(false);
 
 
-    const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
-    const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { marginTop: 20, color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
-
-    const peripheralId = route.params.peripheralId;
-
     const [engineDynamicParameters, setEngineParameters] = useState<EngineDynamic[]>([]);
     const [engineRapidParameters, setEngineRapidParameters] = useState<EngineRapid[]>([]);
     const [fluidLevelParameters, setFluidLevelParameters] = useState<FluidLevel[]>([]);
     const [batteryParameters, setBatteryParameters] = useState<BatteryLevel[]>([]);
+
+    const peripheralId = route.params.peripheralId;
+    let themePalette = AppServices.instance.getAppTheme();
+    const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
+    const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { marginTop: 20, color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
+
 
     /* CAN Message Structure 
      * 0-3 - Message Id

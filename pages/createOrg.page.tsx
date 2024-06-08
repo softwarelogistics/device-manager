@@ -9,10 +9,6 @@ import IconButton from "../mobile-ui-common/icon-button";
 import AppServices from "../services/app-services";
 
 export default function CreateOrgPage({ navigation }: IReactPageServices) {
-   
-    const [appServices, setAppServices] = useState<AppServices>(new AppServices());
- 
-
     const [selections, setSelections] = useState<Orgs.CreateOrgViewModel>({
         name: '',
         webSite: '',
@@ -49,7 +45,7 @@ export default function CreateOrgPage({ navigation }: IReactPageServices) {
             return;
         }
 
-        let result = await appServices.orgsService.createOrganization(selections);
+        let result = await AppServices.instance.orgsService.createOrganization(selections);
         if(result.successful) {
             alert('Organization created successfully');
             navigation.replace('welcome');
