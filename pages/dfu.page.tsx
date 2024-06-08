@@ -2,10 +2,8 @@ import React, { useEffect, useState } from "react";
 import { TouchableOpacity, ScrollView, View, Text, ActivityIndicator, TextInput, Alert } from "react-native";
 import { StatusBar } from 'expo-status-bar';
 import Page from "../mobile-ui-common/page";
-import Icon from "react-native-vector-icons/Ionicons";
 
 import { IReactPageServices } from "../services/react-page-services";
-import { SysConfig } from "../models/blemodels/sysconfig";
 import { RemoteDeviceState } from "../models/blemodels/state";
 
 import AppServices from "../services/app-services";
@@ -34,7 +32,7 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
 
   const peripheralId = route.params.peripheralId;
   const deviceId = route.params.deviceId;
-  const repoId = route.params.repoId;
+  const repoId = route.params.deviceRepoId;
 
   const initializePage = async () => {
     setBusyMessage('Connecting to device');

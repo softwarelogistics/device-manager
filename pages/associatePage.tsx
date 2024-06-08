@@ -33,7 +33,7 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
   const [initialCall, setInitialCall] = useState<boolean>(true);
   
-  const deviceRepoId = route.params.repoId;
+  const deviceRepoId = route.params.deviceRepoId;
   const deviceId = route.params.deviceId;
 
   const checkPermissions = async () => {
@@ -154,23 +154,23 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
     else
       existingDevice!.macAddress = device.peripheralId;
 
-      console.log('before BT C');
-      setIsBusy(true);
-      console.log('after BT C');
-      if (await ble.connectById(device.peripheralId)) {
-        await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'deviceid=' + existingDevice!.deviceId);
-        await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'orgid=' + existingDevice!.ownerOrganization.id);
-        await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'repoid=' + existingDevice!.deviceRepository.id);
-        await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'id=' + existingDevice!.id);
-        await ble.disconnectById(device.peripheralId);
-      }
-      console.log('BEFORE BT D');
-      setIsBusy(false);
-      console.log('after BT D');
-  
-      await appServices.deviceServices.updateDevice(existingDevice!);
+    console.log('before BT C');
+    setIsBusy(true);
+    console.log('after BT C');
+    if (await ble.connectById(device.peripheralId)) {
+      await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'deviceid=' + existingDevice!.deviceId);
+      await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'orgid=' + existingDevice!.ownerOrganization.id);
+      await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'repoid=' + existingDevice!.deviceRepository.id);
+      await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'id=' + existingDevice!.id);
+      await ble.disconnectById(device.peripheralId);
+    }
+    console.log('BEFORE BT D');
+    setIsBusy(false);
+    console.log('after BT D');
 
-      navigation.goBack();
+    await appServices.deviceServices.updateDevice(existingDevice!);
+
+    navigation.goBack();
   }
 
   const discovered = async (peripheral: Peripheral) => {

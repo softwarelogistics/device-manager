@@ -34,7 +34,7 @@ export class NuviotClientService {
     if (showWaitCursor) NetworkCallStatusService.endCall();
 
     if (response.successful === false) {
-      console.log('nope...it ait working', console.log(response.errors));
+      console.log('[NuvIoTClientService__nextHandler] - Error', console.log(response.errors));
       if (reportError)
         this.errorReporter.addErrors(response.errors);
     }
@@ -242,10 +242,12 @@ export class NuviotClientService {
       path = path.substring(1);
     }
 
-    NetworkCallStatusService.beginCall();
+    let url = `${this.getApiUrl()}/${path}`;
+
+    NetworkCallStatusService.beginCall('Please wait',url);
 
     const promise = new Promise<Core.FormResult<TModel, TView> | undefined>((resolve, reject) => {
-      this.http.get<Core.FormResult<TModel, TView>>(`${this.getApiUrl()}/${path}`)
+      this.http.get<Core.FormResult<TModel, TView>>(url)
         .then((response) => {
           NetworkCallStatusService.endCall();
           if (response.successful) {
@@ -274,10 +276,12 @@ export class NuviotClientService {
       path = path.substring(1);
     }
 
-    NetworkCallStatusService.beginCall();
+    let url = `${this.getApiUrl()}/${path}`;
+
+    NetworkCallStatusService.beginCall('Please wait',url);
 
     const promise = new Promise<Core.InvokeResult>((resolve, reject) => {
-      this.http.post<Core.InvokeResult>(`${this.getApiUrl()}/${path}`, model)
+      this.http.post<Core.InvokeResult>(url, model)
         .then((response) => {
           NetworkCallStatusService.endCall();
           if (!response.successful && reportError) {

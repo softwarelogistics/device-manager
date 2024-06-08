@@ -125,8 +125,9 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
   }
 
   const showDevice = async (device: BLENuvIoTDevice) => {
+    console.log(device);
     if (device.provisioned)
-      navigation.navigate('liveDevicePage', { id: device.peripheralId, owned: device.orgId == currentOrgId, instanceRepoId: deviceRepoId, deviceRepoId: device.repoId, deviceId: device.id, instanceId: route.params.instanceId});
+      navigation.navigate('liveDevicePage', { id: device.peripheralId, owned: device.orgId == currentOrgId, instanceRepoId: deviceRepoId, deviceRepoId: device.repoId, deviceId: device.deviceUniqueId, instanceId: route.params.instanceId});
     else
       navigation.navigate('provisionPage', { id: device.peripheralId, repoId: deviceRepoId, instanceId: route.params.instanceId });
   }

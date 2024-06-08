@@ -18,6 +18,7 @@ import Page from "../mobile-ui-common/page";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
 import colors from "../styles.colors";
 import { PermissionsHelper } from "../services/ble-permissions";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 let simData = new SimulatedData();
 
@@ -48,6 +49,7 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
   }
 
   const showPage = async (pageName: string) => {
+    console.log(deviceId);
     await safeNavigate(pageName, { peripheralId: peripheralId, deviceRepoId: deviceRepoId, instanceRepoId: instanceRepoId, deviceId: deviceId });
   }
 
@@ -96,8 +98,9 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
 
   return (
     <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
-      <StatusBar style="auto" />
-      {
+   <StatusBar style="auto" />
+   <KeyboardAwareScrollView>
+       {
         isBusy ?
           <View style={[styles.spinnerView, { backgroundColor: AppServices.getAppTheme().background }]}>
             <Text style={{ color: AppServices.getAppTheme().shellTextColor, fontSize: 25 }}>Please Wait</Text>
@@ -140,6 +143,8 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
             </View>
           </View>
       }
+     
+      </KeyboardAwareScrollView>
     </Page>
   );
 

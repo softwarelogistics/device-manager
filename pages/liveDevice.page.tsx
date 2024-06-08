@@ -329,8 +329,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
               {panelDetail('green', 'Firmware SKU', remoteDeviceState.firmwareSku)}
               {panelDetail('green', 'Firmware Rev', remoteDeviceState.firmwareRevision)}
               {panelDetail('green', 'Commissioned', remoteDeviceState.commissioned ? 'Yes' : 'No')}
-              {panelDetail('green', 'Server Connection', remoteDeviceState.isCloudConnected ? 'Yes' : 'No')}
-
+          
             </View>
           }
           {

@@ -46,12 +46,13 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const repoId = route.params.repoId;
   const id = route.params.id;
 
-  const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 21, fontWeight: '500', textAlign: 'left' }]);
+  const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
   const chevronBarVerticalStyle: ViewStyle = ViewStylesHelper.combineViewStyles([{ height: 39 }]);
   const chevronBarColorTick: ViewStyle = ViewStylesHelper.combineViewStyles([chevronBarVerticalStyle, { width: 8 }]);
-  const barGreyChevronRightStyle: TextStyle = ViewStylesHelper.combineTextStyles([chevronBarVerticalStyle, { backgroundColor: palettes.gray.v20, fontSize: 18 }]);
-  const barGreyChevronRightLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([{ fontWeight: '400', lineHeight: 24 }]);
+  const barGreyChevronRightStyle: TextStyle = ViewStylesHelper.combineTextStyles([chevronBarVerticalStyle, { backgroundColor: palettes.gray.v20, fontSize: 18, paddingLeft: 4, paddingRight: 4, width: '98%', textAlignVertical: 'center' }]);
+  const barGreyChevronRightLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([{ fontWeight: '700' }]);
   const labelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
+
   const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
 
 
@@ -234,37 +235,41 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     return (
       deviceDetail &&
       
-    
-        <View style={[barGreyChevronRightStyle, { color: themePalette.shellTextColor, backgroundColor: themePalette.inputBackgroundColor, flexDirection: 'column',   height: 'auto', paddingVertical: 8, paddingHorizontal: 16,  }]}>
-          <Text style={[barGreyChevronRightLabelStyle, {  fontSize: 16, color: themePalette.subtitleColor  }]}>{label}:</Text>
-          <Text style={{  fontSize: 16, color: themePalette.shellTextColor, lineHeight: 24 }}>{value}</Text>
-        </View>
-    
-    )
+      <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
+      <View style={[chevronBarColorTick, { backgroundColor: color, borderBottomLeftRadius: 6, borderTopLeftRadius: 6 }]}>
+        <Text> </Text>
+      </View>
+      <View style={[barGreyChevronRightStyle, { flexDirection: 'row', alignItems: 'center', borderTopRightRadius: 6, borderBottomRightRadius: 6 }]}>
+        <Text style={[barGreyChevronRightLabelStyle, { flex: 1, textAlignVertical: 'center', fontSize: 16 }]}>{label}:</Text>
+        <Text style={{ flex: 2, textAlign: 'right', textAlignVertical: 'center', marginRight: 5, fontSize: 16 }}>{value}</Text>
+      </View>
+    </View>
+        )
   }
 
   const connectionBlock = (color: string, icon: string, label: string, status: boolean) => {
     return <View style={[{ flex: 1, margin: 2, justifyContent: 'center', }]}>
       {status &&
-        <View style={{ backgroundColor: color, borderRadius: 8 }}>
-          <Text style={{ fontSize: 20, textAlign: "center", color: 'white' }}>{label}</Text>
+        <View style={{ height:110, backgroundColor: color, borderRadius: 8 }}>
+          <Text style={{ textAlign: "center", color: 'white' }}>{label}</Text>
           <View >
-            <Icon style={{ textAlign: 'center', }} size={64} color="white" onPress={showConfigurePage} name={icon} />
+            <Icon style={{ textAlign: 'center', }} size={48} color="white" name={icon} />
           </View>
-          <Text style={{ textAlign: "center", color: 'white' }}>Connected</Text>
+          <Text style={{ textAlign: "center", textAlignVertical:"bottom", color: 'white' }}>Connected</Text>
         </View>
       }
       {!status &&
-        <View style={{ backgroundColor: '#e0e0e0', borderRadius: 8 }}>
-          <Text style={{ fontSize: 20, textAlign: "center", color: 'black' }}>{label}</Text>
+        <View style={{ height:110, backgroundColor: '#e0e0e0', borderRadius: 8 }}>
+          <Text style={{  textAlign: "center", color: 'black' }}>{label}</Text>
           <View >
-            <Icon style={{ textAlign: 'center', }} size={64} color="gray" onPress={showConfigurePage} name={icon} />
+            <Icon style={{ textAlign: 'center', }} size={48} color="gray" name={icon} />
           </View>
-          <Text style={{ textAlign: "center", fontWeight: '500', color: 'black' }}>Not Connected</Text>
+          <Text style={{ textAlign: "center", textAlignVertical:"bottom", fontWeight: '500', color: 'black' }}>Not Connected</Text>
         </View>
       }
     </View>
   }
+
 
   const ioSensorBlock = (idx: number, sensors: Devices.Sensor[], icon: string) => {
     
@@ -310,7 +315,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
             </View>
           }
           <View >
-            {sectionHeader('Device Info')}
+            {sectionHeader('Device Information')}
           <View style={{ backgroundColor: themePalette.background}}>
             {
               deviceDetail &&
@@ -338,22 +343,25 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
               </View>
             {
               isDeviceConnected &&
-              <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
-                <Text style={labelStyle}>Local Device Connected</Text>
-                <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showConfigurePage())} name='settings-sharp' />
+              <View style={{ marginTop: 24 }}>
+                  {sectionHeader('Local Connection')}
+                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: themePalette.viewBackground, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8  }}>
+                  <Text style={labelStyle}>Connected</Text>
+                  <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showConfigurePage())} name='settings-sharp' />
+                </View>
               </View>
             }
             {
               deviceDetail && !isDeviceConnected &&
               <View style={{ marginTop: 24 }}>
-                  {sectionHeader('Connectivity')}
+                  {sectionHeader('Local Connection')}
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: themePalette.viewBackground, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8  }}>
                   <View>
                     <Text style={labelStyle}>Not Connected</Text>
-                    <Text style={{fontSize: 14, fontWeight: 400, color: themePalette.subtitleColor}}>Status</Text>
+                    <Text style={{fontSize: 14, fontWeight: 400, color: themePalette.subtitleColor}}>Search</Text>
                   </View>
                     <View>
-                      <Icon.Button size={22} backgroundColor="transparent" underlayColor="transparent" color={colors.primaryBlue} onPress={(() => showScanPage())} name='settings-sharp' />
+                      <Icon.Button size={22} backgroundColor="transparent" underlayColor="transparent" color={colors.primaryBlue} onPress={(() => showScanPage())} name='bluetooth-outline' />
                     </View>
                   </View>
                 {
@@ -364,13 +372,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                     <View>
                       <Text style={ { paddingHorizontal: 4, color: themePalette.blueText}}>Device is not associated on this platform. Please scan and associate.</Text>
                     </View>                    
-                  </View>
-                }
-                {
-                  peripheralId &&
-                  <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
-                    <Text style={contentStyle}>Hardware has been associated</Text>
-                    <Icon style={{ textAlign: 'center', }} size={18} color={themePalette.shellNavColor}  onPress={() => showScanPage()} name='bluetooth-outline' />
                   </View>
                 }
               </View>
@@ -384,16 +385,18 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                 {panelDetail('green', 'Firmware Rev', remoteDeviceState.firmwareRevision)}
                 {panelDetail('green', 'Hardware Rev', remoteDeviceState.hardwareRevision)}
                 {panelDetail('green', 'Commissioned', remoteDeviceState.commissioned ? 'Yes' : 'No')}
-                {panelDetail('green', 'Server Connection', remoteDeviceState.isCloudConnected ? 'Yes' : 'No')}
               </View>
             }
             {
               remoteDeviceState &&
-              <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >
-                {connectionBlock('orange', 'wifi-outline', 'WiFi', remoteDeviceState.wifiStatus == 'Connected')}
-                {connectionBlock('orange', 'cellular-outline', 'Cellular', remoteDeviceState.cellularConnected)}
-                {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
-
+              <View style={{ marginTop:8}} >
+                {sectionHeader('Connectivity')}
+                <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >
+                  {connectionBlock('orange', 'wifi-outline', 'WiFi', remoteDeviceState.wifiStatus == 'Connected')}
+                  {connectionBlock('orange', 'cellular-outline', 'Cellular', remoteDeviceState.cellularConnected)}
+                  {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
+                  {connectionBlock('orange', 'cloud', 'Cloud', remoteDeviceState.isCloudConnected)}
+                </View>
               </View>
             }
             {
