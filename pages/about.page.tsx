@@ -1,40 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { IReactPageServices } from '../services/react-page-services';
 import Page from '../mobile-ui-common/page';
-import { Text, View, Image, TouchableOpacity, ActivityIndicator, TextStyle, Switch, Linking, Button, ViewStyle, } from 'react-native';
-import { ThemePalette, ThemePaletteService } from "../styles.palette.theme";
+import { Text, View, Image, Linking,} from 'react-native';
 import styles from '../styles';
 import * as Updates from 'expo-updates';
 import AppServices from '../services/app-services';
-import { Subscription } from "../utils/NuvIoTEventEmitter";
-import ViewStylesHelper from '../utils/viewStylesHelper';
+import IconButton from '../mobile-ui-common/icon-button';
+import { StaticContent } from '../services/content';
+import Paragraph from '../mobile-ui-common/paragraph';
+import { AppLogo } from '../mobile-ui-common/AppLogo';
+import WebLink from '../mobile-ui-common/web-link';
+import AppVersionLabel from '../mobile-ui-common/AppVersion';
 
 export const AboutPage = ({ props, navigation, route }: IReactPageServices) => {
-  const [themePalette, setThemePalette] = useState<ThemePalette>({} as ThemePalette);
-  const [initialCall, setInitialCall] = useState<boolean>(true);
-  const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
 
   let version = JSON.stringify(require("../package.json").version).replace('"', '').replace('"', '');
 
-  const primaryButtonStyle: ViewStyle = ViewStylesHelper.combineViewStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
-  const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);
-
-  useEffect(() => {
-    let changed = AppServices.themeChangeSubscription.addListener('changed', () => setThemePalette(AppServices.getAppTheme()));
-    setSubscription(changed);
-    var palette = AppServices.getAppTheme()
-    setThemePalette(palette);
-
-    if (initialCall) {
-      setInitialCall(false);
-    }
-    return (() => {
-
-      if (subscription)
-        AppServices.themeChangeSubscription.remove(subscription);
-    });
-  }, []);
-
+  const themePalette = AppServices.instance.getAppTheme();
   const onFetchUpdateAsync = async () => {
     console.log('hi there');
     try {
@@ -53,23 +35,16 @@ export const AboutPage = ({ props, navigation, route }: IReactPageServices) => {
     }
   }
 
-
-
   return <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
-    <View style={{padding: 16, width: "100%", height: "100%", backgroundColor: themePalette.background }} >
-    <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
+      <AppLogo />
+        <Paragraph content={StaticContent.appDescription}></Paragraph>
 
-    <TouchableOpacity style={[primaryButtonStyle, { marginTop: 30, }]} onPress={() => onFetchUpdateAsync()}>
-      <Text style={primaryButtonTextStyle}> Check for Updates </Text>
-    </TouchableOpacity>
-
-    <Text style={[styles.label, { color: themePalette.shellTextColor, fontSize: 18 }]}>Version: {version}</Text>
-    <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://www.nuviot.com')}> NuvIoT</Text>
-    <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://app.termly.io/document/terms-of-use-for-saas/90eaf71a-610a-435e-95b1-c94b808f8aca')}> Terms and Conditions</Text>
-    <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://app.termly.io/document/privacy-policy/fb547f70-fe4e-43d6-9a28-15d403e4c720')}> Privacy Statement</Text>
-    <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://www.software-logistics.com')}> Software Logistics, LLC</Text>
-    </View>
-
-
-  </Page>;
+        <IconButton color={themePalette.buttonPrimaryText} label={StaticContent.checkForUpdates} icon="cloud-download-outline" iconType="ion" onPress={() => onFetchUpdateAsync()} ></IconButton>
+        
+        <WebLink url="https://www.software-logistics.com" label="Software Logistics, LLC"  />
+        <WebLink url="https://www.nuviot.com" label="NuvIoT"  />
+        <WebLink url="https://app.termly.io/document/terms-of-use-for-saas/90eaf71a-610a-435e-95b1-c94b808f8aca" label="Terms and Conditions"  />
+        <WebLink url="https://app.termly.io/document/privacy-policy/fb547f70-fe4e-43d6-9a28-15d403e4c720" label="Privacy Statement"  />          
+        <AppVersionLabel />
+      </Page>;
 }

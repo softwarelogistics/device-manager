@@ -30,6 +30,7 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
   const [loopRate, setLoopRate] = useState<string>("250");
   const [sendUpdateRate, setSendUpdateRate] = useState<string>("250");
 
+  const [initialLoad, setInitialLoad] = useState<boolean>(true);
   const [viewReady, setViewReady] = useState<boolean>(false);
   const [handler, setHandler] = useState<string | undefined>(undefined);
 
@@ -97,11 +98,15 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
   }
 
   useFocusEffect(() => {
-    if (peripheralId) {
-      getData();
+    if(initialLoad) {
+      setInitialLoad(false);
+     
+      if (peripheralId) {
+        getData();
+      }
+      else 
+        throw 'peripheralId not set from calling page, must pass in as a parameter.'
     }
-    else 
-      throw 'peripheralId not set from calling page, must pass in as a parameter.'
   });
 
   useEffect(() => {

@@ -328,13 +328,12 @@ export class UserService {
   }
 
   async getThemeName(): Promise<string> {
-    return await this.nativeStorage.getItemAsync('colorTheme') || 'light';
+    return await this.nativeStorage.getItemAsync('colorTheme') ?? 'light';
   }
 
   async getThemePalette(): Promise<ThemePalette> {
     let theme = await this.getThemeName();
-    if(!theme)
-      theme = 'light';
+    console.log(theme);
     return ThemePaletteService.getThemePalette(theme);
   }
 

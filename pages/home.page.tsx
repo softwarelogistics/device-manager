@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Text, Platform, View, Image, TextInput, TouchableOpacity, TextStyle, ViewStyle, FlatList, Pressable, ActivityIndicator } from 'react-native';
+import { Text, View, Image, FlatList, Pressable } from 'react-native';
 import Icon from "react-native-vector-icons/Entypo";
 import IconIonicons from "react-native-vector-icons/Ionicons";
 import { IReactPageServices } from "../services/react-page-services";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from '../styles';
 import colors from "../styles.colors";
 import AppServices from "../services/app-services";
 import Page from "../mobile-ui-common/page";
 import SLIcon from "../mobile-ui-common/sl-icon";
-
+import { AppLogo } from "../mobile-ui-common/AppLogo";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function HomePage({ navigation }: IReactPageServices) {
   const [instances, setInstances] = useState<Deployment.DeploymentInstanceSummary[]>([]);
   const [user, setUser] = useState<Users.AppUser>();
+  const [firstLoad, setFirstLoad] = useState<boolean>(true);  
   const themePalette = AppServices.instance.getAppTheme();
 
   const loadInstances = async () => {
@@ -23,37 +24,15 @@ export default function HomePage({ navigation }: IReactPageServices) {
     setInstances(instances!.model!);
   }
 
-  useEffect(() => {
-
-    const focusSubscription = navigation.addListener("focus", () => {
-      loadInstances();
-    });
-
-    return (() => {
-      focusSubscription();
-    });
-  }, []);
-
-  const showScanPage = () => {
-    navigation.navigate('scanPage');
-  };
-
-  const showPage = (pageName: string) => {
-    navigation.navigate(pageName);
-  };
-
-  const logOut = async () => {
-    await AsyncStorage.setItem("isLoggedIn", "false");
-
-    await AsyncStorage.removeItem("jwt");
-    await AsyncStorage.removeItem("refreshtoken");
-    await AsyncStorage.removeItem("refreshtokenExpires");
-    await AsyncStorage.removeItem("jwtExpires");
-    navigation.replace('authPage');
-  };
+  useFocusEffect(() => {
+    if(firstLoad){
+      setFirstLoad(false);
+      loadInstances();    
+    }
+  })
 
   const showInstance = (instance: Deployment.DeploymentInstanceSummary) => {
-    navigation.navigate('instancePage', { instanceId: instance.id, repoId: instance.deviceRepoId, instanceName: instance.name });
+    AppServices.instance.navService.navigate('instancePage', { instanceId: instance.id, repoId: instance.deviceRepoId, instanceName: instance.name });
   }
 
   const myItemSeparator = () => { return <View style={{ height: 1, backgroundColor: "#c0c0c0git ", marginHorizontal: 6 }} />; };
@@ -73,40 +52,27 @@ export default function HomePage({ navigation }: IReactPageServices) {
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <View style={{ flexDirection: 'row' }} onTouchStart={() => showPage('profilePage')}>
-        {/* <Image source={require('../assets/settings.png')} style={{ width: 24, height: 24 }} /> */}
-        <IconIonicons name="cog-outline" color={colors.white} size={24} />    
-      </View>
+        <View style={{ flexDirection: 'row' }} onTouchStart={() => AppServices.instance.navService.navigate('profilePage')}>
+          <IconIonicons name="cog-outline" color={colors.white} size={24} />    
+        </View>
       )
     });
   });
 
-
   return (
-    <Page >
-      {/* <StatusBar style="auto" /> */}
-      <View style={{padding: 16, width: "100%", height: "100%", backgroundColor: themePalette.background }} >
-        {/* <Image style={[{ marginTop: 30, marginBottom: 30, alignSelf: "center" }]} source={require('../assets/logo.png')} /> */}
-        <Image style={[{ marginTop: 30, marginBottom: 30, alignSelf: "center" }]} source={require('../assets/app-icon.png')} />
-        <Text style={[{ textAlign: 'center', marginBottom: 5, color: themePalette.shellTextColor, fontSize: 24 }]}>{user?.currentOrganization.text} Instances</Text>
-        <FlatList
-          contentContainerStyle={{ height: "auto"  }}
-          style={{ backgroundColor: themePalette.background, width: "100%" }}
-          ItemSeparatorComponent={myItemSeparator}
-          ListEmptyComponent={myListEmpty}
-          data={instances}
-          renderItem={({ item }) =>
+    <Page  >
+      <View style={[styles.stdPadding]} >
+        <AppLogo />
+        <Text style={[{ marginBottom: 5, color: themePalette.shellTextColor, fontSize: 24 }]}>{user?.currentOrganization.text} Instances</Text>
+        <FlatList contentContainerStyle={{ height: "auto"  }} style={{ backgroundColor: themePalette.background, width: "100%" }} 
+          ItemSeparatorComponent={myItemSeparator} ListEmptyComponent={myListEmpty}data={instances} renderItem={({ item }) => 
             <Pressable onPress={() => showInstance(item)} key={item.id} >
-              <View style={[styles.listRow, { display:"flex", alignItems:"center", gap:16, padding: 8, margin: 8, height: 72, backgroundColor: themePalette.inputBackgroundColor, borderRadius: 8 }]}  >
-              
-                {/* <SLIcon icon={item.icon} /> */}
-                {/* <Image source={require('../assets/product-img.png')} /> */}
+              <View style={[styles.listRow, { display:"flex", alignItems:"center", gap:16, padding: 8, margin: 8, height: 72, backgroundColor: themePalette.inputBackgroundColor, borderRadius: 8 }]}  >              
                 <View style={{ backgroundColor: colors.primaryBlue, borderRadius: 8, height: 56, width: 56, alignItems: "center", justifyContent: "center",}}>
                       <SLIcon icon={item.icon} />
-                    </View>
+                  </View>
                 <View style={{ flexDirection: 'column', flex: 1 }}>
-              <View >
-                <Text style={{ color: themePalette.name === 'light' ? colors.darkTitle : colors.white  , marginBottom: 3, fontSize: 16 }}>{item.name}</Text>
+              <View > <Text style={{ color: themePalette.name === 'light' ? colors.darkTitle : colors.white  , marginBottom: 3, fontSize: 16 }}>{item.name}</Text>
               </View>
                 <Text style={{ color:themePalette.subtitleColor, fontSize: 14 }}>{item.description}</Text>
               </View>
@@ -116,7 +82,7 @@ export default function HomePage({ navigation }: IReactPageServices) {
             </Pressable>
           }
         />
-      </View>
+        </View>
     </Page>
   );
 }

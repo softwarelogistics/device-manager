@@ -80,8 +80,7 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
 
   let idx: number = 0;
   return (
-    <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
-      <StatusBar style="auto" />
+    <Page >
         {
           orgs && user && 
           <View style={{ height:'100%', backgroundColor: themePalette.background, width: "100%" }}>
@@ -95,12 +94,12 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
                       <Text style={[styles.currentOrganizationHeader, { color: themePalette.shellTextColor }]}>Current Organization</Text>
                       <View style={[styles.currentOrganizationView, { backgroundColor: themePalette.currentOrganizationBackgroundColor }]}>
                         <View>
-                          <MciIcon name='circle' style={currentOrganizationHeaderCircleStyle} />
+                          <MciIcon name='circle' style={currentOrganizationHeaderCircleStyle} />Cur
                           <Text style={currentOrganizationHeaderCircleOverlayStyle}>{user.currentOrganizationInitials || '?'}</Text>
                         </View>
                         <Text style={currentOrganizationHeaderNameStyle}>{user.currentOrganization.text}</Text>
                       </View>
-                      <Text style={[styles.currentOrganizationHeader, { marginTop: 30, color: themePalette.shellTextColor, fontWeight: 600 }]}>Switch Organization:</Text>
+                      <Text style={[styles.currentOrganizationHeader, { marginTop: 30, color: themePalette.shellTextColor, fontWeight: "600" }]}>Switch Organization:</Text>
                  </View>
                   )
                 }}

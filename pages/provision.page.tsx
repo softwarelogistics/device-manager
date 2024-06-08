@@ -47,7 +47,6 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   const [defaultListener, setDefaultListener] = useState<PipelineModules.ListenerConfiguration | undefined>(undefined);
   const [useDefaultListener, setUseDefaultListener] = useState<boolean>(false);
 
-
   const themePalette = AppServices.instance.getAppTheme();
   const peripheralId = route.params.id;
 

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Image, Text, TextStyle, TouchableOpacity, View } from 'react-native';
+import { useEffect } from "react";
+import { Text, TouchableOpacity, View } from 'react-native';
 import AppServices from "../services/app-services";
 import styles from "../styles"
 import ViewStylesHelper from "../utils/viewStylesHelper";
@@ -12,7 +12,7 @@ export interface IconButtonProperties {
   label: string;
   icon: string;
   iconType: string;  
-  color: string;
+  color?: string;
   onPress: (() => void);
   center?: boolean
 }
@@ -22,6 +22,9 @@ export default function IconButton(props: IconButtonProperties) {
 
   const profilePagePrimaryButtonStyle = ViewStylesHelper.combineTextStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
   const submitButtonWhiteTextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, styles.submitButtonTextBlack, { color: themePalette.buttonPrimaryText }]);
+
+  if(!props.color)
+    props.color = themePalette.buttonPrimaryText;
 
   useEffect(() => {
     

@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { IReactPageServices } from "../services/react-page-services";
-import { StatusBar } from 'expo-status-bar';
-import { Image, View, Text, Linking } from 'react-native';
+import { View } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import styles from '../styles';
 import AppServices from "../services/app-services";
 import Page from "../mobile-ui-common/page";
-import palettes from "../styles.palettes";
-import { CommonActions } from "@react-navigation/native";
+import { CommonActions, useFocusEffect } from "@react-navigation/native";
 import IconButton from "../mobile-ui-common/icon-button";
+import WebLink from "../mobile-ui-common/web-link";
+import { AppLogo } from "../mobile-ui-common/AppLogo";
+import AppVersionLabel from "../mobile-ui-common/AppVersion";
+import Paragraph from "../mobile-ui-common/paragraph";
+import { StaticContent } from "../services/content";
 
 export default function SplashPage({ navigation }: IReactPageServices) {
   
   const checkStartup = async () => {
+    console.log('checking startup');
     if ((await AsyncStorage.getItem("isLoggedIn")) == "true") {
       let user = await AppServices.instance.userServices.getUser();
       if(!user!.emailConfirmed)
@@ -30,16 +33,9 @@ export default function SplashPage({ navigation }: IReactPageServices) {
     }
   }
 
-  let version = JSON.stringify(require("../package.json").version)
-
-  version = version.replace('"', '').replace('"','');
-  console.log(`[SplashPage__checkStartup] version ${version}`);
-
   const themePalette = AppServices.instance.getAppTheme();
 
-  React.useLayoutEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
+  React.useLayoutEffect(() => { navigation.setOptions({ headerShown: false }); }, [navigation]);
 
   const login = async () => {
     navigation.dispatch(
@@ -52,30 +48,26 @@ export default function SplashPage({ navigation }: IReactPageServices) {
     );
   }
 
-  const register = async () => {
-    navigation.replace('registerPage');
-  }
+  useFocusEffect(() => {
+    AppServices.instance.navService.setTopLevelNavigator(navigation);
+  })
 
-  useEffect(() => {
+  useFocusEffect(() => {
     checkStartup();   
-  }, []);
+  });
 
   return (
     <Page>
-      <View style={{padding: 16, width: "100%", height: "100%", backgroundColor:  themePalette.name  === 'dark' ?  palettes.darkBackground : palettes.lightBackground }}>
-        <StatusBar style="auto" />
-        <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
-
-        <Text style={[styles.labelTitle, styles.mt_20, { color:  themePalette.name  === 'dark' ? palettes.primary.white : palettes.primary.black, marginBottom:20 }]}>The Device Manager Application is used to Provision and Configure hardware devices that work with the NuvIoT ecosystem.</Text>
-        <IconButton color={themePalette.buttonPrimaryText} label="Log In" icon="login" iconType="mci" onPress={() => login()} ></IconButton>
+        <AppLogo/>        
+        <Paragraph content={StaticContent.appDescription}></Paragraph>
+        <IconButton color={themePalette.buttonPrimaryText} label={StaticContent.login} icon="login" iconType="mci" onPress={() => login()} ></IconButton>
         
-        <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://www.nuviot.com')}> NuvIoT</Text>
-        <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://app.termly.io/document/terms-of-use-for-saas/90eaf71a-610a-435e-95b1-c94b808f8aca')}> Terms and Conditions</Text>
-        <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://app.termly.io/document/privacy-policy/fb547f70-fe4e-43d6-9a28-15d403e4c720')}> Privacy Statement</Text>
-        <Text style={[styles.link, styles.mt_20, { color: themePalette.accentColor }]} onPress={() => Linking.openURL('https://www.software-logistics.com')}> Software Logistics, LLC</Text>
-        <Text style={[styles.label, styles.mt_20, { color:  themePalette.name  === 'dark' ? palettes.primary.white : palettes.primary.black, fontSize: 18 }]}>Version: {version}</Text>
+        <WebLink url="https://www.software-logistics.com" label="Software Logistics, LLC"  />
+        <WebLink url="https://www.nuviot.com" label="NuvIoT"  />
+        <WebLink url="https://app.termly.io/document/terms-of-use-for-saas/90eaf71a-610a-435e-95b1-c94b808f8aca" label="Terms and Conditions"  />
+        <WebLink url="https://app.termly.io/document/privacy-policy/fb547f70-fe4e-43d6-9a28-15d403e4c720" label="Privacy Statement"  />      
 
-      </View>
+        <AppVersionLabel/>
     </Page>
   );
 }

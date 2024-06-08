@@ -1,11 +1,8 @@
-import { useEffect, useState } from "react";
 import { Text, View, TextInput, } from 'react-native';
 import AppServices from "../services/app-services";
 import styles from "../styles"
-import { Subscription } from "../utils/NuvIoTEventEmitter";
 import colors from "../styles.colors";
 import palettes from "../styles.palettes";
-
 
 export interface EditFieldProps {
     label: string,

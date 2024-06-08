@@ -15,6 +15,7 @@ import { Subscription } from "../utils/NuvIoTEventEmitter";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { HttpClient } from "../core/utils";
 import IconButton from '../mobile-ui-common/icon-button';
+import { AppLogo } from "../mobile-ui-common/AppLogo";
 
 export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
   const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
@@ -98,9 +99,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
 
   return (
     <Page>
-      <View style={{ marginTop: 40, padding: 16, width: "100%", height: "100%", backgroundColor: themePalette.background }} >
-
-        <Image style={logoAuthImageStyle} source={require('../assets/app-icon.png')} />
+        <AppLogo />
         {
           isBusy &&
           <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
@@ -111,16 +110,15 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
         }
         {
           !isBusy && isSignInEmail &&
-          <KeyboardAwareScrollView style={styles.formGroup}>
+          <KeyboardAwareScrollView >
 
-            <View style={styles.formGroup}>
+            <View >
               <Text style={[styles.header, { color: themePalette.shellTextColor }]}>Login with Email</Text>
               <EditField onChangeText={e => setEmail(e)} label='Email' placeHolder="please enter email" />
               <EditField onChangeText={e => setPassword(e)} label='Password' secureTextEntry={true} placeHolder="password" />
 
               {false && <Text style={styles.authForgotPasswordLink}>Forgot Password?</Text>}
 
-              {/* <StatusBar style="auto"  /> */}
               <IconButton color={themePalette.buttonPrimaryText} label="Log In" icon="login" iconType="mci" onPress={() => login(email, password)} ></IconButton>
               <IconButton color={themePalette.buttonPrimaryText} label="Cancel" icon="arrow-collapse-left" iconType="mci" onPress={() => setIsSignInEmail(false)} ></IconButton>
             </View>
@@ -128,7 +126,7 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
         }
         {
           !isBusy && !isSignInEmail && externalProviders &&
-          <View style={styles.formGroup}>
+          <View >
             {
               externalProviders && externalProviders.map((provider: any, i: number) => {
                 return (<NavButton key={i} label={provider.name} imageUrl={provider.logo} onPress={() => loginExternal(provider.name)}></NavButton>)
@@ -144,7 +142,6 @@ export const AuthPage = ({ navigation, props, route }: IReactPageServices) => {
 
           </View>
         }
-      </View>
     </Page>
   );
 }

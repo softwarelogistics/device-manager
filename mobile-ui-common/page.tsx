@@ -29,21 +29,20 @@ export default function Page(props: any) {
 
     const login = () => {
         console.log('[Page__login] - Navigate to Login Page.');
-        navigation.replace('authPage')
+        AppServices.instance.navService.redirectToLogin();
     };
 
     return (
-        <View style={[styles.container, { width: '100%', backgroundColor: themePalette.background }]}>
+        <View style={[{ width: '100%', height:'100%', backgroundColor: themePalette.background }]}>
             {
                 isAuthenticated && !isBusy &&
-                <View style={[styles.container, { width: '100%', backgroundColor: themePalette.background }]}>
+                <View style={[{width:'100%',height:'100%' }]}>
                     {props.children}
                 </View>
             }
             {
                 !isAuthenticated && !isBusy &&
-
-                <View style={styles.formGroup}>
+                <View style={[{width:'100%',height:'100%' }]}>
                     <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
                     <Text style={[styles.spinnerText, { color: themePalette.shellTextColor }]}>Sorry, you have been logged out due to inactivity.</Text>
                     <StdButton onPress={login} label="Login"></StdButton>

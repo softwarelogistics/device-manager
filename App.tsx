@@ -26,7 +26,6 @@ import { useEffect, useState } from 'react';
 import { OAuthHandlerPage } from './pages/oauthHandlerPage';
 import { Subscription } from './utils/NuvIoTEventEmitter';
 import { ThemePalette, ThemePaletteService } from './styles.palette.theme';
-import { DevicesPage } from './pages/devices.page';
 import { InstancePage } from './pages/instance.page';
 import { ProfilePage } from './pages/profilePage';
 import { DeviceProfilePage } from './pages/deviceProfilePage';
@@ -155,7 +154,6 @@ const App = () => {
         <Stack.Screen name="splashPage" component={SplashPage} options={{ title: 'Welcome' }} />
         <Stack.Screen name="tempSensorsPage" component={TempSensorPage} options={{ title: 'Sensors' }} />
         <Stack.Screen name="instancePage" component={InstancePage} options={{ title: 'Devices' }} />
-        <Stack.Screen name="devicesPage" component={DevicesPage} options={{ title: 'Devices' }} />
         <Stack.Screen name="profilePage" component={ProfilePage} options={{ title: 'Profile' }} />
         <Stack.Screen name="aboutPage" component={AboutPage} options={{ title: 'About' }} />
         <Stack.Screen name="advancedPage" component={DeviceAdvancedPage} options={{ title: 'Advanced' }} />
@@ -165,8 +163,7 @@ const App = () => {
         <Stack.Screen name="confirmemail" component={ConfirmEmailPage} options={{ title: 'Confirm Email' }} />
         <Stack.Screen name="acceptInvite" component={AcceptInvitePage} options={{ title: 'Accept Invitation' }} />
       </Stack.Navigator>
-    </NavigationContainer>
- 
+    </NavigationContainer> 
   );
 }
 
