@@ -11,7 +11,7 @@ import { CommonActions, useFocusEffect } from "@react-navigation/native";
 import { AppLogo } from "../mobile-ui-common/AppLogo";
 
 
-export const ProfilePage = ({ navigation, props, route }: IReactPageServices) => {
+export const UserOptionsPage = ({ navigation, props, route }: IReactPageServices) => {
     const [currentTheme, setCurrentTheme] = useState('light')
 
     const themePalette = AppServices.instance.getAppTheme();
@@ -54,7 +54,7 @@ export const ProfilePage = ({ navigation, props, route }: IReactPageServices) =>
             <ScrollView style={[styles.stdPadding]}>
               <AppLogo />
               <IconButton color={themePalette.buttonPrimaryText} label="Switch Organization" icon="podium-outline" iconType="ion" onPress={() => showPage('changeOrgsPage')} ></IconButton>
-              <IconButton color={themePalette.buttonPrimaryText} label="Settings" icon="settings-outline" iconType="ion" onPress={() => showPage('accountPage')} ></IconButton>
+              <IconButton color={themePalette.buttonPrimaryText} label="Settings" icon="settings-outline" iconType="ion" onPress={() => showPage('settingsPage')} ></IconButton>
               <IconButton color={themePalette.buttonPrimaryText} label="Log Out" icon="log-out-outline" iconType="ion" onPress={() => logOut()} ></IconButton>        
               <IconButton color={themePalette.buttonPrimaryText} label="About" icon="log-out-outline" iconType="ion" onPress={() => showPage('aboutPage')} ></IconButton>        
             </ScrollView>

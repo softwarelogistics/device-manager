@@ -13,7 +13,7 @@ export const WelcomePage = ({ navigation, props, route }: IReactPageServices) =>
         <Image style={styles.logoImage} source={require('../assets/app-icon.png')} />
           <IconButton label="Home" icon="home" iconType="ion" onPress={() => AppServices.instance.navService.replace('homePage')} ></IconButton>
           <IconButton label="Switch Organization" icon="podium-outline" iconType="ion" onPress={() => AppServices.instance.navService.navigate('changeOrgsPage')} ></IconButton>
-          <IconButton label="Settings" icon="settings-outline" iconType="ion" onPress={() => AppServices.instance.navService.navigate('accountPage')} ></IconButton>
+          <IconButton label="Settings" icon="settings-outline" iconType="ion" onPress={() => AppServices.instance.navService.navigate('settingsPage')} ></IconButton>
           <IconButton label="About" icon="information-circle-outline" iconType="ion" onPress={() => AppServices.instance.navService.navigate('aboutPage')} ></IconButton>
           <IconButton label="Log Out" icon="log-out-outline" iconType="ion" onPress={() => AppServices.instance.navService.logout()} ></IconButton>        
       </ScrollView>

@@ -24,7 +24,7 @@ type UserSelections = {
   phoneNumber: string;
 };
 
-export const AccountPage = ({
+export const SettingsPage = ({
   props,
   navigation,
   route,
@@ -190,4 +190,4 @@ export const AccountPage = ({
   );
 };
 
-export default AccountPage;
+export default SettingsPage;

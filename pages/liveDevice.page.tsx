@@ -157,7 +157,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
       setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
     }
 
-    navigation.navigate('configureDevice', { peripheralId: peripheralId, deviceRepoId:deviceRepoId, instanceRepoId:instanceRepoId, deviceId: deviceId });
+    navigation.navigate('deviceOptionsPage', { peripheralId: peripheralId, deviceRepoId:deviceRepoId, instanceRepoId:instanceRepoId, deviceId: deviceId });
   }
 
   const loadDevice = async () => {

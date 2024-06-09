@@ -6,11 +6,11 @@ import * as Linking from 'expo-linking';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppServices from './services/app-services';
 
-import AccountPage from './pages/account.page';
+import SettingsPage from './pages/settings.page';
 import AuthPage from './pages/auth.page';
 import { BlePropertiesPage } from './pages/bleproperties.page';
 import ChangeOrgPage from './pages/changeOrgs.page';
-import { ConfigureDevicePage } from './pages/configureDevice.page';
+import { DeviceOptionsPage } from './pages/deviceOptions.page';
 import { ConnectivityPage } from './pages/connectivity.page';
 import { LiveDevicePage } from './pages/liveDevice.page';
 import DfuPage from './pages/dfu.page';
@@ -27,7 +27,7 @@ import { OAuthHandlerPage } from './pages/oauthHandlerPage';
 import { Subscription } from './utils/NuvIoTEventEmitter';
 import { ThemePalette, ThemePaletteService } from './styles.palette.theme';
 import { InstancePage } from './pages/instance.page';
-import { ProfilePage } from './pages/profilePage';
+import { UserOptionsPage } from './pages/userOptionsPage';
 import { DeviceProfilePage } from './pages/deviceProfilePage';
 import { WelcomePage } from './pages/welcomePage';
 import { AboutPage } from './pages/about.page';
@@ -120,7 +120,7 @@ const App = () => {
     if (url) {
       parseSchemeUrl(url)
     }
-    
+
     if (initialCall) {
       initialLoad();
     }
@@ -131,37 +131,49 @@ const App = () => {
   return (
     <NavigationContainer theme={navigationTheme} linking={linking}>
       <Stack.Navigator initialRouteName={initialPage} screenOptions={{ headerBackTitleVisible: false,  headerTintColor: palettes.primary.white, headerStyle: { backgroundColor: colors.primaryBlue } }}>
-        <Stack.Screen name="accountPage" component={AccountPage} options={{ title: 'Settings' }} />
+        <Stack.Screen name="splashPage" component={SplashPage} options={{ title: 'Welcome' }} />
         <Stack.Screen name="oauthHandlerPage" component={OAuthHandlerPage} options={{ title: 'Third Party Login' }} />
         <Stack.Screen name="authPage" component={AuthPage} options={{ title: ' ' }} />
-        <Stack.Screen name="blePropertiesPage" component={BlePropertiesPage} options={{ title: 'Device Properties' }} />
+   
+        <Stack.Screen name="registerPage" component={RegisterPage} options={{ title: ' ' }} />
+  
+        <Stack.Screen name="userOptionsPage" component={UserOptionsPage} options={{ title: 'Menu' }} />
+        <Stack.Screen name="settingsPage" component={SettingsPage} options={{ title: 'Settings' }} />
+        <Stack.Screen name="aboutPage" component={AboutPage} options={{ title: 'About' }} />
+   
+        <Stack.Screen name="createorg" component={CreateOrgPage} options={{ title: 'Create New Organization' }} />
         <Stack.Screen name="changeOrgsPage" component={ChangeOrgPage} options={{ title: 'Organizations' }} />
-        <Stack.Screen name="configureDevice" component={ConfigureDevicePage} options={{ title: 'Configure Device' }} />
-        <Stack.Screen name="liveDevicePage" component={LiveDevicePage} options={{ title: 'Device Info' }} />
-        <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
-        <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
+        <Stack.Screen name="confirmemail" component={ConfirmEmailPage} options={{ title: 'Confirm Email' }} />
+        <Stack.Screen name="acceptInvite" component={AcceptInvitePage} options={{ title: 'Accept Invitation' }} />
+   
+
         <Stack.Screen name="home" component={HomePage} options={{ title: 'Home' }} />
         <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home' }} />
         <Stack.Screen name="seaWolfHomePage" component={SeaWolfHomePage} options={{ title: 'SeaWolf Home' }} />
         <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />
         <Stack.Screen name="homeWelcome" component={WelcomePage} options={{ title: 'Welcome' }} />
+      
+        <Stack.Screen name="deviceOptionsPage" component={DeviceOptionsPage} options={{ title: 'Configure Device' }} />
+        <Stack.Screen name="liveDevicePage" component={LiveDevicePage} options={{ title: 'Device Info' }} />
+        <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
         <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
-        <Stack.Screen name="registerPage" component={RegisterPage} options={{ title: ' ' }} />
+  
         <Stack.Screen name="scanPage" component={ScanPage} options={{ title: 'Scan for Devices' }} />
         <Stack.Screen name="associatePage" component={AssociatePage} options={{ title: 'Associate Existing Device' }} />
-        <Stack.Screen name="sensorsPage" component={SensorsPage} options={{ title: 'Sensors' }} />
-        <Stack.Screen name="settingsPage" component={ConnectivityPage} options={{ title: 'Device Connectivity' }} />
-        <Stack.Screen name="splashPage" component={SplashPage} options={{ title: 'Welcome' }} />
-        <Stack.Screen name="tempSensorsPage" component={TempSensorPage} options={{ title: 'Sensors' }} />
+       
         <Stack.Screen name="instancePage" component={InstancePage} options={{ title: 'Devices' }} />
-        <Stack.Screen name="profilePage" component={ProfilePage} options={{ title: 'Profile' }} />
-        <Stack.Screen name="aboutPage" component={AboutPage} options={{ title: 'About' }} />
+       
+        <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
+        <Stack.Screen name="sensorsPage" component={SensorsPage} options={{ title: 'Sensors' }} />
+        <Stack.Screen name="connectivityPage" component={ConnectivityPage} options={{ title: 'Device Connectivity' }} />
+        <Stack.Screen name="tempSensorsPage" component={TempSensorPage} options={{ title: 'Sensors' }} />
         <Stack.Screen name="advancedPage" component={DeviceAdvancedPage} options={{ title: 'Advanced' }} />
+   
         <Stack.Screen name="consolePage" component={ConsolePage} options={{ title: 'Console' }} />
         <Stack.Screen name="canMonitorPage" component={CanMonitorPage} options={{ title: 'Can Monitor' }} />
-        <Stack.Screen name="createorg" component={CreateOrgPage} options={{ title: 'Create New Organization' }} />
-        <Stack.Screen name="confirmemail" component={ConfirmEmailPage} options={{ title: 'Confirm Email' }} />
-        <Stack.Screen name="acceptInvite" component={AcceptInvitePage} options={{ title: 'Accept Invitation' }} />
+   
+        <Stack.Screen name="blePropertiesPage" component={BlePropertiesPage} options={{ title: 'Device Properties' }} />
+   
       </Stack.Navigator>
     </NavigationContainer> 
   );

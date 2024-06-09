@@ -17,7 +17,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 
 let simData = new SimulatedData();
 
-export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServices) => {
+export const DeviceOptionsPage = ({ props, navigation, route }: IReactPageServices) => {
   const [isBusy, setIsBusy] = useState<boolean>(false);
 
   const themePalette = AppServices.instance.getAppTheme();

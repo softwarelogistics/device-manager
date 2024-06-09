@@ -52,7 +52,7 @@ export default function HomePage({ navigation }: IReactPageServices) {
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <View style={{ flexDirection: 'row' }} onTouchStart={() => AppServices.instance.navService.navigate('profilePage')}>
+        <View style={{ flexDirection: 'row' }} onTouchStart={() => AppServices.instance.navService.navigate('userOptionsPage')}>
           <IconIonicons name="cog-outline" color={colors.white} size={24} />    
         </View>
       )

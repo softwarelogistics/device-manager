@@ -1,7 +1,6 @@
 import React from 'react';
 import { IReactPageServices } from '../services/react-page-services';
 import Page from '../mobile-ui-common/page';
-import { Text, View, Image, Linking,} from 'react-native';
 import styles from '../styles';
 import * as Updates from 'expo-updates';
 import AppServices from '../services/app-services';
@@ -11,6 +10,7 @@ import Paragraph from '../mobile-ui-common/paragraph';
 import { AppLogo } from '../mobile-ui-common/AppLogo';
 import WebLink from '../mobile-ui-common/web-link';
 import AppVersionLabel from '../mobile-ui-common/AppVersion';
+import { View } from 'react-native';
 
 export const AboutPage = ({ props, navigation, route }: IReactPageServices) => {
 
@@ -35,7 +35,8 @@ export const AboutPage = ({ props, navigation, route }: IReactPageServices) => {
     }
   }
 
-  return <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
+  return <Page style={[styles.container,  { backgroundColor: themePalette.background }]}>
+      <View style={[styles.stdPadding]}>
       <AppLogo />
         <Paragraph content={StaticContent.appDescription}></Paragraph>
 
@@ -46,5 +47,6 @@ export const AboutPage = ({ props, navigation, route }: IReactPageServices) => {
         <WebLink url="https://app.termly.io/document/terms-of-use-for-saas/90eaf71a-610a-435e-95b1-c94b808f8aca" label="Terms and Conditions"  />
         <WebLink url="https://app.termly.io/document/privacy-policy/fb547f70-fe4e-43d6-9a28-15d403e4c720" label="Privacy Statement"  />          
         <AppVersionLabel />
-      </Page>;
+        </View>
+        </Page>;
 }

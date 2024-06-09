@@ -172,7 +172,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
   const showConfigurePage = async () => {
     if (isDeviceConnected) {
-      await showPage('configureDevice');      
+      await showPage('deviceOptionsPage');      
     }
     else {
       alert('You must be connected to your device via Bluetooth to Remotely Configure device.');
