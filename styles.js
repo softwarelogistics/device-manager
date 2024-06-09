@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
 
   currentOrganizationView: {
     width: '100%',
-    height: 150,
+    height: 75,
     backgroundColor: colors.primaryColor,
     fontSize: fontSizes.medium,
     fontWeight: 700

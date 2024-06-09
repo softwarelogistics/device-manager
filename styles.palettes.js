@@ -179,7 +179,7 @@ const palettes = {
     inputBackgroundColor: '#ffffff',
     listItemIconColor: '#1976D2',
     shell: '#FFFFFF',
-    shellNavColor: '#111111',
+    shellNavColor: '#ffffff',
     shellTextColor: '#000000',
     subtitleColor: '#999999',
     toggleColor: '#000000',

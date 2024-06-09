@@ -14,7 +14,7 @@ import { DeviceOptionsPage } from './pages/deviceOptions.page';
 import { ConnectivityPage } from './pages/connectivity.page';
 import { LiveDevicePage } from './pages/liveDevice.page';
 import DfuPage from './pages/dfu.page';
-import HomePage from './pages/home.page';
+import InstancesPage from './pages/instances.page';
 import ProvisionPage from './pages/provision.page';
 import RegisterPage from './pages/register.page';
 import ScanPage from './pages/scan.page';
@@ -147,11 +147,12 @@ const App = () => {
         <Stack.Screen name="acceptInvite" component={AcceptInvitePage} options={{ title: 'Accept Invitation' }} />
    
 
-        <Stack.Screen name="home" component={HomePage} options={{ title: 'Home' }} />
-        <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home' }} />
-        <Stack.Screen name="seaWolfHomePage" component={SeaWolfHomePage} options={{ title: 'SeaWolf Home' }} />
-        <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />
         <Stack.Screen name="homeWelcome" component={WelcomePage} options={{ title: 'Welcome' }} />
+        <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />
+        <Stack.Screen name="home" component={InstancesPage} options={{ title: 'Instances' }} />
+        <Stack.Screen name="instancesPage" component={InstancesPage} options={{ title: 'Instances' }} />
+        <Stack.Screen name="homePage" component={InstancesPage} options={{ title: 'Instances' }} />
+        <Stack.Screen name="seaWolfHomePage" component={SeaWolfHomePage} options={{ title: 'SeaWolf Home' }} />
       
         <Stack.Screen name="deviceOptionsPage" component={DeviceOptionsPage} options={{ title: 'Configure Device' }} />
         <Stack.Screen name="liveDevicePage" component={LiveDevicePage} options={{ title: 'Device Info' }} />

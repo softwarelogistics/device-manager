@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 
 import { IReactPageServices } from "../services/react-page-services";
-import { StatusBar } from "expo-status-bar";
 import { View, Text, FlatList, ActivityIndicator, Pressable, Alert, ViewStyle, TextStyle } from "react-native";
 import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import OctIcon from "react-native-vector-icons/Octicons";
@@ -10,7 +9,6 @@ import AppServices from '../services/app-services';
 
 import styles from '../styles';
 import colors from "../styles.colors";
-import fontSizes from "../styles.fontSizes";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import palettes from "../styles.palettes";
 import Page from "../mobile-ui-common/page";
@@ -66,9 +64,7 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
     }
   });
 
-  const currentOrganizationHeaderCircleStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.iconButtonCircle, styles.alignCenter, { color: colors.white, fontSize: 72, marginTop: 16, textAlign: 'center' }]);
-  const currentOrganizationHeaderCircleOverlayStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.iconButtonCircleOverlay, { color: colors.accentColor, fontSize: 21.3333, fontWeight: '400', top: -(fontSizes.iconButtonLarge + 20) }]);
-  const currentOrganizationHeaderNameStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.alignCenter, { color: colors.white, marginTop: 0, paddingTop: 0, fontSize: 18, fontWeight: '700', top: -(fontSizes.iconButtonLarge - 10) }]);
+  const currentOrganizationHeaderNameStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.alignCenter, { color: colors.white, marginTop: 0, paddingTop: 0, fontSize: 18, fontWeight: '700', top: 30 }]);
   const selectOrganizationCircleStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.iconButtonCircle, { color: colors.transparent, fontSize: 48, marginTop: 0, paddingTop: 0 }]);
   const selectOrganizationTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.alignVerticalMiddle, { color: themePalette.shellTextColor, marginLeft: -14, marginTop: 14, paddingTop: 0, fontSize: 18, fontWeight: '700' }]);
 
@@ -80,7 +76,7 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
 
   let idx: number = 0;
   return (
-    <Page >
+    <Page>
         {
           orgs && user && 
           <View style={{ height:'100%', backgroundColor: themePalette.background, width: "100%" }}>
@@ -90,17 +86,10 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
                 ItemSeparatorComponent={myItemSeparator}
                 stickyHeaderIndices={[0]}
                 ListHeaderComponent={() => {
-                  return ( <View style={{height:'auto', backgroundColor: themePalette.background }} >
-                      <Text style={[styles.currentOrganizationHeader, { color: themePalette.shellTextColor }]}>Current Organization</Text>
+                  return ( 
                       <View style={[styles.currentOrganizationView, { backgroundColor: themePalette.currentOrganizationBackgroundColor }]}>
-                        <View>
-                          <MciIcon name='circle' style={currentOrganizationHeaderCircleStyle} />Cur
-                          <Text style={currentOrganizationHeaderCircleOverlayStyle}>{user.currentOrganizationInitials || '?'}</Text>
-                        </View>
                         <Text style={currentOrganizationHeaderNameStyle}>{user.currentOrganization.text}</Text>
                       </View>
-                      <Text style={[styles.currentOrganizationHeader, { marginTop: 30, color: themePalette.shellTextColor, fontWeight: "600" }]}>Switch Organization:</Text>
-                 </View>
                   )
                 }}
                 ListEmptyComponent={myListEmpty}

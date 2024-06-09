@@ -36,6 +36,8 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const [connectionState, setConnectionState] = useState<number>(IDLE);
   const [sysConfig, setSysConfig] = useState<SysConfig>();
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+  const [initialLoad, setInitialLoad] = useState<boolean>(true);
+
 
   const peripheralId = route.params.id;
   const instanceRepoId = route.params.instanceRepoId;
@@ -174,11 +176,12 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     await connectToBLE();
   }
 
-  useFocusEffect(() => {
-    loadDevice();    
-  });
-
   useEffect(() => {
+    if(initialLoad) {
+      setInitialLoad(false);
+      loadDevice();
+    }
+   
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
       if (connectionState == CONNECTING) {
         ble.cancelConnect();

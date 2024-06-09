@@ -7,11 +7,12 @@ import Icon from "react-native-vector-icons/Ionicons";
 import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import colors from "../styles.colors";
 import fontSizes from "../styles.fontSizes";
+import SLIcon from "./sl-icon";
 
 export interface IconButtonProperties {
   label: string;
   icon: string;
-  iconType: string;  
+  iconType: string;
   color?: string;
   onPress: (() => void);
   center?: boolean
@@ -23,34 +24,37 @@ export default function IconButton(props: IconButtonProperties) {
   const profilePagePrimaryButtonStyle = ViewStylesHelper.combineTextStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
   const submitButtonWhiteTextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, styles.submitButtonTextBlack, { color: themePalette.buttonPrimaryText }]);
 
-  if(!props.color)
+  if (!props.color)
     props.color = themePalette.buttonPrimaryText;
 
   useEffect(() => {
-    
+
   }, []);
 
   const renderIonIcon = () => {
     return <Icon.Button
-          name={props.icon}
-          style={profilePagePrimaryButtonStyle}
-          color={themePalette.buttonPrimaryText}
-          backgroundColor={colors.transparent}
-          onPress={() => props.onPress()}>
-          <Text style={submitButtonWhiteTextStyle}> {props.label} </Text>
-    </Icon.Button>}
+      name={props.icon}
+      style={profilePagePrimaryButtonStyle}
+      color={themePalette.buttonPrimaryText}
+      backgroundColor={colors.transparent}
+      onPress={() => props.onPress()}>
+      <Text style={submitButtonWhiteTextStyle}> {props.label} </Text>
+    </Icon.Button>
+  }
 
-  const renderMciIcon = ()  => {
+
+  const renderMciIcon = () => {
     return <TouchableOpacity style={styles.submitButton} onPress={() => props.onPress()}>
-    <MciIcon name={props.icon} style={[{ marginTop:3, color: themePalette.buttonPrimaryText, textAlign: "center", fontSize: fontSizes.iconButtonLarge }]}>
-      <Text style={[{ color: themePalette.buttonPrimaryText, textAlign: "center", fontSize: fontSizes.large }, styles.alignVerticalMiddle]}> { props.label }</Text>
-    </MciIcon>
-    </TouchableOpacity>}
+      <MciIcon name={props.icon} style={[{ marginTop: 3, color: themePalette.buttonPrimaryText, textAlign: "center", fontSize: fontSizes.iconButtonLarge }]}>
+        <Text style={[{ color: themePalette.buttonPrimaryText, textAlign: "center", fontSize: fontSizes.large }, styles.alignVerticalMiddle]}> {props.label}</Text>
+      </MciIcon>
+    </TouchableOpacity>
+  }
 
   return (
-  <View>
-    {props.iconType == 'ion' && renderIonIcon()}
-    {props.iconType == 'mci' && renderMciIcon()}              
-  </View>
+    <View>
+      {props.iconType == 'ion' && renderIonIcon()}
+      {props.iconType == 'mci' && renderMciIcon()}
+    </View>
   )
 }

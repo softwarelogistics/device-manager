@@ -163,61 +163,19 @@ export const InstancePage = ({
   };
 
   return (
-    <Page
-      style={[styles.container, { backgroundColor: themePalette.background }]}
-    >
-      <View
-        style={{
-          width: "100%",
-          height: '100%',
-          flexDirection: "column",
-          padding: 16,
-          backgroundColor: themePalette.background,
-        }}
-      >
-        <Text
-          style={[
-            { color: themePalette.shellTextColor, fontSize: 24 },
-          ]}
-        >
+    <Page style={[styles.container, { backgroundColor: themePalette.background }]} >
+      <View style={{ width: "100%", height: '100%', flexDirection: "column", padding: 16, backgroundColor: themePalette.background,  }}>
+        <Text style={[ { color: themePalette.shellTextColor, fontSize: 24 },]} >
           {instanceName}
         </Text>
-        <View
-          style={{
-            flexDirection: "row-reverse",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-
-          <View style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10
-          }}>
-            <IconIonicons
-              name="grid-outline"
-              size={24}
-              color={themePalette.shellTextColor}
-              style={{ textAlign: "center" }}
-              onPress={() => toggleViewMode("grid")}
-            />
-
-            <IconMaterialCommunityIcons
-              name="format-list-checkbox"
-              size={24}
-              color={themePalette.shellTextColor}
-              style={{ textAlign: "center" }}
-              onPress={() => toggleViewMode("list")}
-            />
+        <View style={{ flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <IconIonicons name="grid-outline" size={24} color={themePalette.shellTextColor} style={{ textAlign: "center" }} onPress={() => toggleViewMode("grid")} />
+            <IconMaterialCommunityIcons name="format-list-checkbox" size={24} color={themePalette.shellTextColor} style={{ textAlign: "center" }} onPress={() => toggleViewMode("list")} />
           </View>
 
           {Platform.OS == "ios" && deviceModelFilter && (
-            <Button
-              style={{ color: themePalette.shellTextColor, margin: 20 }}
-              inline
-              onPress={() => deviceModelFilterSelected()}
-            >
+            <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => deviceModelFilterSelected()} >
               {deviceModelFilter.text}
             </Button>
           )}
@@ -225,100 +183,40 @@ export const InstancePage = ({
             <Button title="-all-" onPress={() => deviceModelFilterSelected()} />
           )}
           {Platform.OS != "ios" && (
-            <ModalSelector
-              data={deviceModels.map((itm) => ({
-                key: itm.id,
-                label: itm.text,
-              }))}
-              initValue={deviceModelFilter?.text}
-              onChange={(option) => deviceTypeChanged(option.key)}
-            >
-              <Button
-                style={{ color: themePalette.shellTextColor, marginBottom: 24, marginTop: 24 }}
-              >
+            <ModalSelector data={deviceModels.map((itm) => ({ key: itm.id, label: itm.text, }))} initValue={deviceModelFilter?.text} onChange={(option) => deviceTypeChanged(option.key)} >
+              <Button style={{ color: themePalette.shellTextColor, marginBottom: 24, marginTop: 24 }}>
                 {deviceModelFilter?.text}
               </Button>
             </ModalSelector>
           )}
         </View>
         <ScrollView >
-          <View
-            style={{
-              flex: 1,
-              flexDirection: "row",
-              flexWrap: "wrap",
-              backgroundColor: themePalette.background,
-              width: '100%',
-              height: '100%',
-              overflow: "visible"
-
-            }}>
+          <View style={{ flex: 1, flexDirection: "row", flexWrap: "wrap", backgroundColor: themePalette.background, width: '100%', height: '100%', overflow: "visible" }}>
             {!devices || devices.length == 0 && 
             <View style={{ alignItems: "center" }}>
               <Text style={[{ textAlign: 'center', marginBottom: 5, marginTop:20, color: themePalette.shellTextColor, fontSize: 16 }]}>
                 No devices found
               </Text>            
+            </View>}
 
-            </View>
-              }
             {viewMode === "grid" &&
               devices && devices.length > 0 &&
               devices.map((item, key) => (
                 <Pressable onPress={() => showDevice(item)} key={item.id}>
                   <View
-                    style={[
-                      {
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 16,
-                        padding: 16,
-                        height: 180,
-                        width: 160,
-                        backgroundColor: themePalette.inputBackgroundColor,
-                        borderRadius: 8,
-                        margin: 8,
-                        shadowColor: "#1F2F4C",
-                        shadowOffset: {
-                          width: 0,
-                          height: 2,
-                        },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 4,
-                        elevation: 5,
-                      },
-                    ]}
-                  >
-                    <View
-                      style={{
-                        backgroundColor: colors.primaryBlue,
-                        borderRadius: 8,
-                        height: 56,
-                        width: 56,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
+                    style={[ { flexDirection: "column", alignItems: "center", gap: 16, padding: 16, height: 180, width: 170,
+                        backgroundColor: themePalette.inputBackgroundColor, borderRadius: 8, margin: 8, shadowColor: "#1F2F4C",
+                        shadowOffset: { width: 0, height: 2, }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5, }, ]}>
+                    <View style={{ backgroundColor: colors.primaryBlue, borderRadius: 8, height: 56, width: 56, alignItems: "center", justifyContent: "center", }}>
                       <SLIcon icon={item.icon} />
                     </View>
 
                     <View style={{ gap: 6 }}>
-                      <Text
-                        style={[
-                          {
-                            color: themePalette.shellTextColor,
-                            fontSize: 16,
-                          },
-                        ]}
-                      >
+                      <Text style={[ { color: themePalette.shellTextColor, fontSize: 16, }, ]}>
                         {item.deviceName}
                       </Text>
 
-                      <Text
-                        style={{
-                          color: themePalette.subtitleColor,
-                          fontSize: 12,
-                        }}
-                      >
+                      <Text style={{ color: themePalette.subtitleColor, fontSize: 12, }}>
                         {item.deviceType}
                       </Text>
                     </View>
@@ -329,66 +227,22 @@ export const InstancePage = ({
               devices && devices.length > 0 &&
               devices.map((item, key) => (
                 <Pressable onPress={() => showDevice(item)} key={item.id} style={{ width: '100%' }}>
-                  <View
-                    style={[
-                      styles.listRow,
-                      {
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 16,
-                        padding: 16,
-                        margin: 8,
-                        width: "100%",
-                        backgroundColor: themePalette.inputBackgroundColor,
-                        shadowColor: "#1F2F4C",
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.2,
-                        shadowRadius: 2,
-                        borderRadius: 8,
-                      },
-                    ]}
-                  >
-                    <View
-                      style={{
-                        backgroundColor: colors.primaryBlue,
-                        borderRadius: 8,
-                        height: 56,
-                        width: 56,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
+                  <View style={[ styles.listRow, { display: "flex", alignItems: "center", gap: 16, padding: 16, margin: 8, width: "100%", backgroundColor: themePalette.inputBackgroundColor,
+                        shadowColor: "#1F2F4C", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 2, borderRadius: 8, },]}>
+                    <View style={{ backgroundColor: colors.primaryBlue, borderRadius: 8, height: 56, width: 56, alignItems: "center", justifyContent: "center", }}>
                       <SLIcon icon={item.icon} />
                     </View>
 
                     <View style={{ flexGrow: 1 }}>
-                      <Text
-                        style={{
-                          color: themePalette.shellTextColor,
-                          fontSize: 16,
-                        }}
-                      >
+                      <Text style={{ color: themePalette.shellTextColor, fontSize: 16, }}>
                         {item.deviceName}
                       </Text>
-                      <Text
-                        style={{
-                          color: themePalette.subtitleColor,
-                          fontSize: 14,
-                        }}
-                      >
+                      <Text style={{ color: themePalette.subtitleColor, fontSize: 14, }}>
                         {item.deviceType}
                       </Text>
                     </View>
 
-                    <ChevronIcons
-                      name="chevron-right"
-                      color={themePalette.subtitleColor}
-                      size={24}
-                      style={{
-                        textAlign: "center",
-                      }}
-                    />
-
+                    <ChevronIcons name="chevron-right" color={themePalette.subtitleColor} size={24} style={{ textAlign: "center", }}/>
                   </View>
                 </Pressable>
               ))}
