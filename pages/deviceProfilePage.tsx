@@ -15,26 +15,15 @@ import { IOValues } from "../models/blemodels/iovalues";
 import { ConnectedDevice } from "../mobile-ui-common/connected-device";
 import colors from "../styles.colors";
 
-interface ConsoleOutput {
-  timestamp: string;
-  message: string;
-}
-
 export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServices) => {
   const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined | null>(undefined);
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [deviceDetail, setDeviceDetail] = useState<Devices.DeviceDetail | undefined | any>();
-  const [sensorValues, setSensorValues] = useState<IOValues | undefined>(undefined);
   const [isDeviceConnected, setIsDeviceConnected] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
   const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
-  const [timerId, setTimerId] = useState<number | undefined>(undefined);
   const [pageVisible, setPageVisible] = useState<boolean>(true);
-
-  const stateRef = useRef();
-
-  stateRef.current = deviceDetail
 
   const repoId = route.params.repoId;
   const id = route.params.id;
@@ -47,9 +36,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const barGreyChevronRightStyle: TextStyle = ViewStylesHelper.combineTextStyles([chevronBarVerticalStyle, { backgroundColor: palettes.gray.v20, fontSize: 18, paddingLeft: 4, paddingRight: 4, width: '98%', textAlignVertical: 'center' }]);
   const barGreyChevronRightLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([{ fontWeight: '700' }]);
   const labelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
-
   const contentStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.mediumSmall, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
-
 
   const charHandler = async (value: any, device: Devices.DeviceDetail) => {
     if (value.characteristic == CHAR_UUID_STATE) {
@@ -85,7 +72,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
           }
         }
       }
-      setSensorValues(values);
       setLastUpdated(new Date());
     }
   }
@@ -97,37 +83,19 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       }, pageVisible ? 6000 : null  
   )
 
-  // const attemptConnect = async (peripheralId: string) => {
-  //   console.log(`[DeviceProfilePage__attemptConnect] - Peripheral: ${peripheralId}.`);
-
-  //   if(!await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE], 1)){
-  //     console.log('[DeviceProfilePage__attemptConnect] - Could Not Connect; will retry.');
-  //     let timerId = window.setTimeout(attemptConnect, 2500, peripheralId)
-  //     setTimerId(timerId);
-  //   }
-  //   else {
-  //     console.log('[DeviceProfilePage__attemptConnect] - Connected!; will retry.');
-  //     setTimerId(undefined);
-  //   }
-  // }
-
-
   const handleWSMessage = (e: any) => {
     let json = e.data;
     let wssMessage = JSON.parse(json);
     let wssPayload = wssMessage.payloadJSON;
     let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
 
-    console.log('got message');
+    setLastUpdated(new Date());
 
     if (deviceDetail) {
       deviceDetail.sensorCollection = device.sensorCollection;
       deviceDetail.lastContact = device.lastContact;        
-      console.log(deviceDetail.lastContact);
       setDeviceDetail(deviceDetail);
     }
-    else 
-      console.log('device detail is null');
   }
 
   const loadDevice = async () => {
@@ -158,16 +126,17 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     }
   }
 
-  const showPage = async (pageName: String) => {
+  const showPage = async (pageName: string) => {
+    setPageVisible(false);
+
     ble.removeAllListeners();
-    console.log(deviceDetail);
+    
     let peripheralId = Platform.OS == 'ios' ? deviceDetail.iosBLEAddress : deviceDetail.macAddress;
     await ConnectedDevice.disconnect();
+    setIsDeviceConnected(false);
     AppServices.instance.wssService.close();
-    let params = { peripheralId: peripheralId, instanceRepoId: repoId, deviceRepoId: repoId, deviceId: id }
-    navigation.navigate(pageName, params);
- 
-    setPageVisible(false);
+    let params = { deviceName: deviceDetail.name, peripheralId: peripheralId, instanceRepoId: repoId, deviceRepoId: repoId, deviceId: id }
+    AppServices.instance.navService.navigate(pageName, params);
   }
 
   const showConfigurePage = async () => {
@@ -189,18 +158,11 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       ble.peripherals = [];
     }
 
-
-    navigation.setOptions({
-      headerRight: () => (
-        <View style={{ flexDirection: 'row' }} >
-        </View>),
-    });
-
     const focusSubscription = navigation.addListener('focus', () => {
         loadDevice();
         setPageVisible(true);
         
-      console.log("FOCUS SUBSCRIPTION FIRED!");
+      console.log("[DeviceProfilePage__Focus]");
     });
 
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
@@ -209,7 +171,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
       setPageVisible(false);
       AppServices.instance.wssService.close();
-      console.log("BLUR SUBSCRIPTION FIRED!");
+      console.log("[DeviceProfilePage__Blur]");
     });
 
     return (() => {
@@ -295,7 +257,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       )
   }
 
-
   return <Page style={[styles.container]}>
     <ScrollView style={[styles.scrollContainer,{backgroundColor: themePalette.background }]}>
       {/* <StatusBar style="auto" /> */}
@@ -308,21 +269,16 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
             </View>
           }
           <View >
-            {sectionHeader('Device Information')}
           <View style={{ backgroundColor: themePalette.background}}>
             {
               deviceDetail &&
               <View style={{ borderTopLeftRadius: 8, borderTopRightRadius: 8, overflow: 'hidden'}}>
+                {sectionHeader('Device Information')}
                 {panelDetail('purple', deviceDetail.deviceNameLabel, deviceDetail?.name)}
-                <View style={{ height: 1, backgroundColor: themePalette.background, width: '100%' }} />
                 {panelDetail('purple', deviceDetail.deviceIdLabel, deviceDetail?.deviceId)}
-                <View style={{ height: 1, backgroundColor: themePalette.background, width: '100%' }} />
                 {panelDetail('purple', deviceDetail.deviceTypeLabel, deviceDetail?.deviceType ? deviceDetail.deviceType.text : 'N/A')}
-                <View style={{ height: 1, backgroundColor: themePalette.background, width: '100%' }} />
                 {panelDetail('purple', 'Repository', deviceDetail?.deviceRepository ? deviceDetail.deviceRepository.text : 'N/A')}
-                <View style={{ height: 1, backgroundColor: themePalette.background, width: '100%' }} />
                 {panelDetail('purple', 'Last Contact', deviceDetail?.lastContact ? deviceDetail.lastContact : 'N/A')}
-                <View style={{ height: 1, backgroundColor: themePalette.background, width: '100%' }} />
               </View>
             }
             {
@@ -373,10 +329,10 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
               remoteDeviceState &&
               <View style={{ marginTop: 24 }}>
                 {sectionHeader('Current Device Status')}
-                {panelDetail('green', 'Firmware SKU', remoteDeviceState.firmwareSku)}
                 {panelDetail('green', 'Device Model', remoteDeviceState.deviceModelKey)}
-                {panelDetail('green', 'Firmware Rev', remoteDeviceState.firmwareRevision)}
                 {panelDetail('green', 'Hardware Rev', remoteDeviceState.hardwareRevision)}
+                {panelDetail('green', 'Firmware SKU', remoteDeviceState.firmwareSku)}
+                {panelDetail('green', 'Firmware Rev', remoteDeviceState.firmwareRevision)}
                 {panelDetail('green', 'Commissioned', remoteDeviceState.commissioned ? 'Yes' : 'No')}
               </View>
             }

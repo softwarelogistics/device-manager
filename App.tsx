@@ -8,7 +8,6 @@ import AppServices from './services/app-services';
 
 import SettingsPage from './pages/settings.page';
 import AuthPage from './pages/auth.page';
-import { BlePropertiesPage } from './pages/bleproperties.page';
 import ChangeOrgPage from './pages/changeOrgs.page';
 import { DeviceOptionsPage } from './pages/deviceOptions.page';
 import { ConnectivityPage } from './pages/connectivity.page';
@@ -24,7 +23,6 @@ import { TempSensorPage } from './pages/tempSensor.page';
 import { useEffect, useState } from 'react';
 
 import { OAuthHandlerPage } from './pages/oauthHandlerPage';
-import { Subscription } from './utils/NuvIoTEventEmitter';
 import { ThemePalette, ThemePaletteService } from './styles.palette.theme';
 import { InstancePage } from './pages/instance.page';
 import { UserOptionsPage } from './pages/userOptionsPage';
@@ -48,9 +46,7 @@ const App = () => {
   const [navigationTheme, setNavigationTheme] = useState<any>();
   const [initialPage, setInitialPage] = useState<string>('splashPage');
   const [initialCall, setInitialCall] = useState<boolean>(true);
-  const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
 
-  const [loadMessage, setLoadMessage] = useState<string>('Loading...');
   const url = Linking.useURL();
   const linking = {
     prefixes: ['exp://', 'nuviot://', 'exp://127.0.0.1:19000/--/'],
@@ -61,21 +57,6 @@ const App = () => {
     },
   };
 
-  const handleThemeChange = () => {
-    let current = AppServices.instance.getAppTheme();
-
-    const navTheme = {
-      ...DefaultTheme,
-      colors: {
-        ...DefaultTheme.colors,
-        card: current.shell,
-        text: current.shellTextColor,
-        primary: 'blue',
-      }
-    };
-
-    setNavigationTheme(navTheme);
-  }
   
   const parseSchemeUrl = async (url:string) => {
     const { hostname, path, queryParams } = Linking.parse(url);
@@ -116,7 +97,6 @@ const App = () => {
   }
 
   useEffect(() => {
-    setLoadMessage('Loading...' + new Date().toLocaleTimeString());
     if (url) {
       parseSchemeUrl(url)
     }
@@ -172,8 +152,6 @@ const App = () => {
    
         <Stack.Screen name="consolePage" component={ConsolePage} options={{ title: 'Console' }} />
         <Stack.Screen name="canMonitorPage" component={CanMonitorPage} options={{ title: 'Can Monitor' }} />
-   
-        <Stack.Screen name="blePropertiesPage" component={BlePropertiesPage} options={{ title: 'Device Properties' }} />
    
       </Stack.Navigator>
     </NavigationContainer> 

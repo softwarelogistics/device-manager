@@ -15,7 +15,6 @@ export class IOValues {
 
         for (let idx = 8; idx < 16; ++idx) {
             let value = parts[idx];
-            console.log(value);
             if (value)
                 this.adcValues.push(parseFloat(value));
             else

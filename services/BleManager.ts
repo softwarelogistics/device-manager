@@ -209,6 +209,7 @@ class BleManager {
       }
       bleManager.connect(peripheralId, options, (error: string | null) => {
         if (error) {
+          console.log(`[BleManager_connect] - peripheral id ${peripheralId}, error: ${error}`);
           reject(error);
         } else {
           fulfill();
@@ -321,10 +322,7 @@ class BleManager {
 
   stopNotification(peripheralId: string, serviceUUID: string, characteristicUUID: string) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.stopNotification(
-        peripheralId,
-        serviceUUID,
-        characteristicUUID,
+      bleManager.stopNotification( peripheralId, serviceUUID, characteristicUUID,
         (error: string | null) => {
           if (error) {
             reject(error);

@@ -25,22 +25,20 @@ export const DeviceOptionsPage = ({ props, navigation, route }: IReactPageServic
   const deviceRepoId = route.params.deviceRepoId;
   const instanceRepoId = route.params.instanceRepoId;
   const peripheralId = route.params.peripheralId;
+  const deviceName = route.params.deviceName;
 
   if (!peripheralId || !deviceId || !instanceRepoId || !deviceRepoId) {
     console.error(route.params);
     throw 'Must provide peripheralId, instanceRepoId, deviceRepoId, and deviceId in the route.params'
   }
 
+  navigation.setOptions({ title: deviceName ?? `Device Options` });
+
   const primaryButtonStyle: ViewStyle = ViewStylesHelper.combineViewStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
   const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);
 
-  const safeNavigate = async (pageName: string, args: any) => {
-    navigation.navigate(pageName, args)
-  }
-
   const showPage = async (pageName: string) => {
-    console.log(deviceId);
-    await safeNavigate(pageName, { peripheralId: peripheralId, deviceRepoId: deviceRepoId, instanceRepoId: instanceRepoId, deviceId: deviceId });
+    AppServices.instance.navService.navigate(pageName, { deviceName: deviceName, peripheralId: peripheralId, deviceRepoId: deviceRepoId, instanceRepoId: instanceRepoId, deviceId: deviceId });
   }
 
   const restartDevice = async () => {
@@ -69,7 +67,7 @@ export const DeviceOptionsPage = ({ props, navigation, route }: IReactPageServic
         navigation.popToTop();
       }
       else 
-        await alert('Could not send factory reset command to device..');
+        await alert('Could not send factory reset command to device.');
     }
     else {
       setIsBusy(false);
@@ -77,15 +75,10 @@ export const DeviceOptionsPage = ({ props, navigation, route }: IReactPageServic
     }
   }
 
-  useEffect(() => {    
-    return (() => {
-    });
-  }, []);
-
   return (
     <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
-   <StatusBar style="auto" />
-   <KeyboardAwareScrollView>
+      <StatusBar style="auto" />
+      <KeyboardAwareScrollView>
        {
         isBusy ?
           <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>

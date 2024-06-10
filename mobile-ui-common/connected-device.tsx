@@ -36,11 +36,10 @@ export class ConnectedDevice {
         if (await PermissionsHelper.hasBLEPermissions()) {
             ConnectedDevice.connectionState = CONNECTING;
 
-            console.log('atttempt to connect', retryCount);
+            console.log(`[ConnectedDevice__connect] Retry Count ${retryCount}`);
             let promise = ble.connectById(ConnectedDevice.peripheralId!, undefined, retryCount);
             try {
                 let result = await promise;
-                console.log('Response result', result);
 
                 if (result) {
                     console.log(`[ConnectedDevice__connect] Connected`)
