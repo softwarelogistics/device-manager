@@ -87,7 +87,7 @@ export const DeviceOptionsPage = ({ props, navigation, route }: IReactPageServic
           </View>
           :
           <View style={{ margin: 20 }}>
-            <TouchableOpacity style={[primaryButtonStyle, { marginTop: 30, }]} onPress={() => showPage('settingsPage')}>
+            <TouchableOpacity style={[primaryButtonStyle, { marginTop: 30, }]} onPress={() => showPage('connectivityPage')}>
               <Text style={primaryButtonTextStyle}> Connectivity </Text>
             </TouchableOpacity>
 
