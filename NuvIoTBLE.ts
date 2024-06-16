@@ -98,6 +98,9 @@ export const CHAR_UUID_CONSOLE = "d804b639-6ce7-5e88-9f88-ce0f699085eb"
    */
 export const CHAR_UUID_CAN_MSG = "d804b639-6ce7-5e88-9f89-ce0f699085eb"
 
+
+export const CHAR_UUID_WIFI_MSG = "d804b639-6ce7-5e88-9f8a-ce0f699085eb"
+
 export class NuvIoTBLE {
   isScanning = false;
   static instanceCount: number = 0;
@@ -388,8 +391,8 @@ export class NuvIoTBLE {
   async writeCharacteristic(id: string, serviceId: string, characteristicId: string, value: string): Promise<boolean> {
     try {
       let buffer = this.string2Bin(value);
-      await BleManager.write(id, serviceId, characteristicId, buffer, 255);
       console.log("[NuvIoTBLE__writeCharacteristic] success, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId + ", value=" + value);
+      await BleManager.write(id, serviceId, characteristicId, buffer, 255);      
       return true;
     }
     catch (e) {

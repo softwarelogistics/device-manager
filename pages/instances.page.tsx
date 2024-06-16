@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Text, View, Image, FlatList, Pressable } from 'react-native';
 import Icon from "react-native-vector-icons/Entypo";
-import IconIonicons from "react-native-vector-icons/Ionicons";
+import { ConnectedDevice } from "../mobile-ui-common/connected-device";
 import { IReactPageServices } from "../services/react-page-services";
 import styles from '../styles';
 import colors from "../styles.colors";
@@ -28,7 +28,7 @@ export default function InstancesPage({ navigation }: IReactPageServices) {
     if (firstLoad) {
       setFirstLoad(false);
       loadInstances();
-    }
+    }    
   })
 
   const showInstance = (instance: Deployment.DeploymentInstanceSummary) => {

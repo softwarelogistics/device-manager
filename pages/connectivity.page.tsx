@@ -26,6 +26,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
   const [initialCall, setInitialCall] = useState<boolean>(true);
 
+  const [isReady, setIsReady] = useState<boolean>(false);
   const [deviceId, setDeviceId] = useState<string>();
   const [serverUrl, setServerUrl] = useState<string>();
   const [serverUid, setServerUid] = useState<string>();
@@ -139,8 +140,6 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
   const toggleUseDefaultListener = () => {
     setUseDefaultListener(!useDefaultListener);
     if (defaultListener) {
-
-
       let port = defaultListener.listenOnPort ? defaultListener.listenOnPort : defaultListener.connectToPort;
       if(defaultListener.hostName) setServerUrl(defaultListener.hostName);
       if (port) setPort(port.toString());
@@ -245,7 +244,8 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
     return (
       <Page style={[styles.container, { backgroundColor: themePalette.background, padding: 20 }]}>
-        {
+        {!isReady &&  <View>Loading Data....</View>} 
+        {isReady &&  
           <KeyboardAwareScrollView>
             <View style={{ padding: 20 }}>
               <Text style={inputLabelStyle}>WiFi Connection:</Text>

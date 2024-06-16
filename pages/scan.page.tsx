@@ -10,13 +10,12 @@ import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { IReactPageServices } from "../services/react-page-services";
 import { BLENuvIoTDevice } from "../models/device/device-local";
-
-import { ThemePalette } from "../styles.palette.theme";
 import styles from '../styles';
 import palettes from "../styles.palettes";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
 import { PermissionsHelper } from "../services/ble-permissions";
 import { scanUtils } from "../services/scan-utils";
+import { ConnectedDevice } from "../mobile-ui-common/connected-device";
 
 export default function ScanPage({ navigation, props, route }: IReactPageServices) {
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
@@ -85,6 +84,8 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
 
     if (hasPermissions) {
       console.log('[ScanPage__StartScan] BLE Permissions Enabled;');
+
+      ConnectedDevice.disconnect();
 
       setDiscoveredPeripherals([]);
 

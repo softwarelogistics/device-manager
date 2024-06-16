@@ -32,7 +32,7 @@ export const DeviceOptionsPage = ({ props, navigation, route }: IReactPageServic
     throw 'Must provide peripheralId, instanceRepoId, deviceRepoId, and deviceId in the route.params'
   }
 
-  navigation.setOptions({ title: deviceName ?? `Device Options` });
+  //navigation.setOptions({ title: deviceName ?? `Device Options` });
 
   const primaryButtonStyle: ViewStyle = ViewStylesHelper.combineViewStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
   const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);
@@ -105,6 +105,10 @@ export const DeviceOptionsPage = ({ props, navigation, route }: IReactPageServic
 
             <TouchableOpacity style={primaryButtonStyle} onPress={() => showPage('sensorsPage')}>
               <Text style={primaryButtonTextStyle}> Sensors </Text>
+            </TouchableOpacity> 
+
+            <TouchableOpacity style={primaryButtonStyle} onPress={() => showPage('wifiTroubleshootingPage')}>
+              <Text style={primaryButtonTextStyle}> WiFi Trouble Shooting </Text>
             </TouchableOpacity> 
 
             <TouchableOpacity style={primaryButtonStyle} onPress={() => showPage('dfuPage')}>

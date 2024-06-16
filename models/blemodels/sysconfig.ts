@@ -1,5 +1,3 @@
-import { timestamp } from "rxjs";
-
 export class SysConfig {
   constructor(str: string) {
     console.log(str);

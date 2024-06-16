@@ -76,21 +76,30 @@ export class ConnectedDevice {
         return false;
     }
 
+    static async writeCharacteristic(peripheralId: string, serviceId: string, charId: string, value: string) {
+        return await ble.writeCharacteristic(peripheralId, serviceId, charId, value);
+    }
+
     static async connectAndSubscribe(peripheralId: string, subscriptions: string[], retryCount: number = 5): Promise<boolean> {
+        if(!peripheralId)
+            throw 'peripheralId is a required field.';
+        
+        ConnectedDevice.disconnect();
         this._subscriptions = subscriptions;
         this.peripheralId = peripheralId;
         return await this.connect(retryCount);
     }
 
     static async disconnect() {
-        console.log(ConnectedDevice._subscriptions);
-        if (ConnectedDevice._subscriptions) {
-            for (let charId of ConnectedDevice._subscriptions!)
-                await ble.stopListeningForNotifications(ConnectedDevice.peripheralId!, SVC_UUID_NUVIOT, charId);
-        }
+        if ((ConnectedDevice.peripheralId)) {
+            if (ConnectedDevice._subscriptions) {
+                for (let charId of ConnectedDevice._subscriptions!)
+                    await ble.stopListeningForNotifications(ConnectedDevice.peripheralId!, SVC_UUID_NUVIOT, charId);
+            }
 
-        ble.removeAllListeners();
-        if ((ConnectedDevice.peripheralId))
-            await ble.disconnectById(ConnectedDevice.peripheralId!);
+            ble.removeAllListeners();
+            if ((ConnectedDevice.peripheralId))
+                await ble.disconnectById(ConnectedDevice.peripheralId!);            
+        }
     }
 }

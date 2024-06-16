@@ -39,6 +39,7 @@ import ConfirmEmailPage from './pages/confirmEmail.page';
 import AcceptInvitePage from './pages/acceptInvite.page';
 import colors from './styles.colors';
 import palettes from './styles.palettes';
+import { WiFiTroubleShootingPage } from './pages/wifiTroubleShooting';
 
 const Stack = createNativeStackNavigator();
 
@@ -144,6 +145,8 @@ const App = () => {
        
         <Stack.Screen name="instancePage" component={InstancePage} options={{ title: 'Devices' }} />
        
+        <Stack.Screen name="wifiTroubleshootingPage" component={WiFiTroubleShootingPage} options={{ title: 'WiFi Troubleshooting' }} />
+      
         <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
         <Stack.Screen name="sensorsPage" component={SensorsPage} options={{ title: 'Sensors' }} />
         <Stack.Screen name="connectivityPage" component={ConnectivityPage} options={{ title: 'Device Connectivity' }} />
