@@ -1,3 +1,4 @@
+import { Alert } from "react-native";
 import { CommonSettings, environment } from "../settings";
 import AuthenticationHelper from "../utils/authenticationHelper";
 
@@ -15,7 +16,7 @@ export class LogWriter {
             LogWriter._version = JSON.stringify(require("../package.json").version).replace('"', '').replace('"', '');
             
             LogWriter._logger = require('logzio-nodejs').createLogger({
-            token: 'lDClQlWGOpREionETTlFfJsqswNbNysd',
+            token: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
             protocol: 'https',
             host: 'https://listener.logz.io:8071',
             port: '8071',
@@ -61,5 +62,9 @@ export class LogWriter {
 }
 
 export const showError = (title: string, error: string) => {
-    alert(error);
+    Alert.alert(title, error);
+}
+
+export const showMessage = (title: string, error: string) => {
+    Alert.alert(title, error);
 }

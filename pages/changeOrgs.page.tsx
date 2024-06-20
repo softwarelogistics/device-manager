@@ -12,6 +12,8 @@ import colors from "../styles.colors";
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import palettes from "../styles.palettes";
 import Page from "../mobile-ui-common/page";
+import { LogWriter, showError, showMessage } from "../mobile-ui-common/logger";
+import { currentOrganizationHeaderNameStyle, selectOrganizationCircleStyle, selectOrganizationTextStyle } from "../compound.styles";
 
 export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) => {
 
@@ -35,16 +37,18 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
   };
 
   const setNewUserOrg = async (org: Users.OrgUser) => {
-    console.log('ChangeOrgPage__setNewUserOrg, Org=' + org.organizationName);
+    await LogWriter.log('[ChangeOrgPage__setNewUserOrg]', `Org=${org.organizationName}`);
     let result = await AppServices.instance.userServices.changeOrganization(org.orgId);
     if (result) {
       AppServices.instance.userServices.refreshToken();
+      let user = await AppServices.instance.userServices.getUser();
+      setUser(user);
+
+      showMessage('Organization Changed', `Welcome to the ${user?.currentOrganization.text}!`)
     }
-
-    let user = await AppServices.instance.userServices.getUser();
-    setUser(user);
-
-    Alert.alert('Organization Changed', `Welcome to the ${user?.currentOrganization.text}!`)
+    else {
+      showError('Error','Error changing organization');
+    }
   };
 
   const myItemSeparator = () => { return <View style={{ height: 1, backgroundColor: "#c0c0c0git ", marginHorizontal: 6 }} />; };
@@ -63,10 +67,6 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
       loadUserOrgs();
     }
   });
-
-  const currentOrganizationHeaderNameStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.alignCenter, { color: colors.white, marginTop: 0, paddingTop: 0, fontSize: 18, fontWeight: '700', top: 30 }]);
-  const selectOrganizationCircleStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.iconButtonCircle, { color: colors.transparent, fontSize: 48, marginTop: 0, paddingTop: 0 }]);
-  const selectOrganizationTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.alignVerticalMiddle, { color: themePalette.shellTextColor, marginLeft: -14, marginTop: 14, paddingTop: 0, fontSize: 18, fontWeight: '700' }]);
 
   const circleColors: string[] = [
     palettes.accent2.normal,

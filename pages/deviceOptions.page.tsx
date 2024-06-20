@@ -44,7 +44,7 @@ export const DeviceOptionsPage = ({ props, navigation, route }: IReactPageServic
   const restartDevice = async () => {
     setIsBusy(true);
     if (await ble.connectById(peripheralId!)) {
-      await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
+      await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1;`);
       await ble.disconnectById(peripheralId!);
       setIsBusy(false);
       await alert('Success resetting device.');
@@ -58,7 +58,7 @@ export const DeviceOptionsPage = ({ props, navigation, route }: IReactPageServic
   const factoryReset = async () => {
     setIsBusy(true);
     if (await ble.connectById(peripheralId!)) {
-      let writeSuccess = await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `factoryreset=1`);
+      let writeSuccess = await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `factoryreset=1;`);
       
       await ble.disconnectById(peripheralId!);
       setIsBusy(false);

@@ -1,10 +1,11 @@
-import { View, Text } from "react-native"
+import { View, Text, ScrollView } from "react-native"
 import Icon from "react-native-vector-icons/Ionicons";
 
 import styles from '../styles';
-import { barGreyChevronRightLabelStyle, barGreyChevronRightStyle, chevronBarColorTick, chevronBarVerticalStyle, headerStyle } from "../compound.styles";
+import { barGreyChevronRightLabelStyle, barGreyChevronRightStyle, chevronBarColorTick, chevronBarVerticalStyle, headerStyle, labelStyle } from "../compound.styles";
 import ProgressSpinner from "./progress-spinner";
 import AppServices from "../services/app-services";
+import { IOValues } from "../models/blemodels/iovalues";
 
 const themePalette = AppServices.instance.getAppTheme();
 
@@ -57,3 +58,42 @@ export const busyBlock = (busyMessage: string = "Please Wait") => {
         <ProgressSpinner />
     </View>
 }
+
+export const sensorBlock = (idx: number, value: any, icon: string) => {
+    return (
+      <View style={[{ flex: 1, width: 100, backgroundColor: value ? 'green' : '#d0d0d0', margin: 5, justifyContent: 'center', borderRadius: 8 }]}>
+        <Text style={{ textAlign: "center", textAlignVertical: "center", color: value ? 'white' : 'black' }}>Sensor {idx + 1}</Text>
+        <View >
+          <Icon style={{ textAlign: 'center', color: value ? 'white' : '#a0a0a0' }} size={64} name={icon} />
+        </View>
+        <Text style={{ textAlign: "center", textAlignVertical: "center", color: value ? 'white' : '#d0d0d0' }}>{value ?? '-'}</Text>
+      </View>)
+  }
+
+  export const sensorRows = (sensorValues: IOValues) => {
+        return <View style={{ marginTop: 20 }}>
+        {sectionHeader('Live Sensor Data')}
+        <Text style={labelStyle}>ADC Sensors</Text>
+        <ScrollView horizontal={true}>
+        {sensorBlock(0, sensorValues.adcValues[0], 'radio-outline')}
+        {sensorBlock(1, sensorValues.adcValues[1], 'radio-outline')}
+        {sensorBlock(2, sensorValues.adcValues[2], 'radio-outline')}
+        {sensorBlock(3, sensorValues.adcValues[3], 'radio-outline')}
+        {sensorBlock(4, sensorValues.adcValues[4], 'radio-outline')}
+        {sensorBlock(5, sensorValues.adcValues[5], 'radio-outline')}
+        {sensorBlock(6, sensorValues.adcValues[6], 'radio-outline')}
+        {sensorBlock(7, sensorValues.adcValues[7], 'radio-outline')}
+        </ScrollView>
+        <Text style={labelStyle}>IO Sensors</Text>
+        <ScrollView horizontal={true}>
+        {sensorBlock(0, sensorValues.ioValues[0], 'radio-outline')}
+        {sensorBlock(1, sensorValues.ioValues[1], 'radio-outline')}
+        {sensorBlock(2, sensorValues.ioValues[2], 'radio-outline')}
+        {sensorBlock(3, sensorValues.ioValues[3], 'radio-outline')}
+        {sensorBlock(4, sensorValues.ioValues[4], 'radio-outline')}
+        {sensorBlock(5, sensorValues.ioValues[5], 'radio-outline')}
+        {sensorBlock(6, sensorValues.ioValues[6], 'radio-outline')}
+        {sensorBlock(7, sensorValues.ioValues[7], 'radio-outline')}
+        </ScrollView>
+    </View>
+  }

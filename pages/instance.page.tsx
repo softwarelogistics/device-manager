@@ -52,27 +52,16 @@ export const InstancePage = ({
   const themePalette = AppServices.instance.getAppTheme();
 
   const loadDevices = async () => {
-    let result = await AppServices.instance.deviceServices.getDevicesForRepoAsync(
-      deviceRepoId
-    );
+    let result = await AppServices.instance.deviceServices.getDevicesForRepoAsync(deviceRepoId);
     let uniqueDeviceModels: Core.EntityHeader[] = [];
 
     for (let device of result.model!) {
-      if (
-        uniqueDeviceModels.filter((mod) => mod.id == device.deviceTypeId)
-          .length == 0
-      ) {
-        uniqueDeviceModels.push({
-          id: device.deviceTypeId,
-          text: device.deviceType,
-        });
+      if (uniqueDeviceModels.filter((mod) => mod.id == device.deviceTypeId).length == 0) {
+        uniqueDeviceModels.push({id: device.deviceTypeId,text: device.deviceType,});
       }
     }
 
-    uniqueDeviceModels = uniqueDeviceModels.sort((a, b) =>
-      a.text > b.text ? 1 : -1
-    );
-
+    uniqueDeviceModels = uniqueDeviceModels.sort((a, b) => a.text > b.text ? 1 : -1);
     uniqueDeviceModels.unshift({ id: "all", text: "All Device Models" });
     setDeviceModelFilter(uniqueDeviceModels[0]);
 
@@ -87,30 +76,22 @@ export const InstancePage = ({
   };
 
   const addDevice = () => {
-    navigation.navigate("scanPage", {
-      repoId: deviceRepoId,
-      instanceId: instanceId,
-    });
+    navigation.navigate("scanPage", {repoId: deviceRepoId,instanceId: instanceId});
   };
 
   const showDevice = (deviceSummary: Devices.DeviceSummary) => {
     if (deviceSummary.deviceTypeId === "D37B01208A6B4C4D8953C53435F1AD59") {
-      navigation.navigate("seaWolfHomePage", {
-        id: deviceSummary.id,
-        repoId: deviceRepoId,
-      });
+      navigation.navigate("seaWolfHomePage", {id: deviceSummary.id,repoId: deviceRepoId,});
     } else {
-      navigation.navigate("deviceProfilePage", {
-        id: deviceSummary.id,
-        repoId: deviceRepoId,
-      });
+      navigation.navigate("deviceProfilePage", {id: deviceSummary.id,repoId: deviceRepoId,});
     }
   };
 
   const deviceTypeChanged = async (id: string) => {
     setDeviceModelFilter(deviceModels.find((itm) => itm.id == id));
 
-    if (id === "all") setDevices(allDevices);
+    if (id === "all") 
+      setDevices(allDevices);
     else {
       let deviceModels = allDevices?.filter((dev) => dev.deviceTypeId == id);
       setDevices(deviceModels);
@@ -157,8 +138,7 @@ export const InstancePage = ({
       loadDevices();
       setInitialCall(false);
     }
-    return () => {
-    };
+    return () => {};
   }, []);
 
   const toggleViewMode = (mode: "grid" | "list") => {

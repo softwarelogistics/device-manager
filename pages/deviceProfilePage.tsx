@@ -12,7 +12,7 @@ import { IOValues } from "../models/blemodels/iovalues";
 import { ConnectedDevice } from "../mobile-ui-common/connected-device";
 import colors from "../styles.colors";
 import { contentStyle, labelStyle } from "../compound.styles";
-import { connectionBlock, panelDetail, sectionHeader } from "../mobile-ui-common/PanelDetail";
+import { connectionBlock, panelDetail, sectionHeader, sensorRows } from "../mobile-ui-common/PanelDetail";
 
 export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServices) => {
   const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined | null>(undefined);
@@ -21,8 +21,8 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   const [isDeviceConnected, setIsDeviceConnected] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
-  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
   const [pageVisible, setPageVisible] = useState<boolean>(true);
+  const [sensorValues, setSensorValues] = useState<IOValues | undefined>(undefined);
 
   const repoId = route.params.repoId;
   const id = route.params.id;
@@ -37,40 +37,15 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     }
 
     if (value.characteristic == CHAR_UUID_IO_VALUE) {
+      console.log(value.value);
       let values = new IOValues(value.value);
-      for (let i = 0; i < values.ioValues.length; i++) {
-        let value = values.ioValues[i];
-        let sensor = device.sensorCollection.find(sns => sns.portIndex == i && sns.technology.key == 'io');
-        if (sensor) {
-          if (value !== undefined) {
-            sensor.value = value.toString();
-          }
-          else {
-            sensor.value = '';
-          }
-        }
-      }
-
-      for (let i = 0; i < values.adcValues.length; i++) {
-        let value = values.adcValues[i];
-        let sensor = device.sensorCollection.find(sns => sns.portIndex == i && sns.technology.key == 'adc');
-        if (sensor) {
-          if (value !== undefined) {
-            sensor.value = value.toString();
-          }
-          else {
-            sensor.value = '';
-          }
-        }
-      }
-      setLastUpdated(new Date());
+      setSensorValues(values);  
     }
   }
 
   useInterval(async () => {
     if (peripheralId && !isDeviceConnected) {
-      let result = await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE], 1);
-      console.log("----> did we connect and subscribe?", result);
+      await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE], 1);
     }
   }, pageVisible ? 6000 : null
   )
@@ -80,8 +55,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     let wssMessage = JSON.parse(json);
     let wssPayload = wssMessage.payloadJSON;
     let device = JSON.parse(wssPayload) as Devices.DeviceForNotification;
-
-    setLastUpdated(new Date());
 
     if (deviceDetail) {
       deviceDetail.sensorCollection = device.sensorCollection;
@@ -103,6 +76,28 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
         peripheralId = fullDevice.macAddress;
 
       setPeripheralId(peripheralId);
+
+      let sensorValues : IOValues = {
+        adcValues :[],
+        ioValues : []
+      }
+
+      for(let idx = 0; idx < 8; idx++) {
+        sensorValues.ioValues.push(undefined);
+        sensorValues.adcValues.push(undefined);
+      }
+
+      for(let sensor of fullDevice.sensorCollection) {
+        if(sensor.technology.key == 'io') 
+          sensorValues.ioValues[sensor.portIndex] = parseFloat(sensor.value);
+        else if(sensor.technology.key == 'adc') 
+          sensorValues.adcValues[sensor.portIndex] = parseFloat(sensor.value);        
+      }
+        
+      console.log(sensorValues.adcValues);      
+      console.log(sensorValues.ioValues);
+
+      setSensorValues(sensorValues);
 
       ConnectedDevice.onReceived = (value) => charHandler(value, fullDevice!);
       ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
@@ -157,8 +152,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       await ConnectedDevice.disconnect();
 
       setPageVisible(false);
-      AppServices.instance.wssService.close();
-      console.log("[DeviceProfilePage__Blur]");
+      AppServices.instance.wssService.close();      
     });
 
     return (() => {
@@ -204,7 +198,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
   return <Page style={[styles.container]}>
     <ScrollView style={[styles.scrollContainer, { backgroundColor: themePalette.background }]}>
       {
-        <View>
+        <View style={{ marginBottom:50 }}>
           {
             errorMessage &&
             <View>
@@ -239,7 +233,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                 {sectionHeader('Local Connection')}
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: themePalette.viewBackground, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
                   <Text style={labelStyle}>Connected</Text>
-                  <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.buttonPrimary} onPress={(() => showConfigurePage())} name='settings-sharp' />
+                  <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.buttonPrimary} name='settings-sharp' />
                 </View>
               </View>
             }
@@ -260,9 +254,9 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                   !peripheralId &&
                   <View style={{ display: 'flex', flexDirection: "row", alignItems: "center", backgroundColor: themePalette.blueBox, padding: 16, borderRadius: 8, marginTop: 8, borderColor: '#C0DFFF', borderWidth: 1 }}>
                     <Icon.Button style={{ padding: 0, width: 'auto' }} size={28} backgroundColor="transparent" color={colors.primaryBlue} underlayColor="transparent" onPress={(() => showScanPage())} name='information-circle-outline' />
-
                     <View>
-                      <Text style={{ paddingHorizontal: 4, color: themePalette.blueText }}>Device is not associated on this platform. Please scan and associate.</Text>
+                      <Text style={{ paddingHorizontal: 4, color: themePalette.blueText }}>Device is not associated on this platform.</Text>
+                      <Text style={{ paddingHorizontal: 4, paddingTop:4, color: themePalette.blueText }}>Please scan and associate.</Text>
                     </View>
                   </View>
                 }
@@ -291,36 +285,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                 </View>
               </View>
             }
-            {
-              deviceDetail && deviceDetail.sensorCollection &&
-              <View style={{ marginTop: 20, marginBottom: 20 }}>
-                {sectionHeader('Live Sensor Data')}
-                <Text style={[labelStyle, { fontSize: 18, fontWeight: "500" }]}>ADC Sensors</Text>
-                <ScrollView horizontal={true} style={{ marginBottom: 24 }}>
-                  {adcSensorBlock(0, deviceDetail.sensorCollection, 'radio-outline')}
-                  {adcSensorBlock(1, deviceDetail.sensorCollection, 'radio-outline')}
-                  {adcSensorBlock(2, deviceDetail.sensorCollection, 'radio-outline')}
-                  {adcSensorBlock(3, deviceDetail.sensorCollection, 'radio-outline')}
-                  {adcSensorBlock(4, deviceDetail.sensorCollection, 'radio-outline')}
-                  {adcSensorBlock(5, deviceDetail.sensorCollection, 'radio-outline')}
-                  {adcSensorBlock(6, deviceDetail.sensorCollection, 'radio-outline')}
-                  {adcSensorBlock(7, deviceDetail.sensorCollection, 'radio-outline')}
-                </ScrollView>
-                <Text style={[labelStyle, { fontSize: 18, fontWeight: "500" }]}>IO Sensors</Text>
-                <ScrollView horizontal={true} style={{ marginBottom: 24 }}>
-                  {ioSensorBlock(0, deviceDetail.sensorCollection, 'radio-outline')}
-                  {ioSensorBlock(1, deviceDetail.sensorCollection, 'radio-outline')}
-                  {ioSensorBlock(2, deviceDetail.sensorCollection, 'radio-outline')}
-                  {ioSensorBlock(3, deviceDetail.sensorCollection, 'radio-outline')}
-                  {ioSensorBlock(4, deviceDetail.sensorCollection, 'radio-outline')}
-                  {ioSensorBlock(5, deviceDetail.sensorCollection, 'radio-outline')}
-                  {ioSensorBlock(6, deviceDetail.sensorCollection, 'radio-outline')}
-                  {ioSensorBlock(7, deviceDetail.sensorCollection, 'radio-outline')}
-                </ScrollView>
-
-
-              </View>
-            }
+            {sensorValues && sensorRows(sensorValues)}
           </View>
         </View>
       }

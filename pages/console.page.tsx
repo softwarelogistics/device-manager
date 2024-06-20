@@ -56,11 +56,11 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
   )
 
   useEffect(() => {
-    const focusSubscription = navigation.addListener('focus', async () => {
-      ConnectedDevice.onReceived = (value) => charHandler(value);
-      ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
-      ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
+    ConnectedDevice.onReceived = (value) => charHandler(value);
+    ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
+    ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
 
+    const focusSubscription = navigation.addListener('focus', async () => {
       setPageVisible(true);
     });
 
