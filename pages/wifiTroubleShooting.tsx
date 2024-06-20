@@ -2,13 +2,13 @@ import { ScrollView, TouchableOpacity, Text, TextStyle, View, ViewStyle, FlatLis
 import { StatusBar } from 'expo-status-bar';
 
 import Icon from "react-native-vector-icons/Ionicons";
+import ProgressSpinner from "../mobile-ui-common/progress-spinner";
 
 import Page from "../mobile-ui-common/page";
 import { IReactPageServices } from "../services/react-page-services";
 import { useEffect, useState } from "react";
 import styles from '../styles';
 import AppServices from "../services/app-services";
-import fontSizes from "../styles.fontSizes";
 import { SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, CHAR_UUID_WIFI_MSG } from '../NuvIoTBLE'
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import { ConnectedDevice } from "../mobile-ui-common/connected-device";
@@ -44,12 +44,13 @@ export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPage
 
         if (value.characteristic == CHAR_UUID_WIFI_MSG) {
             setLastUpdated(now);
+            console.log(value.value);
             let status = new WiFiStatus(value.value);
             setWiFiStatus(status);
-            if (ssid != status.ssid)
+            if (!ssid)
                 setSsid(status.ssid);
 
-            if (password != status.password)
+            if (!password)
                 setPassword(status.password);
         }
     }
@@ -70,8 +71,8 @@ export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPage
     }
 
     const performSiteScan = async () => {
-        setIsBusy(true);
-        await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, "siteScan=start");
+        setIsBusy(true);        
+        await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, "siteScan=start;");
         setIsBusy(false);
     }
 
@@ -92,8 +93,8 @@ export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPage
     const updateConnection = async () => {
         console.log(updateConnection, ssid, password);
         setIsBusy(true);
-        if (ssid) await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${ssid}`);
-        if (password) await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${password}`);
+        if (ssid) await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${ssid};`);
+        if (password) await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${password};`);
         setIsBusy(false);
     }
 
@@ -109,6 +110,13 @@ export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPage
                     <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => updateConnection()} name='save' />
                     <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => performSiteScan()} name='refresh' />
                 </View>),
+            });
+        }
+        else {
+            navigation.setOptions({
+                headerRight: () => (
+                <View style={{ flexDirection: 'row' }} >
+                    </View>),
             });
         }
 
@@ -143,16 +151,11 @@ export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPage
     return (
     <Page style={[styles.container, { backgroundColor: themePalette.background, padding: 120 }]}>
         <View style={[styles.container, { backgroundColor: themePalette.background, padding: 20 }]}>
-            {isBusy &&
-                <View style={[styles.spinnerView, { backgroundColor: themePalette.background, alignItems: "center", marginTop:50 }]}>
-                    <Text style={{ fontSize: 25, color: themePalette.shellTextColor }}>Please Wait</Text>
-                    <ActivityIndicator size="large" color={palettes.accent.normal} animating={isBusy} />
-                </View>
-            }
-            {!isBusy && !wifiStatus &&
-                <View>
-                    <Text style={{ fontSize: 25, color: themePalette.shellTextColor, textAlign:"center", marginTop: 100 }}>Loading Data</Text>
-                </View>
+            {(!wifiStatus || isBusy) &&
+            <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
+                <Text style={[{ color: themePalette.shellTextColor, fontSize: 24, paddingBottom: 20 }]}>Please Wait</Text>
+                <ProgressSpinner  />
+            </View>    
             }            
             {!isBusy && isDeviceConnected && wifiStatus && 
                 <View>
@@ -160,9 +163,9 @@ export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPage
                     <EditField onChangeText={(e) => { setSsid(e); }} label="SSID" placeHolder="enter wifi ssid" value={ssid} />
                     <EditField onChangeText={(e) => { setPassword(e); }} label="Password" placeHolder="enter wifi password" value={password} />
                     {panelDetail('purple', "Connected", wifiStatus.connected ? 'Yes' : 'No')}
-                    {isDeviceConnected && panelDetail('purple', "RSSI", wifiStatus.rssi.toString())}
+                    {wifiStatus.connected && panelDetail('purple', "RSSI", wifiStatus.rssi.toString())}
                     {panelDetail('purple', "Status", wifiStatus.status)}
-                    {isDeviceConnected && panelDetail('purple', "IP Addr", wifiStatus.ipAddress)}
+                    {wifiStatus.connected && panelDetail('purple', "IP Addr", wifiStatus.ipAddress)}
                     {panelDetail('purple', "MAC Addr", wifiStatus.macAddress)}
                     <FlatList
                         contentContainerStyle={{ alignItems: "stretch" }}

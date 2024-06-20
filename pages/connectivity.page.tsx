@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Switch, TouchableOpacity, ActivityIndicator, Platform, TextStyle, ActionSheetIOS, ActionSheetIOSOptions } from "react-native";
 import { Button } from 'react-native-ios-kit';
+import ProgressSpinner from "../mobile-ui-common/progress-spinner";
 
 import AppServices from "../services/app-services";
 
@@ -71,19 +72,19 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
     setIsBusy(true);
 
     if (await ble.connectById(peripheralId)) {
-      if (deviceId) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `deviceid=${deviceId}`);
-      if (serverUrl) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `host=${serverUrl}`);
-      if (port) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `port=${port}`);
-      if (serverUid) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `uid=${serverUid}`);
-      if (serverPwd) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `pwd=${serverPwd}`);
-      if (serverType) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `srvrtype=${serverType}`);
+      if (deviceId) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `deviceid=${deviceId};`);
+      if (serverUrl) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `host=${serverUrl};`);
+      if (port) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `port=${port};`);
+      if (serverUid) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `uid=${serverUid};`);
+      if (serverPwd) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `pwd=${serverPwd};`);
+      if (serverType) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `srvrtype=${serverType};`);
 
-      if (wifiSSID) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${wifiSSID}`);
-      if (wifiPWD) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${wifiPWD}`);
+      if (wifiSSID) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${wifiSSID};`);
+      if (wifiPWD) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${wifiPWD};`);
 
-      await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'wifi=' + (useWiFi ? '1' : '0'));
-      await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'cell=' + (useCellular ? '1' : '0'));
-      await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'commissioned=' + (commissioned ? '1' : '0'));
+      await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'wifi=' + (useWiFi ? '1' : '0') + ";");
+      await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'cell=' + (useCellular ? '1' : '0') + ";");
+      await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'commissioned=' + (commissioned ? '1' : '0') + ";");
       await ble.disconnectById(peripheralId);
 
       await getData();
@@ -123,7 +124,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
     let result = await AppServices.instance.deploymentServices.LoadWiFiConnectionProfiles(route.params.instanceRepoId);
     result.unshift({ id: 'cellular', key: 'cellular', name: 'Cellular', ssid: '', password: '', description: '' });
-    result.unshift({ id: 'none', key: 'none', name: 'No Connection', ssid: '', password: '', description: '' });
+    result.unshift({ id: 'none', key: 'none', name: '-please select a connection-', ssid: '', password: '', description: '' });
     if (Platform.OS === 'ios')
       result.unshift({ id: 'cancel', key: 'cancel', name: 'Cancel', ssid: '', password: '', description: '' });
 
@@ -135,6 +136,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
     }
 
     setIsBusy(false);
+    setIsReady(true);
   }
 
   const toggleUseDefaultListener = () => {
@@ -244,8 +246,13 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
     return (
       <Page style={[styles.container, { backgroundColor: themePalette.background, padding: 20 }]}>
-        {!isReady &&  <View>Loading Data....</View>} 
-        {isReady &&  
+        {isBusy &&      
+         <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
+          <Text style={[{ color: themePalette.shellTextColor, fontSize: 24, paddingBottom: 20 }]}>Please Wait</Text>
+          <ProgressSpinner isBusy={isBusy} />
+        </View>
+        }
+        {isReady && !isBusy &&
           <KeyboardAwareScrollView>
             <View style={{ padding: 20 }}>
               <Text style={inputLabelStyle}>WiFi Connection:</Text>

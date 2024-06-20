@@ -390,9 +390,10 @@ export class NuvIoTBLE {
 
   async writeCharacteristic(id: string, serviceId: string, characteristicId: string, value: string): Promise<boolean> {
     try {
-      let buffer = this.string2Bin(value);
-      console.log("[NuvIoTBLE__writeCharacteristic] success, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId + ", value=" + value);
+      console.log("[NuvIoTBLE__writeCharacteristic] begin, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId + ", value=" + value);
+      let buffer = this.string2Bin(value);      
       await BleManager.write(id, serviceId, characteristicId, buffer, 255);      
+      console.log("[NuvIoTBLE__writeCharacteristic] successr, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId + ", value=" + value);
       return true;
     }
     catch (e) {
@@ -434,6 +435,7 @@ export class NuvIoTBLE {
             if (result) {
               console.log(`[NuvIoTBLE__connectById] already connected; // peripheral id: ${id}`);
               resolve(true);
+              retryCount = 0;
             }
             else {
               let timeoutId = undefined;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { TouchableOpacity, ScrollView, View, Text, ActivityIndicator, TextInput, Alert } from "react-native";
+import { TouchableOpacity, View, Text, Alert } from "react-native";
 import { StatusBar } from 'expo-status-bar';
 import Page from "../mobile-ui-common/page";
 
@@ -8,12 +8,10 @@ import { RemoteDeviceState } from "../models/blemodels/state";
 
 import AppServices from "../services/app-services";
 
-import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE';
+import { ble, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE';
 
-import { ThemePalette } from "../styles.palette.theme";
 import styles from '../styles';
 import fontSizes from "../styles.fontSizes";
-import colors from "../styles.colors";
 
 const IDLE = 0;
 const CONNECTING = 1;
@@ -24,6 +22,7 @@ const DISCONNECTED_PAGE_SUSPENDED = 4;
 export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [firmware, setFirmware] = useState<Devices.FirmwareDetail>();
+  const [pageVisible, setPageVisible] = useState<boolean>();
   const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined>(undefined);
   const [connectionState, setConnectionState] = useState<number>(IDLE);
   const [busyMessage, setBusyMessage] = useState<string>("Please Wait");
@@ -34,6 +33,12 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
   const repoId = route.params.deviceRepoId;
   const themePalette = AppServices.instance.getAppTheme();
 
+  const handleWSMessage = (e: any) => {
+    let json = e.data;
+    let wssMessage = JSON.parse(json);
+    let wssPayload = wssMessage.payloadJSON;
+    console.log(wssPayload);
+  }
 
   const initializePage = async () => {
     setBusyMessage('Connecting to device');
@@ -62,7 +67,10 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
     }
     else
       setFirmware(undefined);
-  }
+  
+  
+      AppServices.instance.wssService.onmessage = (e) => handleWSMessage(e);
+    }
 
   function handler(value: any) {
     if (value.characteristic == CHAR_UUID_STATE) {
@@ -94,10 +102,11 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
     let result = await AppServices.instance.deviceServices.requestFirmwareUpdate(repoId, deviceId, firmware!.id, firmware!.defaultRevision.id);
     if (result.successful) {
       let downloadId = result.result;
-      console.log(result.result);
+
+      AppServices.instance.wssService.init('dfu', downloadId);
 
       if (await ble.connectById(peripheralId)) {
-        await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `dfu=${downloadId}`);
+        await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `dfu=${downloadId};`);
         await ble.disconnectById(peripheralId);
         setConnectionState(DISCONNECTED);
         await ble.unsubscribe();
@@ -114,6 +123,22 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
       initializePage();
       setInitialCall(false);
     }
+
+    const focusSubscription = navigation.addListener('focus', () => {
+      setPageVisible(true);
+      console.log("[DFUPage__Focus]");
+    });
+
+    const blurSubscription = navigation.addListener('beforeRemove', async () => {
+      setPageVisible(false);
+      AppServices.instance.wssService.close();
+      console.log("[DFUPage__Blur]");
+    });
+
+    return (() => {
+      focusSubscription();
+      blurSubscription();
+    });
   });
 
   return (
@@ -123,7 +148,7 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
         <View>
           <Text style={[{ color: themePalette.shellTextColor }]}>Firmware: {firmware.name}</Text>
           <Text style={[{ color: themePalette.shellTextColor }]}>Firmware SKU: {firmware.firmwareSku}</Text>
-          <Text style={[{ color: themePalette.shellTextColor }]}>Available Firmware Revision: {firmware.defaultRevision.text}</Text>
+          <Text style={[{ color: themePalette.shellTextColor }]}>Available Firmware Revision: {firmware.defaultRevision?.text}</Text>
 
           {remoteDeviceState &&
             <View>

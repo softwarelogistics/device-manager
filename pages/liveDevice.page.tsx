@@ -18,7 +18,7 @@ import ViewStylesHelper from "../utils/viewStylesHelper";
 import palettes from "../styles.palettes";
 import Page from "../mobile-ui-common/page";
 import { NetworkCallStatusService } from "../services/network-call-status-service";
-import { useFocusEffect } from "@react-navigation/native";
+import { useInterval } from "usehooks-ts";
 
 const IDLE = 0;
 const CONNECTING = 1;
@@ -30,6 +30,7 @@ let simData = new SimulatedData();
 
 export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices) => {
 
+  const [pageVisible, setPageVisible] = useState<boolean>(true);
   const [deviceDetail, setDeviceDetail] = useState<Devices.DeviceDetail | undefined | any>();
   const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined>(undefined);
   const [sensorValues, setSensorValues] = useState<IOValues | undefined>(undefined);
@@ -46,7 +47,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const isOwnedDevice = route.params.owned;
   const themePalette = AppServices.instance.getAppTheme();
 
-  const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
+  const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellTextColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
   const chevronBarVerticalStyle: ViewStyle = ViewStylesHelper.combineViewStyles([{ height: 39 }]);
   const chevronBarColorTick: ViewStyle = ViewStylesHelper.combineViewStyles([chevronBarVerticalStyle, { width: 8 }]);
   const barGreyChevronRightStyle: TextStyle = ViewStylesHelper.combineTextStyles([chevronBarVerticalStyle, { backgroundColor: palettes.gray.v20, fontSize: 18, paddingLeft: 4, paddingRight: 4, width: '98%', textAlignVertical: 'center' }]);
@@ -180,6 +181,7 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     if(initialLoad) {
       setInitialLoad(false);
       loadDevice();
+      setPageVisible(true);
     }
    
     const blurSubscription = navigation.addListener('beforeRemove', async () => {

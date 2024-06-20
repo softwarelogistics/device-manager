@@ -30,7 +30,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
 
   const themePalette = AppServices.instance.getAppTheme();
 
-  const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellNavColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
+  const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellTextColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
   const chevronBarVerticalStyle: ViewStyle = ViewStylesHelper.combineViewStyles([{ height: 39 }]);
   const chevronBarColorTick: ViewStyle = ViewStylesHelper.combineViewStyles([chevronBarVerticalStyle, { width: 8 }]);
   const barGreyChevronRightStyle: TextStyle = ViewStylesHelper.combineTextStyles([chevronBarVerticalStyle, { backgroundColor: palettes.gray.v20, fontSize: 18, paddingLeft: 4, paddingRight: 4, width: '98%', textAlignVertical: 'center' }]);
@@ -296,7 +296,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                   {sectionHeader('Local Connection')}
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: themePalette.viewBackground, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8  }}>
                   <Text style={labelStyle}>Connected</Text>
-                  <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={(() => showConfigurePage())} name='settings-sharp' />
+                  <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.buttonPrimary} onPress={(() => showConfigurePage())} name='settings-sharp' />
                 </View>
               </View>
             }

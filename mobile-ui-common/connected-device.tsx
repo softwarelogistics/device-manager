@@ -80,6 +80,14 @@ export class ConnectedDevice {
         return await ble.writeCharacteristic(peripheralId, serviceId, charId, value);
     }
 
+    static async getCharacteristic(peripheralId: string, serviceId: string, charId: string) : Promise<string | null> {
+        return await ble.getCharacteristic(peripheralId, serviceId, charId);
+    }
+
+    static async writeNoResponseCharacteristic(peripheralId: string, serviceId: string, charId: string, value: string) {
+        return await ble.writeNoResponseCharacteristic(peripheralId, serviceId, charId, value);
+    }
+
     static async connectAndSubscribe(peripheralId: string, subscriptions: string[], retryCount: number = 5): Promise<boolean> {
         if(!peripheralId)
             throw 'peripheralId is a required field.';

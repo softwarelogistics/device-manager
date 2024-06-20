@@ -17,6 +17,7 @@ import palettes from "../styles.palettes";
 import colors from "../styles.colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useFocusEffect } from "@react-navigation/native";
+import Page from "../mobile-ui-common/page";
 
 
 export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServices) => {
@@ -98,13 +99,13 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
   }
 
   useFocusEffect(() => {
-    if(initialLoad) {
+    if (initialLoad) {
       setInitialLoad(false);
-     
+
       if (peripheralId) {
         getData();
       }
-      else 
+      else
         throw 'peripheralId not set from calling page, must pass in as a parameter.'
     }
   });
@@ -130,33 +131,35 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
   }, [handler]);
 
   return (
-    isBusy ?
-      <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-        <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Please Wait</Text>
-        <ActivityIndicator size="large" color={colors.primaryColor} animating={isBusy} />
-      </View>
-      :
-      <KeyboardAwareScrollView style={[{ backgroundColor: themePalette.background, paddingLeft: 20, paddingRight: 20 }]}>
-        <View>
-          <Text style={inputLabelStyle}>Send Update Rate (MS):</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={sendUpdateRate} onChangeText={e => { setSendUpdateRate(e); }} />
-
-          <Text style={inputLabelStyle}>Internal Loop Rate (MS):</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={loopRate} onChangeText={e => setLoopRate(e)} />
-
-          <Text style={inputLabelStyle}>Ping/Keep Alive Rate (Seconds):</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (30 seconds)" value={pingRate} onChangeText={e => setPingRate(e)} />
-
-          <View style={styles.flex_toggle_row}>
-            <Text style={inputLabelStyle}>GPS Enabled:</Text>
-            <Switch onValueChange={e => setGPSEnabled(e)} value={gpsEnabled}
-              thumbColor={(colors.primaryColor)}
-              trackColor={{ false: colors.accentColor, true: colors.accentColor }} />          
-            </View>
-          
-          <Text style={inputLabelStyle}>GPS Update Rate (MS):</Text>
-          <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={gpsRate} onChangeText={e => setGPSRate(e)} />          
+    <Page>
+      {isBusy ?
+        <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
+          <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Please Wait</Text>
+          <ActivityIndicator size="large" color={colors.primaryColor} animating={isBusy} />
         </View>
-      </KeyboardAwareScrollView>
+        :
+        <KeyboardAwareScrollView style={[{ backgroundColor: themePalette.background, paddingLeft: 20, paddingRight: 20 }]}>
+          <View>
+            <Text style={inputLabelStyle}>Send Update Rate (MS):</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={sendUpdateRate} onChangeText={e => { setSendUpdateRate(e); }} />
+
+            <Text style={inputLabelStyle}>Internal Loop Rate (MS):</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={loopRate} onChangeText={e => setLoopRate(e)} />
+
+            <Text style={inputLabelStyle}>Ping/Keep Alive Rate (Seconds):</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (30 seconds)" value={pingRate} onChangeText={e => setPingRate(e)} />
+
+            <View style={styles.flex_toggle_row}>
+              <Text style={inputLabelStyle}>GPS Enabled:</Text>
+              <Switch onValueChange={e => setGPSEnabled(e)} value={gpsEnabled}
+                thumbColor={(colors.primaryColor)}
+                trackColor={{ false: colors.accentColor, true: colors.accentColor }} />
+            </View>
+
+            <Text style={inputLabelStyle}>GPS Update Rate (MS):</Text>
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={gpsRate} onChangeText={e => setGPSRate(e)} />
+          </View>
+        </KeyboardAwareScrollView>}
+    </Page>
   );
 }

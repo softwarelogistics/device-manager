@@ -6,7 +6,6 @@ import { Button } from 'react-native-ios-kit';
 import { Picker } from '@react-native-picker/picker';
 
 import AppServices from "../services/app-services";
-import { ThemePalette } from "../styles.palette.theme";
 
 import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { IReactPageServices } from "../services/react-page-services";
@@ -17,6 +16,10 @@ import ViewStylesHelper from "../utils/viewStylesHelper";
 import palettes from "../styles.palettes";
 import { Subscription } from "../utils/NuvIoTEventEmitter";
 import { useFocusEffect } from "@react-navigation/native";
+import ProgressSpinner from "../mobile-ui-common/progress-spinner";
+import Page from "../mobile-ui-common/page";
+import { ConnectedDevice } from "../mobile-ui-common/connected-device";
+import { useInterval } from "usehooks-ts";
 
 const IDLE = 0;
 const CONNECTING = 1;
@@ -30,9 +33,10 @@ interface SelectableOption {
 }
 export const SensorsPage = ({ props, navigation, route }: IReactPageServices) => {
   const [connectionState, setConnectionState] = useState<number>(IDLE);
-
+  const [pageVisible, setPageVisible] = useState<boolean>(false)
   const [portName, setPortName] = useState('');
-
+  const [isDeviceConnected, setIsDeviceConnected] = useState<boolean>(false);
+  const [initialLoad, setInitialCall] = useState<boolean>(true)
   const [scaler, setScaler] = useState<string>("0");
   const [calibration, setCalibration] = useState<string>('0');
   const [zero, setZero] = useState("0");
@@ -50,7 +54,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
   const deviceId = route.params.deviceId;
   const themePalette = AppServices.instance.getAppTheme();
 
-  console.log(peripheralId, repoId, deviceId);
+  //console.log(peripheralId, repoId, deviceId);
 
   const [selectedPort, setPort] = useState<SelectableOption | undefined>(undefined);
   const ports: SelectableOption[] = [
@@ -115,71 +119,42 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
   };
   const inputStyleWithBottomMargin: TextStyle = ViewStylesHelper.combineTextStyles([styles.inputStyle, inputStyleOverride]);
   const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, { color: themePalette.shellTextColor, fontWeight: (themePalette.name === 'dark' ? '700' : '400') }]);
-  const primaryButtonStyle: ViewStyle = ViewStylesHelper.combineViewStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
   const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);
 
-  function handler(value: any) {
+  const charHandler = (value: any) => {
+//    console.log('char handler->' + value.characteristic + ' - ' + value.value);
+
     if (value.characteristic == CHAR_UUID_IO_VALUE) {
       let io = new IOValues(value.value);
-      console.log(value.value);
       setIOValues(io);
     }
   }
 
-  const disconnectHandler = (id: string) => {
-    setConnectionState(DISCONNECTED);
-
-    ble.removeAllListeners('receive');
-    ble.removeAllListeners('disconnected');
-  }
-
-  const loadDevice = async () => {
-    if (ble.simulatedBLE()) {
-      setConnectionState(CONNECTED);
-      return;
-    }
-    setConnectionState(CONNECTING);
-
-    if (await ble.connectById(peripheralId)) {
-      setConnectionState(CONNECTED);
-      await ble.subscribe(ble);
-      ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-      ble.addListener('receive', handler);
-      ble.addListener('disconnected', disconnectHandler);
-    }
-  }
-
   const writeChar = async () => {
-    let setCmd = `setioconfig=${selectedPort},${portName},${isDigitalPortSelected ? digitalDeviceType : analogDeviceType},${scaler},${calibration},${zero}`;
+    let setCmd = `setioconfig=${selectedPort?.value},${portName},${isDigitalPortSelected ? digitalDeviceType?.value : analogDeviceType?.value},${scaler},${calibration},${zero}`;
     console.log('write char is called.' + connectionState);
     console.log('write char is called.' + setCmd);
 
-    if (connectionState == CONNECTED) {
-      await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, `setioview=${selectedPort}`);
-      await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, setCmd);
-      await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
-    }
+    await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, `setioview=${selectedPort?.value};`);
+    await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, setCmd);
+    await ConnectedDevice.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
   }
 
   const readConfig = async (port: string) => {
     console.log('read char is called.' + connectionState + " port " + port);
 
-    if (connectionState == CONNECTED) {
-      await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, `setioview=${port}`);
-      let str = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
-      console.log(str);
-      if (str) {
-        let parts = str.split(',');
-        if (parts.length > 5) {
-          setPortName(parts[1]);
-          setAnalogDeviceType(adcPortType.find(prt => prt.value == parts[2]));
-          setDigitalDeviceType(ioPortType.find(prt => prt.value == parts[2]));
-          setScaler(parts[3]);
-          setCalibration(parts[4]);
-          setZero(parts[5]);
-        }
-
-        console.log('reading', analogDeviceType, digitalDeviceType);
+    await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, `setioview=${port};`);
+    let str = await ConnectedDevice.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
+    console.log(`[SensorPage__ReadConfig] - ${port} - Value: ${str}`);
+    if (str) {
+      let parts = str.split(',');
+      if (parts.length > 5) {
+        setPortName(parts[1]);
+        setAnalogDeviceType(adcPortType.find(prt => prt.value == parts[2]));
+        setDigitalDeviceType(ioPortType.find(prt => prt.value == parts[2]));
+        setScaler(parts[3]);
+        setCalibration(parts[4]);
+        setZero(parts[5]);
       }
     }
   }
@@ -206,10 +181,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
 
   const restartDevice = async () => {
     if (connectionState == CONNECTED) {
-      ble.removeAllListeners('receive');
-      ble.removeAllListeners('disconnected');
-      await ble.writeNoResponseCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
-      await ble.disconnectById(peripheralId);
+      await ConnectedDevice.writeNoResponseCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
+      await ConnectedDevice.disconnect();
       setConnectionState(DISCONNECTED);
     }
   }
@@ -245,8 +218,6 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
       })
   }
 
-
-
   const selectIODeviceType = () => {
     if (!ports) return;
 
@@ -258,15 +229,22 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
       })
   }
 
-  useFocusEffect(() => {
-    if (connectionState == DISCONNECTED_PAGE_SUSPENDED) {
-      loadDevice();
-    }
-  }
+  useInterval(async () => {
+    if(peripheralId && !isDeviceConnected){
+      await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_IO_VALUE], 1);
+      }}, pageVisible ? 6000 : null  
   )
-
+  
   useEffect(() => {
     console.log('[Sensors__useEffect] ' + peripheralId);
+    ConnectedDevice.onReceived = (value) => charHandler(value);
+    ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
+    ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
+
+    if(initialLoad){
+      ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_IO_VALUE], 1);
+      setInitialCall(false);
+    }
 
     navigation.setOptions({
       headerRight: () => (
@@ -275,113 +253,102 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
         </View>),
     });
 
-    const blurSubscription = navigation.addListener('beforeRemove', async () => {
-      if (connectionState == CONNECTING) {
-        ble.cancelConnect();
+  const focusSubscription = navigation.addListener('focus', () => {
+      setPageVisible(true);      
+      if (ble.simulatedBLE()) {
+        setIsDeviceConnected(true);
+        return;
       }
-      else if (connectionState == CONNECTED) {
-        console.log('DevicePage_BeforeRemove.');
-        await ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-        await ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-        ble.removeAllListeners('receive');
-        ble.removeAllListeners('disconnected');
-        await ble.disconnectById(peripheralId);
-      }
+      console.log("[SensorPage__Focus]");
+  });
+
+  const blurSubscription = navigation.addListener('beforeRemove', async () => {
+      await ConnectedDevice.disconnect();
+
+      setPageVisible(false);
+      AppServices.instance.wssService.close();
+      console.log("[SensorPage__Blur]");
     });
 
     return (() => {
+      focusSubscription();
       blurSubscription();
-    });
+    });    
   }, []);
 
   return (
-    <ScrollView style={[styles.scrollContainer, { backgroundColor: themePalette.background }]}>
-      {
-        connectionState == CONNECTED &&
-        <View >
-          <StatusBar style="auto" />
-          <Text style={inputLabelStyle}>Port:</Text>
-          {Platform.OS == 'ios' && selectedPort && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectPort()} >{selectedPort.label}</Button>}
-          {Platform.OS == 'ios' && !selectedPort && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectPort()} >-select port-</Button>}
-          {Platform.OS != 'ios' &&
-            <Picker selectedValue={selectedPort?.value} onValueChange={portChanged} >
-              {ports.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
-            </Picker>
-          }
+    <Page>
+      <ScrollView style={[styles.scrollContainer, { backgroundColor: themePalette.background }]}>
+        {
+          !isDeviceConnected &&
+           <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
+            <Text style={{ fontSize: 25, color: themePalette.shellTextColor }}>Connecting to BLE</Text>
+            <ProgressSpinner />
+          </View>
+        }
+        {
+          isDeviceConnected &&
+          <View >
+            <StatusBar style="auto" />
+            <Text style={inputLabelStyle}>Port:</Text>
+            {Platform.OS == 'ios' && selectedPort && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectPort()} >{selectedPort.label}</Button>}
+            {Platform.OS == 'ios' && !selectedPort && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectPort()} >-select port-</Button>}
+            {Platform.OS != 'ios' &&
+              <Picker selectedValue={selectedPort?.value} onValueChange={portChanged} >
+                {ports.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
+              </Picker>
+            }
 
-          {
-            isAdcPortSelected &&
-            <View>
-              <Text style={inputLabelStyle}>ADC Type:</Text>
-              {Platform.OS == 'ios' && analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectADCDeviceType()} >{analogDeviceType.label}</Button>}
-              {Platform.OS == 'ios' && !analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectADCDeviceType()} >-select device type-</Button>}
-              {Platform.OS != 'ios' &&
-                <Picker selectedValue={analogDeviceType?.value} onValueChange={(value) => setAnalogDeviceType(adcPortType.find(prt => prt.value == value))} >
-                  {adcPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
-                </Picker>
-              }
-            </View>
-          }
-
-          {
-            isDigitalPortSelected &&
-            <View>
-              <Text style={inputLabelStyle}>Digitial Port Type:</Text>
-              {Platform.OS == 'ios' && analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectIODeviceType()} >{analogDeviceType.label}</Button>}
-              {Platform.OS == 'ios' && !analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectIODeviceType()} >-select device type-</Button>}
-              {Platform.OS != 'ios' &&
-                <Picker selectedValue={digitalDeviceType?.value} onValueChange={(value) => setDigitalDeviceType(ioPortType.find(prt => prt.value == value))} >
-                  {ioPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
-                </Picker>
-              }
-            </View>
-          }
-
-          {
-            hasAnyPort &&
-            <View>
-              <Text style={inputLabelStyle}>Port Name:</Text>
-              <TextInput style={inputStyleWithBottomMargin} placeholder="name" value={portName} onChangeText={e => setPortName(e)} />
-              <Text style={inputLabelStyle}>Raw Scaler:</Text>
-              <TextInput style={inputStyleWithBottomMargin} placeholder="scaler" value={scaler} onChangeText={e => setScaler(e)} />
-              <Text style={inputLabelStyle}>Zero Value:</Text>
-              <TextInput style={inputStyleWithBottomMargin} placeholder="zero" value={zero} onChangeText={e => setZero(e)} />
-              <Text style={inputLabelStyle}>Calibration:</Text>
-              <TextInput style={inputStyleWithBottomMargin} placeholder="calibration" value={calibration} onChangeText={e => setCalibration(e)} />
-
-              <View style={{ flexDirection: "column" }}>
-                <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.accent1.normal }]} onPress={() => writeChar()}><Text style={primaryButtonTextStyle}> Write </Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.alert.warning }]} onPress={() => resetConfig()}><Text style={primaryButtonTextStyle}> Reset </Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.alert.error }]} onPress={() => restartDevice()}><Text style={primaryButtonTextStyle}> Restart </Text></TouchableOpacity>
+            {
+              isAdcPortSelected &&
+              <View>
+                <Text style={inputLabelStyle}>ADC Type:</Text>
+                {Platform.OS == 'ios' && analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectADCDeviceType()} >{analogDeviceType.label}</Button>}
+                {Platform.OS == 'ios' && !analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectADCDeviceType()} >-select device type-</Button>}
+                {Platform.OS != 'ios' &&
+                  <Picker selectedValue={analogDeviceType?.value} onValueChange={(value) => setAnalogDeviceType(adcPortType.find(prt => prt.value == value))} >
+                    {adcPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
+                  </Picker>
+                }
               </View>
-            </View>
-          }
-        </View>
-      }
-      {
-        connectionState == CONNECTING &&
-        connectionState == CONNECTING &&
-        <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-          <Text style={{ fontSize: 25, color: themePalette.shellTextColor }}>Connecting to BLE</Text>
-          <ActivityIndicator size="large" color={palettes.accent.normal} animating={connectionState == CONNECTING} />
-        </View>
-      }
-      {connectionState == DISCONNECTED &&
-        <View>
-          <Text style={{ color: themePalette.shellTextColor }}>Disconnected</Text>
-          <TouchableOpacity style={primaryButtonStyle} onPress={() => loadDevice()}>
-            <Text style={primaryButtonTextStyle}> Re-Connect </Text>
-          </TouchableOpacity>
-        </View>
-      }
-      {
-        connectionState == IDLE &&
-        <Text style={{ color: themePalette.shellTextColor }}>Please wait</Text>
-      }
-      {
-        connectionState == DISCONNECTED_PAGE_SUSPENDED &&
-        <Text style={{ color: themePalette.shellTextColor }}>Please Wait Reconnecting</Text>
-      }
-    </ScrollView>
+            }
+
+            {
+              isDigitalPortSelected &&
+              <View>
+                <Text style={inputLabelStyle}>Digitial Port Type:</Text>
+                {Platform.OS == 'ios' && analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectIODeviceType()} >{analogDeviceType.label}</Button>}
+                {Platform.OS == 'ios' && !analogDeviceType && <Button style={{ color: themePalette.shellTextColor, margin: 20 }} inline onPress={() => selectIODeviceType()} >-select device type-</Button>}
+                {Platform.OS != 'ios' &&
+                  <Picker selectedValue={digitalDeviceType?.value} onValueChange={(value) => setDigitalDeviceType(ioPortType.find(prt => prt.value == value))} >
+                    {ioPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} color={themePalette.accentColor} />)}
+                  </Picker>
+                }
+              </View>
+            }
+
+            {
+              hasAnyPort &&
+              <View>
+                <Text style={inputLabelStyle}>Port Name:</Text>
+                <TextInput style={inputStyleWithBottomMargin} placeholder="name" value={portName} onChangeText={e => setPortName(e)} />
+                <Text style={inputLabelStyle}>Raw Scaler:</Text>
+                <TextInput style={inputStyleWithBottomMargin} placeholder="scaler" value={scaler} onChangeText={e => setScaler(e)} />
+                <Text style={inputLabelStyle}>Zero Value:</Text>
+                <TextInput style={inputStyleWithBottomMargin} placeholder="zero" value={zero} onChangeText={e => setZero(e)} />
+                <Text style={inputLabelStyle}>Calibration:</Text>
+                <TextInput style={inputStyleWithBottomMargin} placeholder="calibration" value={calibration} onChangeText={e => setCalibration(e)} />
+
+                <View style={{ flexDirection: "column" }}>
+                  <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.accent1.normal }]} onPress={() => writeChar()}><Text style={primaryButtonTextStyle}> Write </Text></TouchableOpacity>
+                  <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.alert.warning }]} onPress={() => resetConfig()}><Text style={primaryButtonTextStyle}> Reset </Text></TouchableOpacity>
+                  <TouchableOpacity style={[styles.submitButton, { backgroundColor: palettes.alert.error }]} onPress={() => restartDevice()}><Text style={primaryButtonTextStyle}> Restart </Text></TouchableOpacity>
+                </View>
+              </View>
+            }
+          </View>
+        }
+      </ScrollView>
+    </Page>
   );
 }

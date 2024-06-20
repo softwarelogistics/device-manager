@@ -27,6 +27,7 @@ import SLIcon from "../mobile-ui-common/sl-icon";
 import styles from "../styles";
 import ModalSelector from "react-native-modal-selector";
 import colors from "../styles.colors";
+import { ConnectedDevice } from "../mobile-ui-common/connected-device";
 
 export const InstancePage = ({
   navigation,
@@ -149,6 +150,8 @@ export const InstancePage = ({
         </View>
       ),
     });
+
+    ConnectedDevice.disconnect();
 
     if (initialCall) {
       loadDevices();
