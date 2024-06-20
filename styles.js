@@ -5,6 +5,7 @@ import palettes from './styles.palettes';
 import { Platform } from 'react-native';
 import { ThemePalette, ThemePaletteService } from "./styles.palette.theme";
 
+
 const styles = StyleSheet.create({
 
   container: {
@@ -96,7 +97,6 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.medium,
     // marginHorizontal: "1%",
   },
-
 
   currentOrganizationView: {
     width: '100%',
@@ -383,7 +383,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-});
 
+
+});
 
 export default styles;

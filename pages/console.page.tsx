@@ -5,11 +5,13 @@ import { IReactPageServices } from "../services/react-page-services";
 import styles from '../styles';
 import ViewStylesHelper from "../utils/viewStylesHelper";
 import fontSizes from "../styles.fontSizes";
-import { CHAR_UUID_CONSOLE, CHAR_UUID_CAN_MSG } from '../NuvIoTBLE'
+import { CHAR_UUID_CONSOLE, CHAR_UUID_CAN_MSG, CHAR_UUID_IO_VALUE, CHAR_UUID_STATE } from '../NuvIoTBLE'
 import { StatusBar } from "expo-status-bar";
 import Moment from 'moment';
 import Page from "../mobile-ui-common/page";
 import { ConnectedDevice } from "../mobile-ui-common/connected-device";
+import { useInterval } from "usehooks-ts";
+import { labelStyle } from "../compound.styles";
 
 
 interface ConsoleOutput {
@@ -21,6 +23,7 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
   
 
   const [consoleOutput, setConsoleOutput] = useState<ConsoleOutput[]>([]);
+  const [pageVisible, setPageVisible] = useState<boolean>(true);
   const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
   const [isDeviceConnected, setIsDeviceConnected] = useState<boolean>(false);
   const themePalette = AppServices.instance.getAppTheme();
@@ -44,23 +47,28 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
     }
   }
 
-  const tryConnect = async () => {
-    ConnectedDevice.onReceived = (value) => charHandler(value);
-    ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
-    ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
 
-    await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_CONSOLE]);
-  }
+  useInterval(async () => {
+    if (peripheralId && !isDeviceConnected) {
+      await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE], 1)
+    }
+  }, pageVisible ? 6000 : null
+  )
 
   useEffect(() => {
     const focusSubscription = navigation.addListener('focus', async () => {
-      await tryConnect();
+      ConnectedDevice.onReceived = (value) => charHandler(value);
+      ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
+      ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
+
+      setPageVisible(true);
     });
 
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
       if (isDeviceConnected)
         await ConnectedDevice.disconnect();
 
+      setPageVisible(false);
     });
 
     return (() => {
@@ -76,17 +84,8 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
         <View>
           <View>
             <Text>
-              {isDeviceConnected && 
-                <Text>
-                Connected
-                </Text>
-              }
-              {!isDeviceConnected && 
-                <Text>
-                Not Connected
-                <Button title="Connect" onPress={tryConnect} />
-                </Text>
-              }
+              {isDeviceConnected && <Text style={[labelStyle, { fontSize: 18, fontWeight: "500" }]}>Connected</Text>}
+              {!isDeviceConnected && <Text style={[labelStyle, { fontSize: 18, fontWeight: "500" }]}>Not Connected</Text>}
             </Text>
           </View>
 

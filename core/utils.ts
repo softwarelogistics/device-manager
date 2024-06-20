@@ -3,6 +3,7 @@ import { CommonSettings, environment } from '../settings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NuvIoTEventEmitter } from "../utils/NuvIoTEventEmitter";
 import AuthenticationHelper from "../utils/authenticationHelper";
+import { LogWriter } from "../mobile-ui-common/logger";
 
 export class ActivatedRoute {
     snapshot: any;
@@ -96,7 +97,7 @@ export class HttpClient {
                 await AsyncStorage.setItem("refreshtoken", refreshResult.result.refreshToken);
                 await AsyncStorage.setItem("refreshtokenExpires", refreshResult.result.refreshTokenExpiresUTC);
                 await AsyncStorage.setItem("jwtExpires", refreshResult.result.accessTokenExpiresUTC);
-                console.log('[HttpClient__renewToken] - Refreshed with new JWT');
+                await LogWriter.log('[HttpClient__renewToken]', 'Refreshed with new JWT', 'INFO');
 
                 let currentUserResult = await this.get<Core.FormResult<Users.AppUser, Users.AppUserView>>(`${HttpClient.getApiUrl()}/api/user`);
                 console.log(currentUserResult!.model);
@@ -104,15 +105,14 @@ export class HttpClient {
                 return true;
             }
             else {
-                console.log('[HttpClient__renewToken] - ERROR: could not refresh token');
+                await LogWriter.log('[HttpClient__renewToken]', 'ERROR: Could not refresh token', 'ERROR', refreshResult.errorMessage);
                 HttpClient.logoutSubscription?.emit('logout', 'could not refresh token');
                 return false;
             }
 
         }
         catch (err: any) {
-            console.error('[HttpClient__renewToken] - Caught Exception: could not refresh token');
-            console.error(err);
+            await LogWriter.log('[HttpClient__renewToken]', 'ERROR: Could not refresh token', 'ERROR', err);
 
             HttpClient.logoutSubscription?.emit('logout', 'could not refresh token');
             

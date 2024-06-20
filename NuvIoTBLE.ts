@@ -433,18 +433,19 @@ export class NuvIoTBLE {
           else {
             let result = await BleManager.isPeripheralConnected(id)
             if (result) {
-              console.log(`[NuvIoTBLE__connectById] already connected; // peripheral id: ${id}`);
+              console.log(`[INFO] [NuvIoTBLE__connectById] already connected; // peripheral id: ${id}`);
               resolve(true);
               retryCount = 0;
             }
             else {
               let timeoutId = undefined;
               try {
-                console.log(`[NuvIoTBLE__connectById] connecting; // peripheral id: ${id}`);
+                console.log(`[INFO] [NuvIoTBLE__connectById] connecting; // peripheral id: ${id}`);
                 timeoutId = setTimeout(() => { 
-                  BleManager.disconnect(id); 
-                  console.log(`[NuvIoTBLE__connectById] 5 second timeout for device id ${id}`) 
-                  return false;
+                  console.log(`[INFO] [NuvIoTBLE__connectById] 5 second timeout expired for device id ${id}`) 
+                  ble.cancelConnect();
+                  resolve(false);
+                  return;
                 }, 5000);     
 
                 await BleManager.connect(id);

@@ -12,21 +12,21 @@ import { ble, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../
 
 import styles from '../styles';
 import fontSizes from "../styles.fontSizes";
-
-const IDLE = 0;
-const CONNECTING = 1;
-const CONNECTED = 2;
-const DISCONNECTED = 3;
-const DISCONNECTED_PAGE_SUSPENDED = 4;
+import { busyBlock, panelDetail, sectionHeader } from "../mobile-ui-common/PanelDetail";
+import { ConnectedDevice } from "../mobile-ui-common/connected-device";
+import { LogWriter, showError } from "../mobile-ui-common/logger";
+import { center } from "@shopify/react-native-skia";
 
 export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
   const [initialCall, setInitialCall] = useState<boolean>(true);
   const [firmware, setFirmware] = useState<Devices.FirmwareDetail>();
   const [pageVisible, setPageVisible] = useState<boolean>();
   const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined>(undefined);
-  const [connectionState, setConnectionState] = useState<number>(IDLE);
+  
+
   const [busyMessage, setBusyMessage] = useState<string>("Please Wait");
-  const [firmwareUpdateStatus, setFirmwareUpdateStatus] = useState<Devices.FirmwareDownloadRequest | undefined>(undefined);
+  const [firmwareUpdateStatus, setFirmwareUpdateStatus] = useState<Devices.FirmwareUpdateStatus | undefined>(undefined);
+  const [isBusy, setIsBusy] = useState<boolean>(true);
 
   const peripheralId = route.params.peripheralId;
   const deviceId = route.params.deviceId;
@@ -34,26 +34,23 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
   const themePalette = AppServices.instance.getAppTheme();
 
   const handleWSMessage = (e: any) => {
-    let json = e.data;
-    let wssMessage = JSON.parse(json);
-    let wssPayload = wssMessage.payloadJSON;
-    console.log(wssPayload);
+    let wssMessage = JSON.parse(e.data);
+    console.log(wssMessage);
+    setFirmwareUpdateStatus(JSON.parse(wssMessage.payloadJSON));
   }
 
   const initializePage = async () => {
     setBusyMessage('Connecting to device');
-    if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
-      setConnectionState(CONNECTED);
+    if (await ConnectedDevice.connect(peripheralId)) {
       setBusyMessage('Subscribing to events');
-      await ble.subscribe(ble);
 
-      let deviceStateStr = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
+      let deviceStateStr = await ConnectedDevice.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
       if (deviceStateStr) {
         let state = new RemoteDeviceState(deviceStateStr);
         setRemoteDeviceState(state);
       }
 
-      ble.disconnectById(peripheralId);
+      await ConnectedDevice.disconnect();
     }
 
     setBusyMessage('Getting Device');
@@ -68,71 +65,41 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
     else
       setFirmware(undefined);
   
-  
       AppServices.instance.wssService.onmessage = (e) => handleWSMessage(e);
-    }
 
-  function handler(value: any) {
-    if (value.characteristic == CHAR_UUID_STATE) {
-      console.log(value.value);
-      let rds = new RemoteDeviceState(value.value);
-      setRemoteDeviceState(rds);
+      setIsBusy(false);
     }
-  }
-
-  const disconnectHandler = (id: string) => {
-    setConnectionState(DISCONNECTED);
-    setRemoteDeviceState(undefined);
-
-    ble.btEmitter?.removeAllListeners('receive');
-    ble.btEmitter?.removeAllListeners('disconnected');
-  }
-
-  const getFirmwareUpdateStatus = async () => {
-    let result = await AppServices.instance.deviceServices.getFirmwareHistory(repoId, deviceId);
-    if (result.length > 0) {
-      setFirmwareUpdateStatus(result[0]);
-    }
-    else{
-      console.log('hi');
-    }
-  }
 
   const updateFirmware = async () => {
     let result = await AppServices.instance.deviceServices.requestFirmwareUpdate(repoId, deviceId, firmware!.id, firmware!.defaultRevision.id);
     if (result.successful) {
       let downloadId = result.result;
-
       AppServices.instance.wssService.init('dfu', downloadId);
 
-      if (await ble.connectById(peripheralId)) {
-        await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `dfu=${downloadId};`);
-        await ble.disconnectById(peripheralId);
-        setConnectionState(DISCONNECTED);
-        await ble.unsubscribe();
+      if(await ConnectedDevice.connectAndWrite(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `dfu=${downloadId};`)) {
+
       }
     }
     else {
-      console.log(result);
-      Alert.alert("Error", "Error could not request new firmware");
+      showError("Error", "Error could not request new firmware");
     }
   }
 
   useEffect(() => {
-    if (initialCall) {
+    if (initialCall) {      
       initializePage();
       setInitialCall(false);
     }
 
-    const focusSubscription = navigation.addListener('focus', () => {
+    const focusSubscription = navigation.addListener('focus', async () => {
       setPageVisible(true);
-      console.log("[DFUPage__Focus]");
+      await LogWriter.log("[DFUPage__Focus]");
     });
 
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
       setPageVisible(false);
       AppServices.instance.wssService.close();
-      console.log("[DFUPage__Blur]");
+      await LogWriter.log("[DFUPage__Blur]");
     });
 
     return (() => {
@@ -140,37 +107,34 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
       blurSubscription();
     });
   });
-
+  
   return (
-    <Page style={[styles.scrollContainer, { backgroundColor: themePalette.background }]}>
+    <Page >
+      {isBusy && busyBlock(busyMessage)}
       <StatusBar style="auto" />
-      {firmware ?
-        <View>
-          <Text style={[{ color: themePalette.shellTextColor }]}>Firmware: {firmware.name}</Text>
-          <Text style={[{ color: themePalette.shellTextColor }]}>Firmware SKU: {firmware.firmwareSku}</Text>
-          <Text style={[{ color: themePalette.shellTextColor }]}>Available Firmware Revision: {firmware.defaultRevision?.text}</Text>
-
+      {!isBusy && firmware &&
+        <View style={[styles.container, { backgroundColor: themePalette.background, padding: 20 }]}>
+          {sectionHeader('Available Firmware')}
+          
+          {panelDetail('purple', "Name", firmware.name)}
+          {panelDetail('purple', "SKU", firmware.firmwareSku)}
+          {firmware.defaultRevision && panelDetail('purple', "Revision", firmware.defaultRevision?.text)}
           {remoteDeviceState &&
             <View>
-              <Text style={[{ color: themePalette.shellTextColor }]}>Device FW SKU: {remoteDeviceState.firmwareSku}</Text>
-              <Text style={[{ color: themePalette.shellTextColor }]}>Device Revision: {remoteDeviceState.firmwareRevision}</Text>
+              {sectionHeader('Device Firmware')}
+              {panelDetail('green', "Name", remoteDeviceState.firmwareSku)}
+              {panelDetail('green', "SKU", remoteDeviceState.firmwareRevision)}
             </View>}
-
           {firmwareUpdateStatus &&
-            <View>
-              <Text style={[{ color: themePalette.shellTextColor }]}>Percent Requested: {firmwareUpdateStatus.percentRequested}</Text>
-            </View>
-
-          }
-
-          <TouchableOpacity style={[styles.submitButton, { backgroundColor: themePalette.buttonPrimary, borderColor: themePalette.buttonPrimaryBorderColor }]} onPress={() => updateFirmware()}>
+            <View style={[{  justifyContent: "center" }]}>
+              <Text style={[{ color: themePalette.shellTextColor, fontSize:24, textAlign:'center' }]}>{firmwareUpdateStatus.Message}</Text>
+            </View>}
+          {!firmwareUpdateStatus && <TouchableOpacity style={[styles.submitButton, { backgroundColor: themePalette.buttonPrimary, borderColor: themePalette.buttonPrimaryBorderColor }]} onPress={() => updateFirmware()}>
             <Text style={[styles.submitButtonText, { color: themePalette.buttonPrimaryText }]}> Update to Revision </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.submitButton, { backgroundColor: themePalette.buttonPrimary, borderColor: themePalette.buttonPrimaryBorderColor }]} onPress={() => getFirmwareUpdateStatus()}>
-            <Text style={[styles.submitButtonText, { color: themePalette.buttonPrimaryText }]}> Refresh</Text>
-          </TouchableOpacity>
+          </TouchableOpacity>}
         </View>
-        :
+      }
+      {!isBusy && !firmware &&
         <View style={[styles.container, { backgroundColor: themePalette.background }]}>
           <Text style={[{ color: themePalette.shellTextColor, fontSize: fontSizes.medium }]}>Device does not have default firmware.</Text>
         </View>

@@ -16,6 +16,7 @@ import EditField from "../mobile-ui-common/edit-field";
 import { ble, NuvIoTBLE } from "../NuvIoTBLE";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
+import { inputSubtitleStyle, inputSwitchLabelStyle, themePalette } from "../compound.styles";
 
 type UserSelections = {
   firstName: string;
@@ -24,13 +25,8 @@ type UserSelections = {
   phoneNumber: string;
 };
 
-export const SettingsPage = ({
-  props,
-  navigation,
-  route,
-}: IReactPageServices) => {
+export const SettingsPage = ({ props, navigation, route}: IReactPageServices) => {
 
-  const [simulatedBLD, setSimulatedBLE] = useState<boolean>(ble.simulatedBLE());
   const [user, setUser] = useState<Users.AppUser>();
 
   const [selections, setSelections] = useState<UserSelections>({
@@ -39,12 +35,6 @@ export const SettingsPage = ({
     email: "",
     phoneNumber: "",
   });
-
-  const themePalette: ThemePalette = AppServices.instance.getAppTheme();
-
-  const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([ styles.label, { color: themePalette.shellTextColor }, ]);
-  const inputSwitchLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([ styles.labelTitle, { color: themePalette.shellTextColor }, ]);
-  const inputSubtitleStyle: TextStyle = ViewStylesHelper.combineTextStyles([ styles.subtitleText, { color: themePalette.subtitleColor }, ]);
   
   const setDarkTheme = async () => {
     let nextPalette = ThemePaletteService.getThemePalette("dark");
@@ -60,13 +50,6 @@ export const SettingsPage = ({
     AppServices.instance.setAppTheme(nextPalette);
     AppServices.instance.themeChangeSubscription?.emit("changed", "light");
     setSelectionProperty("colorTheme", "light");
-  };
-
-  const simulateChanged = (e: boolean) => {
-    if (e) ble.enableSimulator();
-    else ble.disableSimulator();
-
-    setSimulatedBLE(e);
   };
 
   const handleUserPropertyChange = (e: any, name: string) => {
@@ -143,8 +126,7 @@ export const SettingsPage = ({
         </View>),
     });
 
-    return () => {
-    };
+    return () => {};
   }, [selections]);
 
   return (
@@ -167,24 +149,6 @@ export const SettingsPage = ({
           </View>
         </View>
 
-        {ble.hasBLE() && (
-          <View
-            style={[ styles.flex_toggle_row, { borderRadius: 8, backgroundColor: themePalette.inputBackgroundColor, height: 64, paddingStart: 16,
-                marginRight: 5, marginTop: 16, marginBottom: 0, display: "flex", justifyContent: "space-between", alignItems: "center", },]}>
-            <View>
-              <Text style={inputSwitchLabelStyle}>Simulate Devices:</Text>
-              <Text style={inputSubtitleStyle}> {simulatedBLD ? "Disable Simulation" : "Enable Simulation"} </Text>
-            </View>
-
-            <View style={{ width: 70, height: 32, justifyContent: "center", alignItems: "center", }} >
-              <Switch onValueChange={(e) => simulateChanged(e)} value={simulatedBLD} trackColor={{ false: colors.gray, true: colors.primaryColor }} thumbColor={simulatedBLD ? colors.white : colors.gray3}
-                style={{ transform: [{ scaleX: 1.4 }, { scaleY: 1.4 }] }} />
-            </View>
-          </View>
-        )}
-
-        {!ble.hasBLE() && ( <Text style={inputLabelStyle}>No BLE Device - Simulating</Text>)}
-  
       </KeyboardAwareScrollView>
     </Page>
   );

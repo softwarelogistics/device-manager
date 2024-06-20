@@ -19,13 +19,13 @@ import { PermissionsHelper } from "../services/ble-permissions";
 import { scanUtils } from "../services/scan-utils";
 import { NetworkCallStatusService } from "../services/network-call-status-service";
 import Page from "../mobile-ui-common/page";
+import { LogWriter } from "../mobile-ui-common/logger";
 
 export default function AssociatePage({ navigation, props, route }: IReactPageServices) {
 
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
   const [discoveredPeripherals, setDiscoveredPeripherals] = useState<Peripheral[]>([]);
 
-  const [subscription, setSubscription] = useState<Subscription | undefined>(undefined);
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [busyMessage, setBusyMessage] = useState<String>('Busy');
   const [hasPermissions, setHasPermissions] = useState<boolean>(false);
@@ -37,7 +37,7 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
 
   const checkPermissions = async () => {
     if (Platform.OS === 'android') {
-      console.log('[ScanPage__CheckPermissions] Checking Permissions')
+      await LogWriter.log('[ScanPage__CheckPermissions]','Checking Permissions')
       let hasPermissions = false;
       if (Platform.Version >= 23) {
         hasPermissions = await PermissionsHelper.requestLocationPermissions();
@@ -75,7 +75,6 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
     if (value)
       NetworkCallStatusService.beginCall(busyMessage);
     else {
-      console.log('set end call')
       NetworkCallStatusService.endCall();
     }
   }
@@ -123,50 +122,57 @@ export default function AssociatePage({ navigation, props, route }: IReactPageSe
       }
     }
     else {
-      console.log('[ScanPage__StartScan] Does Not Have Scan Permissions;'); 
+      await LogWriter.log('[AssociatePage__StopScanning]', `Does not have permissions to scan for devices.`);
       checkPermissions();
     }
 
   }
 
-  const stopScanning = () => {
-    console.log('[Associatepage__StopScanning];');
+  const stopScanning = async () => {
+    
     if (isScanning) {
-      console.log('[Associatepage__StopScanning] Is Scanning;');
+      await LogWriter.log('[AssociatePage__StopScanning]', `Stopping`);  
       if (!ble.simulatedBLE()) {
         ble.removeAllListeners('connecting');
         ble.removeAllListeners('connected');
         ble.removeAllListeners('scanning');
         ble.stopScan();
+        await LogWriter.log('[AssociatePage__StopScanning]', `Stopped`);
       }
     }
+    else 
+      await LogWriter.log('[AssociatePage__StopScanning]', `Not Scanning`);
   }
 
   const selectDevice = async (device: BLENuvIoTDevice) => {
-    console.log('Select device');
+    await LogWriter.log('[AssociatePage__SelectDevice]', `Selected Device: ${device.name} (${device.peripheralId})`);
     
     let existingDevice = await AppServices.instance.deviceServices.getDevice(deviceRepoId, deviceId);
 
-    if (Platform.OS === 'ios')
+    if (Platform.OS === 'ios') {
+      await LogWriter.log('[AssociatePage__SelectDevice]', `ios - Write Peripheral Id: ${device.name} (${device.peripheralId})`);
       existingDevice!.iosBLEAddress = device.peripheralId;
-    else
+    }
+    else {
+      await LogWriter.log('[AssociatePage__SelectDevice]', `android - Write Peripheral Id: ${device.name} (${device.peripheralId})`);
       existingDevice!.macAddress = device.peripheralId;
+    }
 
-    console.log('before BT C');
     setIsBusy(true);
-    console.log('after BT C');
     if (await ble.connectById(device.peripheralId)) {
+      await LogWriter.log('[AssociatePage__SelectDevice]', `Updating parameters on device: ${device.name} (${device.peripheralId})`);
       await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'deviceid=' + existingDevice!.deviceId);
       await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'orgid=' + existingDevice!.ownerOrganization.id);
       await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'repoid=' + existingDevice!.deviceRepository.id);
       await ble.writeCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'id=' + existingDevice!.id);
       await ble.disconnectById(device.peripheralId);
+      await LogWriter.log('[AssociatePage__SelectDevice]', `Updated parameters on device: ${device.name} (${device.peripheralId})`);
     }
-    console.log('BEFORE BT D');
     setIsBusy(false);
-    console.log('after BT D');
 
+    await LogWriter.log('[AssociatePage__SelectDevice]', `Updating device on server: ${device.name} (${device.peripheralId})`);
     await AppServices.instance.deviceServices.updateDevice(existingDevice!);
+    await LogWriter.log('[AssociatePage__SelectDevice]', `Updated device on server: ${device.name} (${device.peripheralId})`);
 
     navigation.goBack();
   }

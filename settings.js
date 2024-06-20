@@ -7,5 +7,6 @@ export const environment = {
     clientType: 'mobileApp',
     deviceId: 'mobileApp',
     appInstanceid: "",
+    appName: 'NuVIoT Device Manager',
     siteUri: CommonSettings.environment == 'development' ? 'https://dev-api.nuviot.com' : 'https://api.nuviot.com'    
 };

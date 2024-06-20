@@ -332,6 +332,12 @@ namespace Devices {
     notes: string;
   }
 
+  export interface FirmwareUpdateStatus {
+    Size: number;
+    PercentComplete: string;
+    Message: string;    
+  }
+
   export interface FirmwareDownloadRequest {
     downloadId: string;
     expired: boolean;

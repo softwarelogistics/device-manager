@@ -6,7 +6,6 @@ import AppServices from "../services/app-services";
 import { SimulatedData } from "../services/simulatedData";
 
 import Icon from "react-native-vector-icons/Ionicons";
-import fontSizes from "../styles.fontSizes";
 
 import styles from '../styles';
 import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
@@ -14,31 +13,25 @@ import { IReactPageServices } from "../services/react-page-services";
 import { RemoteDeviceState } from "../models/blemodels/state";
 import { SysConfig } from "../models/blemodels/sysconfig";
 import { IOValues } from "../models/blemodels/iovalues";
-import ViewStylesHelper from "../utils/viewStylesHelper";
-import palettes from "../styles.palettes";
 import Page from "../mobile-ui-common/page";
 import { NetworkCallStatusService } from "../services/network-call-status-service";
+import { connectionBlock, panelDetail, sectionHeader } from "../mobile-ui-common/PanelDetail";
+import { labelStyle } from "../compound.styles";
+import { ConnectedDevice } from "../mobile-ui-common/connected-device";
 import { useInterval } from "usehooks-ts";
 
-const IDLE = 0;
-const CONNECTING = 1;
-const CONNECTED = 2;
-const DISCONNECTED = 3;
-const DISCONNECTED_PAGE_SUSPENDED = 4;
 
 let simData = new SimulatedData();
 
 export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices) => {
 
   const [pageVisible, setPageVisible] = useState<boolean>(true);
+  const [isDeviceConnected, setIsDeviceConnected] = useState<boolean>(false);
   const [deviceDetail, setDeviceDetail] = useState<Devices.DeviceDetail | undefined | any>();
   const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined>(undefined);
   const [sensorValues, setSensorValues] = useState<IOValues | undefined>(undefined);
-  const [connectionState, setConnectionState] = useState<number>(IDLE);
   const [sysConfig, setSysConfig] = useState<SysConfig>();
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
-  const [initialLoad, setInitialLoad] = useState<boolean>(true);
-
 
   const peripheralId = route.params.id;
   const instanceRepoId = route.params.instanceRepoId;
@@ -46,13 +39,6 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
   const deviceId = route.params.deviceId;
   const isOwnedDevice = route.params.owned;
   const themePalette = AppServices.instance.getAppTheme();
-
-  const headerStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.header, { color: themePalette.shellTextColor, fontSize: 24, fontWeight: '700', textAlign: 'left' }]);
-  const chevronBarVerticalStyle: ViewStyle = ViewStylesHelper.combineViewStyles([{ height: 39 }]);
-  const chevronBarColorTick: ViewStyle = ViewStylesHelper.combineViewStyles([chevronBarVerticalStyle, { width: 8 }]);
-  const barGreyChevronRightStyle: TextStyle = ViewStylesHelper.combineTextStyles([chevronBarVerticalStyle, { backgroundColor: palettes.gray.v20, fontSize: 18, paddingLeft: 4, paddingRight: 4, width: '98%', textAlignVertical: 'center' }]);
-  const barGreyChevronRightLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([{ fontWeight: '700' }]);
-  const labelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
 
   const charHandler = (value: any) => {
     if (value.characteristic == CHAR_UUID_STATE) {
@@ -68,28 +54,11 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     }
   }
 
-  const disconnectHandler = (id: string) => {
-    console.log(`Disconnected from device on live device page: ${id}`)
-    setConnectionState(DISCONNECTED);
-    setRemoteDeviceState(undefined);
-    setSensorValues(undefined);
-
-    ble.removeAllListeners('receive');
-    ble.removeAllListeners('disconnected');
-
-    window.setTimeout(() => connectToBLE(), 1000);
-  }
-
   const connectToBLE = async () => {
-    setErrorMessage(undefined);
-    setConnectionState(CONNECTING);
+    setErrorMessage(undefined);    
     NetworkCallStatusService.beginCall('Establishing BLE Connection to Device.')
-    if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
-
+    if (await ConnectedDevice.connectAndSubscribe(peripheralId,[CHAR_UUID_STATE,CHAR_UUID_IO_VALUE])) {
       NetworkCallStatusService.endCall();
-      setConnectionState(CONNECTED);
-      await ble.subscribe(ble);
-
       let sysConfigStr = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
       if (sysConfigStr) {
         let sysConfig = new SysConfig(sysConfigStr);
@@ -98,13 +67,11 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         if(isOwnedDevice) {
           try {
             NetworkCallStatusService.beginCall('Loading Device Details from Server.')
-            console.log(`Requesting Device: repoid: ${sysConfig.repoId}, ${sysConfig.id}`);
             let device = await AppServices.instance.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
             setDeviceDetail(device);
           }
           catch (e) {
-            alert(e);
-            
+            alert(e);            
             return;
           }
           finally
@@ -119,56 +86,23 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         return;
       }
 
-      ble.removeAllListeners('receive');
-      ble.removeAllListeners('disconnected');
-
-      ble.addListener('receive', charHandler);
-      ble.addListener('disconnected', disconnectHandler);
-
-      NetworkCallStatusService.beginCall('Subscribing to live notifications.')
-      let success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-      if (!success) {
-        setErrorMessage('Could not listen for notifications.');
-      }
-      else {
-        console.log('listening started')
-      }
-
-      success = await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-      if (!success) {
-        setErrorMessage('Could not listen for notifications.');
-      }
-      else {
-        console.log('listening started')
-      }
-
       NetworkCallStatusService.endCall();
     }
     else {
-      setErrorMessage(`Could not establish BLE connection to ${peripheralId}`);
       NetworkCallStatusService.endCall();
-      setConnectionState(DISCONNECTED);
-      window.setTimeout(() => connectToBLE(), 1000);
-    }
+    }      
   }
 
   const showConfigurePage = async () => {
-    if (connectionState == CONNECTED) {
-      ble.removeAllListeners('receive');
-      ble.removeAllListeners('disconnected');
-      await ble.disconnectById(peripheralId);
-      setConnectionState(DISCONNECTED_PAGE_SUSPENDED);
-    }
-
+    ConnectedDevice.disconnect();
+    setPageVisible(false);
     navigation.navigate('deviceOptionsPage', { peripheralId: peripheralId, deviceRepoId:deviceRepoId, instanceRepoId:instanceRepoId, deviceId: deviceId });
   }
 
   const loadDevice = async () => {
     if (ble.simulatedBLE()) {
-      setConnectionState(CONNECTED);
       setSysConfig(simData.getSysConfig());
       setRemoteDeviceState(simData.getRemoteDeviceState());
-
       setDeviceDetail(simData.getDeviceDetail());
       setSensorValues(simData.getSensorValues());
       return;
@@ -177,25 +111,32 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     await connectToBLE();
   }
 
-  useEffect(() => {
-    if(initialLoad) {
-      setInitialLoad(false);
-      loadDevice();
-      setPageVisible(true);
+  const disconnectHandler = () => {
+    setIsDeviceConnected(false);
+    setRemoteDeviceState(undefined);
+    setSensorValues(undefined);
+  }
+
+  useInterval(async () => {
+    if (peripheralId && !isDeviceConnected) {
+      ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE], 1)
     }
+  }, pageVisible ? 6000 : null
+  )
+
+  useEffect(() => {
+    ConnectedDevice.onReceived = (value) => charHandler(value);
+    ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
+    ConnectedDevice.onDisconnected = () => disconnectHandler();
    
     const blurSubscription = navigation.addListener('beforeRemove', async () => {
-      if (connectionState == CONNECTING) {
-        ble.cancelConnect();
-      }
-      else if (connectionState == CONNECTED) {
-        console.log('DevicePage_BeforeRemove.');
-        await ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-        await ble.stopListeningForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-        ble.removeAllListeners('receive');
-        ble.removeAllListeners('disconnected');
-        await ble.disconnectById(peripheralId);
-      }
+      ConnectedDevice.disconnect();
+      setPageVisible(false);
+    });
+
+    const focusSubscription = navigation.addListener('focus', async () => {
+      loadDevice();
+      setPageVisible(true);
     });
 
     navigation.setOptions({
@@ -206,52 +147,10 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
     });
 
     return (() => {
+      focusSubscription();
       blurSubscription();
     });
   });
-
-  const sectionHeader = (sectionHeader: string) => {
-    return (<View>
-      <Text style={headerStyle}>{sectionHeader}</Text>
-    </View>)
-  }
-
-  const panelDetail = (color: string, label: string, value: string | null | undefined) => {
-    return (
-      <View style={[styles.flex_toggle_row, chevronBarVerticalStyle, { alignItems: 'flex-start', justifyContent: 'space-between' }]}>
-        <View style={[chevronBarColorTick, { backgroundColor: color, borderBottomLeftRadius: 6, borderTopLeftRadius: 6 }]}>
-          <Text> </Text>
-        </View>
-        <View style={[barGreyChevronRightStyle, { flexDirection: 'row', alignItems: 'center', borderTopRightRadius: 6, borderBottomRightRadius: 6 }]}>
-          <Text style={[barGreyChevronRightLabelStyle, { flex: 1, textAlignVertical: 'center', fontSize: 16 }]}>{label}:</Text>
-          <Text style={{ flex: 2, textAlign: 'right', textAlignVertical: 'center', marginRight: 5, fontSize: 16 }}>{value}</Text>
-        </View>
-      </View>
-    )
-  }
-
-  const connectionBlock = (color: string, icon: string, label: string, status: boolean) => {
-    return <View style={[{ flex: 1, margin: 2, justifyContent: 'center', }]}>
-      {status &&
-        <View style={{ height:110, backgroundColor: color, borderRadius: 8 }}>
-          <Text style={{ textAlign: "center", color: 'white' }}>{label}</Text>
-          <View >
-            <Icon style={{ textAlign: 'center', }} size={48} color="white" name={icon} />
-          </View>
-          <Text style={{ textAlign: "center", textAlignVertical:"bottom", color: 'white' }}>Connected</Text>
-        </View>
-      }
-      {!status &&
-        <View style={{ height:110, backgroundColor: '#e0e0e0', borderRadius: 8 }}>
-          <Text style={{  textAlign: "center", color: 'black' }}>{label}</Text>
-          <View >
-            <Icon style={{ textAlign: 'center', }} size={48} color="gray" name={icon} />
-          </View>
-          <Text style={{ textAlign: "center", textAlignVertical:"bottom", fontWeight: '500', color: 'black' }}>Not Connected</Text>
-        </View>
-      }
-    </View>
-  }
 
   const sensorBlock = (idx: number, value: any, icon: string) => {
     return (
@@ -271,11 +170,9 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
         <Text>{ errorMessage }</Text>
       </View>
     }
-
     <ScrollView style={styles.scrollContainer}>
       <StatusBar style="auto" />
-      {
-        connectionState == CONNECTED &&
+      { isDeviceConnected &&
         <View style={{ marginBottom: 30 }}>
           {
             deviceDetail &&
@@ -354,23 +251,10 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
           }
         </View>     
       }      
-      {
-        connectionState == DISCONNECTED &&
-        <View>
-          <Text style={{ color: themePalette.shellTextColor }}>Disconnected</Text>
-          <TouchableOpacity style={[styles.submitButton]} onPress={() => loadDevice()}>
-            <Text style={[styles.submitButtonText, { color: 'white' }]}> Re-Connect </Text>
-          </TouchableOpacity>
-        </View>
-      }
-      {
-        connectionState == IDLE &&
-        <Text style={{ color: themePalette.shellTextColor }}>Please wait</Text>
-      }
-      {
-        connectionState == DISCONNECTED_PAGE_SUSPENDED &&
-        <Text style={{ color: themePalette.shellTextColor }}>Please Wait Reconnecting</Text>
-      }
+      {! isDeviceConnected && 
+      <View style={{ alignItems:'center', paddingTop:40}}>
+        <Text style={[labelStyle, { fontSize: 24, fontWeight: "500" }]}>Not Connected, Will Retry.</Text>
+      </View>}
     </ScrollView>
   </Page>
 

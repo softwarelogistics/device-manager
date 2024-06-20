@@ -18,6 +18,7 @@ import colors from "../styles.colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useFocusEffect } from "@react-navigation/native";
 import Page from "../mobile-ui-common/page";
+import { busyBlock } from "../mobile-ui-common/PanelDetail";
 
 
 export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServices) => {
@@ -132,13 +133,9 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
 
   return (
     <Page>
-      {isBusy ?
-        <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-          <Text style={{ color: themePalette.shellTextColor, fontSize: 25 }}>Please Wait</Text>
-          <ActivityIndicator size="large" color={colors.primaryColor} animating={isBusy} />
-        </View>
-        :
-        <KeyboardAwareScrollView style={[{ backgroundColor: themePalette.background, paddingLeft: 20, paddingRight: 20 }]}>
+      {isBusy && busyBlock() }
+      {!isBusy &&
+        <KeyboardAwareScrollView style={[{ backgroundColor: themePalette.background, paddingLeft: 20, paddingRight: 20, paddingTop:50 }]}>
           <View>
             <Text style={inputLabelStyle}>Send Update Rate (MS):</Text>
             <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={sendUpdateRate} onChangeText={e => { setSendUpdateRate(e); }} />
