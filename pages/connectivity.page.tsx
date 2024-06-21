@@ -87,7 +87,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
       await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'commissioned=' + (commissioned ? '1' : '0') + ";");
       await ble.disconnectById(peripheralId);
 
-      await getData();
+     // await getData();
     }
     else {
       console.warn('could not connect');

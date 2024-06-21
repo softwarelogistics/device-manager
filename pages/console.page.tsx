@@ -50,7 +50,7 @@ export const ConsolePage = ({ props, navigation, route }: IReactPageServices) =>
 
   useInterval(async () => {
     if (peripheralId && !isDeviceConnected) {
-      await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_IO_VALUE], 1)
+      await ConnectedDevice.connectAndSubscribe(peripheralId, [CHAR_UUID_STATE, CHAR_UUID_CONSOLE], 1)
     }
   }, pageVisible ? 6000 : null
   )

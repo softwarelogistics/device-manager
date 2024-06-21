@@ -233,7 +233,7 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
                 {sectionHeader('Local Connection')}
                 <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: themePalette.viewBackground, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
                   <Text style={labelStyle}>Connected</Text>
-                  <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.buttonPrimary} name='settings-sharp' />
+                  <Icon.Button size={24} backgroundColor="transparent" onPress={(() => showConfigurePage())} underlayColor="transparent" color={themePalette.buttonPrimary} name='settings-sharp' />
                 </View>
               </View>
             }
@@ -278,9 +278,9 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
               <View style={{ marginTop: 8 }} >
                 {sectionHeader('Connectivity')}
                 <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >
+                  {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
                   {connectionBlock('orange', 'wifi-outline', 'WiFi', remoteDeviceState.wifiStatus == 'Connected')}
                   {connectionBlock('orange', 'cellular-outline', 'Cellular', remoteDeviceState.cellularConnected)}
-                  {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
                   {connectionBlock('orange', 'cloud', 'Cloud', remoteDeviceState.isCloudConnected)}
                 </View>
               </View>

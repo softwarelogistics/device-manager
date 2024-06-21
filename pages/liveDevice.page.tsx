@@ -170,13 +170,10 @@ export const LiveDevicePage = ({ props, navigation, route }: IReactPageServices)
             </View>
           }
           {
-            (!deviceDetail && isOwnedDevice) &&
-            <View> {sectionHeader('Device Not Configured')} </View>
-          }
-                    {
             (!isOwnedDevice) &&
             <View> {sectionHeader('You do not own this device.')} </View>
           }
+    
           {
             remoteDeviceState &&
             <View>
