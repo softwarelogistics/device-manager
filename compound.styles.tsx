@@ -21,6 +21,11 @@ export const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([st
 export const inputSubtitleStyle: TextStyle = ViewStylesHelper.combineTextStyles([ styles.subtitleText, { color: themePalette.subtitleColor }, ]);
 export const inputSwitchLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([ styles.labelTitle, { color: themePalette.shellTextColor }, ]);
 
+export const inputStyleOverride = { backgroundColor: themePalette.inputBackgroundColor, borderColor: palettes.gray.v80, color: themePalette.shellTextColor, marginBottom: 20, paddingLeft: 4 };
+
+export const inputStyleWithBottomMargin: TextStyle = ViewStylesHelper.combineTextStyles([styles.inputStyle, inputStyleOverride]);
+export const placeholderTextColor: string = themePalette.name === 'dark' ? themePalette.shellNavColor : palettes.gray.v50;
+
 export const labelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, styles.mb_05, { color: themePalette.shellTextColor, fontSize: fontSizes.medium, fontWeight: (themePalette?.name === 'dark' ? '700' : '400') }]);
 
 export const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);

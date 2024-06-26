@@ -20,6 +20,7 @@ import colors from "../styles.colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Picker } from "@react-native-picker/picker";
 import Page from "../mobile-ui-common/page";
+import { inputLabelStyle, inputStyleWithBottomMargin, placeholderTextColor } from "../compound.styles";
 
 
 export const ConnectivityPage = ({ props, navigation, route }: IReactPageServices) => {
@@ -51,18 +52,8 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
   const themePalette = AppServices.instance.getAppTheme();
 
-  const inputStyleOverride = {
-    backgroundColor: themePalette.inputBackgroundColor,
-    borderColor: palettes.gray.v80,
-    color: themePalette.shellTextColor,
-    marginBottom: 20,
-    paddingLeft: 4
-  };
-
-  const inputStyleWithBottomMargin: TextStyle = ViewStylesHelper.combineTextStyles([styles.inputStyle, inputStyleOverride]);
-  const inputLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.label, { color: themePalette.shellTextColor, fontWeight: (themePalette.name === 'dark' ? '700' : '400') }]);
-  const placeholderTextColor: string = themePalette.name === 'dark' ? themePalette.shellNavColor : palettes.gray.v50;
-
+  
+  
   const writeChar = async () => {
     if (!peripheralId) {
       console.error('PeripheralId not set, can not write.');

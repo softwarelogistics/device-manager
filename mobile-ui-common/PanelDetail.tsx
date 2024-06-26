@@ -53,9 +53,9 @@ export const connectionBlock = (color: string, icon: string, label: string, stat
 }
 
 export const busyBlock = (busyMessage: string = "Please Wait") => {
-    return <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-        <Text style={[{ color: themePalette.shellTextColor, fontSize: 24, paddingBottom: 20 }]}>{busyMessage}</Text>
-        <ProgressSpinner />
+    return <View style={[styles.spinnerView, { height:200, backgroundColor: themePalette.background, paddingTop:150 }]}>
+        <Text style={[{ color: themePalette.shellTextColor, height:60, fontSize: 24, paddingBottom: 20 }]}>{busyMessage}</Text>
+        <ProgressSpinner style={[{marginTop:40}]} />
     </View>
 }
 

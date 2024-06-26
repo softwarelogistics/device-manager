@@ -1,5 +1,4 @@
-import { ScrollView, TouchableOpacity, Text, TextStyle, View, ViewStyle, FlatList, Pressable } from "react-native";
-import { StatusBar } from 'expo-status-bar';
+import { Text, TextStyle, View, ViewStyle, FlatList, Pressable, Button, TextInput } from "react-native";
 
 import Icon from "react-native-vector-icons/Ionicons";
 import ProgressSpinner from "../mobile-ui-common/progress-spinner";
@@ -16,7 +15,14 @@ import { WiFiStatus } from "../models/blemodels/wifiStatus";
 import { useInterval } from 'usehooks-ts'
 import EditField from "../mobile-ui-common/edit-field";
 import palettes from "../styles.palettes";
-import { ActivityIndicator } from "react-native/Libraries/Components/ActivityIndicator/ActivityIndicator";
+import { busyBlock } from "../mobile-ui-common/PanelDetail";
+import { inputLabelStyle, inputStyleWithBottomMargin, placeholderTextColor } from "../compound.styles";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+
+interface wifiLogin {
+    ssid: string;
+    password: string;
+}
 
 export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPageServices) => {
 
@@ -32,8 +38,8 @@ export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPage
     const barGreyChevronRightStyle: TextStyle = ViewStylesHelper.combineTextStyles([chevronBarVerticalStyle, { backgroundColor: palettes.gray.v20, fontSize: 18, paddingLeft: 4, paddingRight: 4, width: '98%', textAlignVertical: 'center' }]);
     const barGreyChevronRightLabelStyle: TextStyle = ViewStylesHelper.combineTextStyles([{ fontWeight: '700' }]);
 
-    const [ssid, setSsid] = useState<string | undefined>(undefined);
-    const [password, setPassword] = useState<string | undefined>(undefined);
+    const [loginInfo, setLoginInfo] = useState<wifiLogin>({ ssid: '', password: '' });
+   
 
     const [isBusy, setIsBusy] = useState<boolean>(false);
 
@@ -44,14 +50,14 @@ export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPage
 
         if (value.characteristic == CHAR_UUID_WIFI_MSG) {
             setLastUpdated(now);
-            console.log(value.value);
+            console.log(value.value, loginInfo.ssid, loginInfo.password);
             let status = new WiFiStatus(value.value);
             setWiFiStatus(status);
-            if (!ssid)
-                setSsid(status.ssid);
+            if (!loginInfo.ssid)
+                loginInfo.ssid = status.ssid;
 
-            if (!password)
-                setPassword(status.password);
+            if (!loginInfo.password)
+                loginInfo.password = status.password;
         }
     }
 
@@ -71,7 +77,7 @@ export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPage
     }
 
     const performSiteScan = async () => {
-        setIsBusy(true);        
+        setIsBusy(true);
         await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, "siteScan=start;");
         setIsBusy(false);
     }
@@ -88,34 +94,36 @@ export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPage
 
     const selectSSID = (ssid: string) => {
         console.log(ssid);
+        loginInfo.ssid = ssid;
+        loginInfo.password = '';
     }
 
     const updateConnection = async () => {
-        console.log(updateConnection, ssid, password);
+        console.log('update connection', loginInfo.ssid,loginInfo.password);
         setIsBusy(true);
-        if (ssid) await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${ssid};`);
-        if (password) await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${password};`);
+        if (loginInfo.ssid) await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${loginInfo.ssid};`);
+        if (loginInfo.password) await ConnectedDevice.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${loginInfo.password};`);
         setIsBusy(false);
     }
 
     useEffect(() => {
-        ConnectedDevice.onReceived = (value) => charHandler(value);
+        ConnectedDevice.onReceived = (e) => charHandler(e);
         ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
         ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
 
-        if(isDeviceConnected) {
+        if (isDeviceConnected) {
             navigation.setOptions({
                 headerRight: () => (
-                <View style={{ flexDirection: 'row' }} >
-                    <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => updateConnection()} name='save' />
-                    <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => performSiteScan()} name='refresh' />
-                </View>),
+                    <View style={{ flexDirection: 'row' }} >
+                        <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => updateConnection()} name='save' />
+                        <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => performSiteScan()} name='refresh' />
+                    </View>),
             });
         }
         else {
             navigation.setOptions({
                 headerRight: () => (
-                <View style={{ flexDirection: 'row' }} >
+                    <View style={{ flexDirection: 'row' }} >
                     </View>),
             });
         }
@@ -137,55 +145,57 @@ export const WiFiTroubleShootingPage = ({ props, navigation, route }: IReactPage
         });
     }, [isDeviceConnected]);
 
-    const myItemSeparator = () => { return <View style={{ height: 1, backgroundColor: "#c0c0c0git ", marginHorizontal: 6 }} />; };
 
     const myListEmpty = () => {
         return (
             <View style={{ alignItems: "center" }}>
-                <Text style={{ fontSize: 25, textAlign:'center', marginTop:50, color: themePalette.shellTextColor }}>No Networks, press refresh to scan networks.</Text>
+                <Text style={{ fontSize: 25, textAlign: 'center', marginTop: 50, color: themePalette.shellTextColor }}>No Networks, press refresh to scan networks.</Text>
             </View>
         );
     };
 
+    const userNameChanged = (e: string) => {
+        console.log('new password', e);
+        loginInfo.password = e;
+        setLoginInfo(loginInfo);
+    }
+
+    const passwordChanged = (e: string) => {
+        console.log('new password', e);
+        loginInfo.password = e;
+        setLoginInfo(loginInfo);
+    }
 
     return (
-    <Page style={[styles.container, { backgroundColor: themePalette.background, padding: 120 }]}>
-        <View style={[styles.container, { backgroundColor: themePalette.background, padding: 20 }]}>
-            {(!wifiStatus || isBusy) &&
-            <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-                <Text style={[{ color: themePalette.shellTextColor, fontSize: 24, paddingBottom: 20 }]}>Please Wait</Text>
-                <ProgressSpinner  />
-            </View>    
-            }            
-            {!isBusy && isDeviceConnected && wifiStatus && 
-                <View>
+        <Page style={[styles.container, { backgroundColor: themePalette.background, padding: 120 }]}>
+            <KeyboardAwareScrollView >
+                <View style={[styles.container, { backgroundColor: themePalette.background, padding: 20 }]}>
+                    {(!wifiStatus || isBusy) && busyBlock("Please Wait") }
+                    {!isDeviceConnected && !isBusy &&  busyBlock("Attempting to connect") } 
+                    {!isBusy && isDeviceConnected && wifiStatus &&
+                        <View>
+                            <EditField onChangeText={(e)=> userNameChanged(e)} label="SSID" placeHolder="enter wifi ssid" value={loginInfo.ssid} />
+                            <EditField onChangeText={(e) => passwordChanged(e)} label="Password" placeHolder="enter wifi password" value={loginInfo.password} />
 
-                    <EditField onChangeText={(e) => { setSsid(e); }} label="SSID" placeHolder="enter wifi ssid" value={ssid} />
-                    <EditField onChangeText={(e) => { setPassword(e); }} label="Password" placeHolder="enter wifi password" value={password} />
-                    {panelDetail('purple', "Connected", wifiStatus.connected ? 'Yes' : 'No')}
-                    {wifiStatus.connected && panelDetail('purple', "RSSI", wifiStatus.rssi.toString())}
-                    {panelDetail('purple', "Status", wifiStatus.status)}
-                    {wifiStatus.connected && panelDetail('purple', "IP Addr", wifiStatus.ipAddress)}
-                    {panelDetail('purple', "MAC Addr", wifiStatus.macAddress)}
-                    <FlatList
-                        contentContainerStyle={{ alignItems: "stretch" }}
-                        style={{ backgroundColor: themePalette.background, width: "100%" }}
-                        ItemSeparatorComponent={myItemSeparator}
-                        ListEmptyComponent={myListEmpty}
-                        data={wifiStatus.connections}
-                        renderItem={({ item }) =>
-                            <Pressable onPress={() => selectSSID(item.ssid)} key={item.ssid} >
-                                {<View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 40, backgroundColor: themePalette.shell }]}  >
-                                    <View style={{ flexDirection: 'row', }} key={item.ssid}>
-                                        <Text style={[{ color: themePalette.shellTextColor, flexGrow: 1, fontSize: 18}]}>{item.ssid} ({item.rssi})</Text>
+                            {panelDetail('purple', "Connected", wifiStatus.connected ? 'Yes' : 'No')}
+                            {wifiStatus.connected && panelDetail('purple', "RSSI", wifiStatus.rssi.toString())}
+                            {panelDetail('purple', "Status", wifiStatus.status)}
+                            {wifiStatus.connected && panelDetail('purple', "IP Addr", wifiStatus.ipAddress)}
+                            {panelDetail('purple', "MAC Addr", wifiStatus.macAddress)}
+                            {wifiStatus.connections.length == 0 && myListEmpty()}
+                            {wifiStatus.connections.map((item,idx) =>
+                                <Pressable onPress={() => selectSSID(item.ssid)} key={idx} >
+                                    <View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 40, backgroundColor: themePalette.shell }]}  >
+                                        <View style={{ flexDirection: 'row', }} key={item.ssid}>
+                                            <Text style={[{ color: themePalette.shellTextColor, flexGrow: 1, fontSize: 18 }]}>{item.ssid} ({item.rssi})</Text>
+                                        </View>
                                     </View>
-                                </View> }
-                            </Pressable>
-                        }
-                    />
+                                </Pressable>)
+                            }
+                        </View>
+                    }
                 </View>
-            }
-        </View>
-    </Page>
+            </KeyboardAwareScrollView>
+        </Page>
     )
 }

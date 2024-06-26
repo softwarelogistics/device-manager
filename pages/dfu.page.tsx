@@ -122,8 +122,8 @@ export const DfuPage = ({ props, navigation, route }: IReactPageServices) => {
           {remoteDeviceState &&
             <View>
               {sectionHeader('Device Firmware')}
-              {panelDetail('green', "Name", remoteDeviceState.firmwareSku)}
-              {panelDetail('green', "SKU", remoteDeviceState.firmwareRevision)}
+              {panelDetail('green', "SKU", remoteDeviceState.firmwareSku)}
+              {panelDetail('green', "Version", remoteDeviceState.firmwareRevision)}
             </View>}
           {firmwareUpdateStatus &&
             <View style={[{  justifyContent: "center" }]}>

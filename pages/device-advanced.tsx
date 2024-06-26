@@ -59,11 +59,11 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
     setIsBusy(true);
 
     if (await ble.connectById(peripheralId)) {
-      if (gpsEnabled) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `gps=${gpsEnabled ? '1' : '0'}`);
-      if (gpsRate) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `gpsrate=${gpsRate}`);
-      if (pingRate) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `pingrate=${pingRate}`);
-      if (sendUpdateRate) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `sendrate=${sendUpdateRate}`);
-      if (loopRate) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `looprate=${loopRate}`);
+      if (gpsEnabled) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `gps=${gpsEnabled ? '1;' : '0;'}`);
+      if (gpsRate) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `gpsrate=${gpsRate};`);
+      if (pingRate) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `pingrate=${pingRate};`);
+      if (sendUpdateRate) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `sendrate=${sendUpdateRate};`);
+      if (loopRate) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `looprate=${loopRate};`);
 
       await getData();
     }
@@ -138,13 +138,13 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
         <KeyboardAwareScrollView style={[{ backgroundColor: themePalette.background, paddingLeft: 20, paddingRight: 20, paddingTop:50 }]}>
           <View>
             <Text style={inputLabelStyle}>Send Update Rate (MS):</Text>
-            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={sendUpdateRate} onChangeText={e => { setSendUpdateRate(e); }} />
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={sendUpdateRate} onChangeText={setSendUpdateRate} />
 
             <Text style={inputLabelStyle}>Internal Loop Rate (MS):</Text>
-            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={loopRate} onChangeText={e => setLoopRate(e)} />
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={loopRate} onChangeText={setLoopRate} />
 
             <Text style={inputLabelStyle}>Ping/Keep Alive Rate (Seconds):</Text>
-            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (30 seconds)" value={pingRate} onChangeText={e => setPingRate(e)} />
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (30 seconds)" value={pingRate} onChangeText={setPingRate} />
 
             <View style={styles.flex_toggle_row}>
               <Text style={inputLabelStyle}>GPS Enabled:</Text>
@@ -154,7 +154,7 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
             </View>
 
             <Text style={inputLabelStyle}>GPS Update Rate (MS):</Text>
-            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={gpsRate} onChangeText={e => setGPSRate(e)} />
+            <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="default (250 ms)" value={gpsRate} onChangeText={setGPSRate} />
           </View>
         </KeyboardAwareScrollView>}
     </Page>
