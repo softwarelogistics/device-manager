@@ -14,6 +14,7 @@ import palettes from "../styles.palettes";
 import Page from "../mobile-ui-common/page";
 import colors from "../styles.colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { primaryButtonStyle, primaryButtonTextStyle } from "../compound.styles";
 
 let simData = new SimulatedData();
 
@@ -34,8 +35,6 @@ export const DeviceOptionsPage = ({ props, navigation, route }: IReactPageServic
 
   //navigation.setOptions({ title: deviceName ?? `Device Options` });
 
-  const primaryButtonStyle: ViewStyle = ViewStylesHelper.combineViewStyles([styles.submitButton, { backgroundColor: themePalette.buttonPrimary }]);
-  const primaryButtonTextStyle: TextStyle = ViewStylesHelper.combineTextStyles([styles.submitButtonText, { color: themePalette.buttonPrimaryText }]);
 
   const showPage = async (pageName: string) => {
     AppServices.instance.navService.navigate(pageName, { deviceName: deviceName, peripheralId: peripheralId, deviceRepoId: deviceRepoId, instanceRepoId: instanceRepoId, deviceId: deviceId });

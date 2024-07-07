@@ -69,14 +69,27 @@ export class DevicesService {
 
   async createDevice(deviceRepoId: string): Promise<Devices.DeviceDetail> {
     let response = await this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(`/api/device/${deviceRepoId}/factory`);
-    if (response.successful) {
-      let device = response.model;
+    if (response!.successful) {
+      let device = response!.model;
       this.deviceSafeInit(device);
       return device;
     }
     else {
       throw 'could not create device.';
     }
+  }
+
+  
+  getDeviceConfigurations(): Promise<Core.ListResponse<Devices.DeviceConfigSummary>> {
+    return this.nuviotClient.request(`/api/deviceconfigs`);
+  }
+
+  getDeviceConfiguration(id: string): Promise<Core.FormResult<DeviceConfiguration.DeviceConfiguration, DeviceConfiguration.DeviceConfigurationView>> {
+    return this.nuviotClient.request(`/api/deviceconfig/${id}`);
+  }
+
+  sendDeviceCommand(repoId: string, deviceId: string, cmdId: string, payload: Core.KeyValuePair<string, string>[]): Promise<Core.InvokeResult> {
+    return this.nuviotClient.post(`/api/device/remoteconfig/${repoId}/${deviceId}/command/${cmdId}`, payload);
   }
 
   async getDeviceTypes(): Promise<Devices.DeviceTypeSummary[]> {    
@@ -148,8 +161,8 @@ export class DevicesService {
     const promise = new Promise<Devices.DeviceRepository>((resolve, reject) => {
       this.nuviotClient.getFormResponse<Devices.DeviceRepository, Devices.DeviceRepoView>(`/api/devicerepo/${repoId}`)
         .then(deviceRepoResponse => {
-          this.setDeviceRepo(deviceRepoResponse.model);
-          resolve(deviceRepoResponse.model);
+          this.setDeviceRepo(deviceRepoResponse!.model);
+          resolve(deviceRepoResponse!.model);
         })
         .catch(err => reject(err));
     });
@@ -179,8 +192,8 @@ export class DevicesService {
           this._repoId = repoId;
 
           /* Make any last minute initialization of potentially invalid data */
-          this.deviceSafeInit(response.model);
-          this.setDeviceDetail(response.model);
+          this.deviceSafeInit(response!.model);
+          this.setDeviceDetail(response!.model);
         });
     }
   }
@@ -280,10 +293,10 @@ export class DevicesService {
     this._deviceLoading$.next(undefined);
     const uri = `/api/device/${repoId}/${deviceId}/metadata`;
     let result = await this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(uri);
-    this.setDeviceDetail(result.model);
+    this.setDeviceDetail(result!.model);
 
-    if(result.successful)
-      return result.model;
+    if(result!.successful)
+      return result!.model;
     
     console.error('[DeviceService__getDevice] - Error loading device');
     console.error(result.errors[0].message);
@@ -295,7 +308,7 @@ export class DevicesService {
     const uri = `/api/device/${repoId}/${deviceId}/metadata`;
     this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(uri)
       .then(response => {
-        this.setDeviceDetail(response.model);
+        this.setDeviceDetail(response!.model);
       });
   }
 

@@ -40,6 +40,7 @@ import AcceptInvitePage from './pages/acceptInvite.page';
 import colors from './styles.colors';
 import palettes from './styles.palettes';
 import { WiFiTroubleShootingPage } from './pages/wifiTroubleShooting';
+import { DeviceTwinPage } from './pages/device-twin';
 
 const Stack = createNativeStackNavigator();
 
@@ -155,6 +156,7 @@ const App = () => {
    
         <Stack.Screen name="consolePage" component={ConsolePage} options={{ title: 'Console' }} />
         <Stack.Screen name="canMonitorPage" component={CanMonitorPage} options={{ title: 'Can Monitor' }} />
+        <Stack.Screen name="deviceTwinPage" component={DeviceTwinPage} options={{ title: 'Device Twin' }} />
    
       </Stack.Navigator>
     </NavigationContainer> 

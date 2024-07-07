@@ -114,7 +114,7 @@ export interface SensorDefinition {
     maxValue: number | null;
     fieldType: Core.EntityHeaderEx<Core.ParameterTypes>;
     unitSet: Core.EntityHeaderEx<Core.UnitSet>;
-    stateSet: Core.EntityHeaderEx<Core.StateSet>;
+    stateSet: Core.EntityHeaderEx<PipelineModels.StateSet>;
     key: string;
     defaultValue: string;
     regEx: string;
@@ -169,27 +169,35 @@ export interface DeviceErrorCode {
 }
 
   export interface MessageWatchDog {
-  id: string;
-  name: string;
-  key: string;
-  timeout: number;
-  timeoutInterval: Core.EntityHeaderEx<TimeSpanIntervals>;
-  startupBufferMinutes: number;
-  description: string;
-  deviceMessageDefinition: Core.EntityHeaderEx<Messaging.DeviceMessageDefinition>;
-  deviceErrorCode: Core.EntityHeaderEx<DeviceErrorCode>;
-  excludeHolidays: boolean;
-  weekdayExclusions: WatchdogExclusion[];
-  saturdayExclusions: WatchdogExclusion[];
-  sundayExclusions: WatchdogExclusion[];
-}
+    id: string;
+    name: string;
+    key: string;
+    timeout: number;
+    timeoutInterval: Core.EntityHeaderEx<TimeSpanIntervals>;
+    startupBufferMinutes: number;
+    description: string;
+    deviceMessageDefinition: Core.EntityHeaderEx<Messaging.DeviceMessageDefinition>;
+    deviceErrorCode: Core.EntityHeaderEx<DeviceErrorCode>;
+    excludeHolidays: boolean;
+    weekdayExclusions: WatchdogExclusion[];
+    saturdayExclusions: WatchdogExclusion[];
+    sundayExclusions: WatchdogExclusion[];
+  }
 
+  export interface DeviceCommand {
+    id: string;
+    name: string;
+    key: string;
+    icon: string;
+    parameters: Devices.Parameter[];
+    description: string;
+  }
 
   export interface DeviceConfiguration {
     databaseName: string;
     entityType: string;
     configurationVersion: number;
-    customStatusType: Core.EntityHeaderEx<Core.StateSet>;
+    customStatusType: Core.EntityHeaderEx<PipelineModels.StateSet>;
     deviceLabel: string;
     deviceIdLabel: string;
     deviceNameLabel: string;
@@ -205,6 +213,30 @@ export interface DeviceErrorCode {
     ownerUser: Core.EntityHeader;
     routes: Route[];
     properties: CustomField[];
+    commands: DeviceCommand[];
+  }
+
+  export interface DeviceConfigurationView {
+    databaseName: Core.FormField;
+    entityType: Core.FormField;
+    configurationVersion: Core.FormField;
+    customStatusType: Core.FormField;
+    deviceLabel: Core.FormField;
+    deviceIdLabel: Core.FormField;
+    deviceNameLabel: Core.FormField;
+    deviceTypeLabel: Core.FormField;
+    key: Core.FormField;
+    watchdogEnabledDefault: Core.FormField;
+    watchdogSeconds: Core.FormField;
+    errorCodes: Core.FormField;
+    messageWatchDogs: Core.FormField;
+    sensorDefinitions: Core.FormField;
+    isPublic: Core.FormField;
+    ownerOrganization: Core.FormField;
+    ownerUser: Core.FormField;
+    routes: Core.FormField;
+    properties: Core.FormField;
+    commands: Core.FormField;
   }
 
   export interface RouteModuleConfig {

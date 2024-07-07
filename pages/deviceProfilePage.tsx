@@ -142,6 +142,13 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
       ble.peripherals = [];
     }
 
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ flexDirection: 'row' }} >
+          <Icon.Button size={24} backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor} onPress={() => showPage('deviceTwinPage')} name='cog-outline' />
+        </View>),
+    });
+    
     const focusSubscription = navigation.addListener('focus', () => {
       loadDevice();
       setPageVisible(true);
