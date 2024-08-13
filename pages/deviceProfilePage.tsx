@@ -170,35 +170,6 @@ export const DeviceProfilePage = ({ props, navigation, route }: IReactPageServic
     });
   }, [isDeviceConnected]);
 
-
-  const ioSensorBlock = (idx: number, sensors: Devices.Sensor[], icon: string) => {
-    let sensor = sensors.find(snsr => snsr.portIndex == (idx) && snsr.technology.key == 'io');
-    let sensorName = sensor?.name ?? `Sensor ${idx + 1}`;
-
-    return (
-      <View style={[{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 10, height: 130, width: 120, backgroundColor: themePalette.viewBackground, marginRight: 8, borderRadius: 8 }]}>
-        <View style={[{ display: "flex", justifyContent: 'center', alignItems: 'center', width: 56, height: 56, backgroundColor: colors.primaryBlue, borderRadius: 8, marginBottom: 8 }]}>
-          <Icon style={{ textAlign: 'center', color: sensor ? 'white' : '#d0d0d0' }} size={24} onPress={showConfigurePage} name={icon} />
-        </View>
-        <Text style={{ textAlign: "center", textAlignVertical: "center", color: themePalette.shellTextColor }}>{sensorName}</Text>
-        <Text style={{ textAlign: "center", textAlignVertical: "center", color: sensor ? 'white' : '#d0d0d0' }}>{sensor?.value ?? '-'}</Text>
-      </View>)
-  }
-
-  const adcSensorBlock = (idx: number, sensors: Devices.Sensor[], icon: string) => {
-    let sensor = sensors.find(snsr => snsr.portIndex == (idx) && snsr.technology.key == 'adc');
-    let sensorName = sensor?.name ?? `Sensor ${idx + 1}`;
-
-    return (
-      <View style={[{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 10, height: 130, width: 120, backgroundColor: themePalette.viewBackground, marginRight: 8, borderRadius: 8 }]}>
-        <View style={[{ display: "flex", justifyContent: 'center', alignItems: 'center', width: 56, height: 56, backgroundColor: colors.primaryBlue, borderRadius: 8, marginBottom: 8 }]}>
-          <Icon style={{ textAlign: 'center', color: sensor ? 'white' : '#d0d0d0' }} size={24} onPress={showConfigurePage} name={icon} />
-        </View>
-        <Text style={{ textAlign: "center", textAlignVertical: "center", color: themePalette.shellTextColor }}>{sensorName}</Text>
-      </View>
-    )
-  }
-
   const formatTimeStamp = (timestamp: string) => {
     const date = new Date(Date.parse(timestamp));
     return date.toLocaleString();

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import Reant, { useEffect, useState } from 'react';
 import { IReactPageServices } from '../services/react-page-services';
 import Page from '../mobile-ui-common/page';
 import styles from '../styles';
@@ -116,6 +116,7 @@ export const DeviceTwinPage = ({ props, navigation, route }: IReactPageServices)
         }
 
         await AppServices.instance.deviceServices.updateDevice(deviceDetail);
+        await AppServices.instance.deviceServices.updateRemoteDeviceProperties(deviceDetail.deviceRepository.id, deviceDetail.id);
     }
 
     return <Page style={[styles.container, { backgroundColor: themePalette.background }]}>
