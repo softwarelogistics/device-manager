@@ -114,8 +114,8 @@ export class BusinessService {
     return this.nuviotClient.getListResponse(`/api/time/timeperiods/${year}/create`);
   }
 
-  public getCustomers(): Promise<Core.ListResponse<Business.Customer>> {
-    return this.nuviotClient.getListResponse<Business.Customer>('/api/customers');
+  public getCustomers(): Promise<Core.ListResponse<Business.CustomerEntitySummary>> {
+    return this.nuviotClient.getListResponse<Business.CustomerEntitySummary>('/api/customers');
   }
 
   public getPayrollForYear(year: number) : Promise<Business.Payroll[]> {
@@ -138,16 +138,16 @@ export class BusinessService {
     return this.nuviotClient.requestForInvokeResultEx<Business.PayrollSummary>(`/api/payroll/generate/${timePeriodId}`);
   }
 
-  public saveCustomer(customer: Business.Customer): Promise<Core.InvokeResultEx<Business.Customer>> {
+  public saveCustomer(customer: Business.CustomerEntity): Promise<Core.InvokeResultEx<Business.CustomerEntity>> {
     if (customer.id) {
-      return this.nuviotClient.updateWithResponse<Business.Customer, Business.Customer>('/api/customer', customer);
+      return this.nuviotClient.updateWithResponse<Business.CustomerEntity, Business.CustomerEntity>('/api/customer', customer);
     } else {
-      return this.nuviotClient.postWithResponse<Business.Customer, Business.Customer>('/api/customer', customer);
+      return this.nuviotClient.postWithResponse<Business.CustomerEntity, Business.CustomerEntity>('/api/customer', customer);
     }
   }
 
-  public getCustomer(customerId: string): Promise<Core.InvokeResultEx<Business.Customer>> {
-    return this.nuviotClient.request<Core.InvokeResultEx<Business.Customer>>(`/api/customer/${customerId}`);
+  public getCustomer(customerId: string): PromiseLike<Core.FormResult<Business.CustomerEntity, Business.CustomerEntityView>> {
+    return this.nuviotClient.getFormResponse(`/api/customer/${customerId}`);
   }
 
   public deleteCustomer(customerId: string): Promise<Core.InvokeResult> {

@@ -476,6 +476,16 @@ namespace Core.FieldType {
       county: string;
       notes: string;
     }
+
+    export interface GeoFence {
+      id: string;
+      name: string;
+      ignoreIfHasSecondaryLocation: boolean;
+      enabled: boolean;
+      center: GeoLocation;
+      radiusMeters: number;
+      description: string;
+    }
   
     export interface EntityHeaderEx<TModel> {
       id: string;

@@ -109,22 +109,197 @@ namespace Business {
     endDate?: string;
   }
 
-  export interface Customer {
-    id?: string;
-    customerName: string;
-    organizationId?: string;
-    billingContactName: string;
-    billingContactEmail: string;
-    address1: string;
-    address2: string;
-    notes: string;
+  export interface Company {
+    id: string;
+    name: string;
+    key: string;
+  description: string;
+  industry: Core.EntityHeader;
+  industryNiche: Core.EntityHeader;
+  address1: string;
+  address2: string;
+  city: string;
+  state: string;
+  zip: string;
+  webSite: string;
+  notes: string;
+}
+
+export interface CustomerEntityCommunications {
+  communicationTypes_PhoneCall: string;
+  communicationTypes_Email: string;
+  communicationTypes_VirtualMeeting: string;
+  communicationTypes_InPersonMeeting: string;
+  communicationTypes_TextMessage: string;
+  communicationTypes_Other: string;
+  rowKey: string;
+  id: string;
+  externalId: string;
+  creationDate: string;
+  lastUpdatedDate: string;
+  createdBy: Core.EntityHeader;
+  lastUpdatedBy: Core.EntityHeader;
+  customerContact: Core.EntityHeader;
+  isDeleted: boolean;
+  deletedBy: Core.EntityHeader;
+  deletionDate: string;
+  type: Core.EntityHeader;
+  notes: string;
+  rating: number;
+  event: string;
+  history: CommunicationsHistory[];
+}
+
+export interface CommunicationsHistory {
+  timeStamp: string;
+  event: string;
+}
+
+export interface CustomerEntity extends Company {
+
+  icon: string;
+  linkedInPage: string;
+  followupDate: string;
+  followups: CustomerFollowup[];
+  salesStage: Core.EntityHeader;
+  customerActive: boolean;
+  leadQuality: Core.EntityHeader;
+  numberEmployees: Core.EntityHeader;
+  annualRevenue: Core.EntityHeader;
+  source: Core.EntityHeader;
+  sourceDetails: string;
+  status: Core.EntityHeader;
+  customerType: Core.EntityHeader;
+  industryType: Core.EntityHeader;
+  businessDevelopmentRepresentative: Core.EntityHeader;
+  accountManager: Core.EntityHeader;
+  billingContact: Core.EntityHeader;
+  executiveContact: Core.EntityHeader;
+  primaryContact: Core.EntityHeader;
+  contacts: CustomerEntityContact[];
+  locations: CustomerLocation[];
+  wiFiConnections: Deployment.WiFiConnectionProfile[];
+  instance: Core.EntityHeader;
+  deviceRepository: Core.EntityHeader;
+  discussions: CustomerEntityDiscussion[];
+  function: string;
+  opportunities: CustomerEntityDiscussion[];
+  questions: CustomerEntityDiscussion[];
+  communications: CustomerEntityCommunications[];
+  customerInstance: Core.EntityHeader;
+  logo: Core.EntityHeader;
+  primaryBgColor: string;
+  accentColor: string;
+  primaryTextColor: string;
+  resources: Media.MediaResource[];
+  surveys: Core.EntityHeader[];
+}
+
+export interface CustomerEntityView extends Company {
+  
+}
+
+export interface CustomerFollowup {
+  id: string;
+  completed: boolean;
+  completedBy: Core.EntityHeader;
+  completedDate: string;
+  assignedTo: Core.EntityHeader;
+  contact: Core.EntityHeader;
+  notes: string;
+  completedNotes: string;
+  followupDate: string;
+  rowKey: string;
+}
+
+export interface Contact {
+  id: string;
+  firstName: string;
+  lastName: string;
+  title: string;
+  linkedInPage: string;
+  phone: string;
+  email: string;
+  notes: string;
+  creationDate: string;
+  lastUpdatedDate: string;
+  createdBy: Core.EntityHeader;
+  lastUpdatedBy: Core.EntityHeader;
+  isDeleted: boolean;
+  deletedBy: Core.EntityHeader;
+  deletionDate: string;
+  doNotContact: boolean;
+  doNotContactReason: string;
+  doNotContactSetDate: string;
+}
+
+export interface CustomerEntityContact extends Contact {
+  phoneDetails: PhoneDetails;
+}
+
+export interface PhoneDetails {
+  valid: boolean;
+  number: string;
+  local_format: string;
+  country_prefix: string;
+  international_format: string;
+  country_name: string;
+  location: string;
+  carrier: string;
+  line_type: string;
+}
+
+  export interface CustomerEntityDiscussion {
+    id: string;
+    creationDate: string;
+    lastUpdatedDate: string;
+    createdBy: Core.EntityHeader;
+    lastUpdatedBy: Core.EntityHeader;
+    isDeleted: boolean;
+    deletedBy: Core.EntityHeader;
+    deletionDate: string;
+    content: string;
+  }
+
+  export interface CustomerEntitySummary extends Core.SummaryData {
+    primaryContactId: string;
+    primaryContactName: string;
+    primaryContactEmail: string;
+    primaryContactPhone: string;
+    statusKey: string;
+    status: string;
+    customerTypeKey: string;
+    customerType: string;
+    industryTypeKey: string;
+    industryType: string;
+    industryNicheKey: string;
+    industryNiche: string;
     city: string;
     state: string;
-    zip: string;
-    createdByUserId?: string;
-    lastUpdatedByUserId?: string;
-    creationDate?: string;
-    lastUpdatedDate?: string;
+    lastContact: string;
+    followupDate: string;
+    leadQualityKey: string;
+    leadQuality: string;
+    leadSource: string;
+    annualRevenueKey: string;
+    annualRevenue: string;
+    salesStage: string;
+    salesStageKey: string;
+  }
+
+  export interface CustomerLocation {
+    id: string;
+    name: string;
+    icon: string;
+    geoLocation: Core.GeoLocation;
+    locationImage: Core.EntityHeader;
+    address1: string;
+    address2: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    wiFiProfiles: Deployment.WiFiConnectionProfile[];
   }
 
   export interface AgreementSummary {
@@ -280,7 +455,7 @@ namespace Business {
     gross: number;
     net: number;
     equity: number;
-    expenses: number;z
+    expenses: number;
     status: Core.EntityHeader;
   }
 

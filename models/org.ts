@@ -51,6 +51,13 @@ namespace Orgs {
     end: Core.FormField;
   }
 
+  export interface OrgLocationDiagramReference {
+  id: string;
+  locationDiagram: Core.EntityHeader;
+  locationDiagramLayer: Core.EntityHeader;
+  locationDiagramShape: Core.EntityHeader;
+}
+
   export interface ScheduledDowntimeSummary extends Core.SummaryData {
   }
 

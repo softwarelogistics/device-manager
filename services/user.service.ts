@@ -60,6 +60,10 @@ export class UserService {
     }
   }
 
+  async loadCurrentOrgSummary() : Promise<Core.InvokeResultEx<Users.OrganizationSummary>> {
+    return await this.clientService.request<Core.InvokeResultEx<Users.OrganizationSummary>>('/api/org/current/summary');
+  }
+
   async loadCurrentUserIfNecessary(): Promise<Users.AppUser | undefined> {
     if (!await this.getUser() && !await this.getIsLoggedIn()) {
       return await this.loadCurrentUser();

@@ -35,8 +35,10 @@
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "NuvIoT Device Manager uses Bluetooth to communicate with NuvIoT Devices.",
         "LSApplicationQueriesSchemes": [
+          "nuviot",
           "nuviot"
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -56,7 +58,11 @@
       ]
     },
     "packagerOpts": {
-      "sourceExts": ["js", "jsx", "svgx"],
+      "sourceExts": [
+        "js",
+        "jsx",
+        "svgx"
+      ],
       "transformer": "node_modules/react-native-svg-transformer/index.js"
     },
     "web": {
