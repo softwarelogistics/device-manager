@@ -46,6 +46,10 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
   const themePalette = AppServices.instance.getAppTheme();
   const peripheralId = route.params.id;
+  const repoId = route.params.repoId;
+  const instanceId = route.params.instanceId;
+  const customerId = route.params.customerId;
+  const customerLocationId = route.params.customerLocationId;
 
 
   const loadSysConfigAsync = async (deviceTypes: Devices.DeviceTypeSummary[]) => {
@@ -90,7 +94,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     setBusyMessage("Loading Repositories");
     let repos = (await AppServices.instance.deviceServices.loadDeviceRepositories()).model!;
     setSelectedRepo(repos.find(rep => rep.id == route.params.repoId));
-    repos.unshift({ id: "-1", key: 'select', name: '-select-', isPublic: false, description: '', repositoryType: '' });
+    repos.unshift({ id: "-1", key: 'select', name: '-select-', isPublic: false, icon:'', description: '', repositoryType: '' });
 
     setRepos(repos);
     setBusyMessage("Loading Device Models");
@@ -154,6 +158,17 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     newDevice.deviceConfiguration = { id: selectedDeviceModel!.defaultDeviceConfigId!, key: '', text: selectedDeviceModel!.defaultDeviceConfigName! };
     newDevice.deviceId = deviceId!;
     newDevice.name = deviceName!;
+
+    if(customerId) {      
+      let customer = await AppServices.instance.businessService.getCustomer(customerId);
+      newDevice.customer = {id: customer.model.id, key: customer.model.key, text: customer.model.name};
+      if(customerLocationId){
+        let location = customer.model.locations.find(loc=>loc.id == customerLocationId);
+        if(location) {
+          newDevice.customerLocation = {id: location.id, text: location.name };
+        }
+      }
+    }
 
     if (Platform.OS === 'ios')
       newDevice.iosBLEAddress = peripheralId;
@@ -305,6 +320,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
   }
 
   useEffect(() => {
+    console.log(customerId, customerLocationId);
     if (initialCall) {
       init();
       NetworkCallStatusService.reset();

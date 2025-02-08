@@ -406,4 +406,33 @@ namespace Users {
     creationDate: string;
     createdBy: string;
   }
+
+  export interface OrganizationSummary extends Core.SummaryData {
+    text: string;
+    namespace: string;
+    darkLogo: Core.EntityHeader;
+    lightLogo: Core.EntityHeader;
+    tagLine: string;
+    defaultTheme: string;
+    landingPage: string;
+    primaryBgColor: string;
+    primaryTextColor: string;
+    accentColor: string;
+    defaultDeviceRepository: Core.EntityHeader;
+    defaultInstance: Core.EntityHeader;
+    isForProductLine: boolean;
+  }
+
+  export interface ExternalContact {
+  id: string;
+  firstName: string;
+  lastName: string;
+  sendEmail: boolean;
+  sendSMS: boolean;
+  email: string;
+  phone: string;
+  notes: string;
+  emailConfirmedTimeStamp: string;
+  smsConfirmedTimeStamp: string;
+}
 }

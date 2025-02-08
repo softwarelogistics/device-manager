@@ -30,6 +30,9 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
   
   const themePalette = AppServices.instance.getAppTheme();
   const deviceRepoId = route.params.repoId;
+  const instanceId = route.params.instanceId;
+  const customerId = route.params.customerId;
+  const customerLocationId = route.params.customerLocationId;
 
   const checkPermissions = async () => {
     if (Platform.OS === 'android') {
@@ -128,7 +131,7 @@ export default function ScanPage({ navigation, props, route }: IReactPageService
     if (device.provisioned)
       navigation.navigate('liveDevicePage', { id: device.peripheralId, owned: device.orgId == currentOrgId, instanceRepoId: deviceRepoId, deviceRepoId: device.repoId, deviceId: device.deviceUniqueId, instanceId: route.params.instanceId});
     else
-      navigation.navigate('provisionPage', { id: device.peripheralId, repoId: deviceRepoId, instanceId: route.params.instanceId });
+      navigation.navigate('provisionPage', { id: device.peripheralId, customerId: customerId, customerLocationId: customerLocationId, repoId: deviceRepoId, instanceId: instanceId });
   }
 
   const discovered = async (peripheral: Peripheral) => {

@@ -45,6 +45,8 @@ export const InstancePage = ({
 
   const [deviceModels, setDeviceModels] = useState<Core.EntityHeader[]>([]);
 
+  const customerId = route.params.customerId;
+  const customerLocationId = route.params.customerLocationId;
   const instanceId = route.params.instanceId;
   const deviceRepoId = route.params.repoId;
   const instanceName = route.params.instanceName;
@@ -52,7 +54,10 @@ export const InstancePage = ({
   const themePalette = AppServices.instance.getAppTheme();
 
   const loadDevices = async () => {
-    let result = await AppServices.instance.deviceServices.getDevicesForRepoAsync(deviceRepoId);
+    let result = customerId && customerLocationId ?
+      await AppServices.instance.deviceServices.getDevicesForCustomerLocation(deviceRepoId, customerId, customerLocationId) :
+      await AppServices.instance.deviceServices.getDevicesForRepoAsync(deviceRepoId);
+      
     let uniqueDeviceModels: Core.EntityHeader[] = [];
 
     for (let device of result.model!) {
@@ -76,7 +81,7 @@ export const InstancePage = ({
   };
 
   const addDevice = () => {
-    navigation.navigate("scanPage", {repoId: deviceRepoId,instanceId: instanceId});
+    navigation.navigate("scanPage", {repoId: deviceRepoId,instanceId: instanceId, customerId: customerId, customerLocationId: customerLocationId});
   };
 
   const showDevice = (deviceSummary: Devices.DeviceSummary) => {

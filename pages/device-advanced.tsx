@@ -57,7 +57,6 @@ export const DeviceAdvancedPage = ({ props, navigation, route }: IReactPageServi
     }
 
     setIsBusy(true);
-
     if (await ble.connectById(peripheralId)) {
       if (gpsEnabled) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `gps=${gpsEnabled ? '1;' : '0;'}`);
       if (gpsRate) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `gpsrate=${gpsRate};`);

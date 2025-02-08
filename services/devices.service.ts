@@ -116,6 +116,11 @@ export class DevicesService {
       return resp.model!;
   }
 
+  getDevicesForCustomerLocation(repoid: string, customerId: string, customerLocationId: string): Promise<Core.ListResponse<Devices.DeviceSummary>> {
+    return this.nuviotClient.getListResponse(`/api/devices/${repoid}/customer/${customerId}/location/${customerLocationId}`)
+  }
+
+
   getDeviceProperties(deviceConfigId: string): Promise<Devices.PropertyMetaData[]> {
     return this.nuviotClient.request<Devices.PropertyMetaData[]>(`/api/deviceconfig/${deviceConfigId}/properties`);
   }

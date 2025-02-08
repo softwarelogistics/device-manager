@@ -1,5 +1,5 @@
 import { UserService } from './user.service';
-import { NativeStorageService } from '../core/utils'
+import { CookieService, NativeStorageService } from '../core/utils'
 import { NuviotClientService } from './nuviot-client.service';
 import { NetworkCallStatusService } from './network-call-status-service';
 import { ErrorReporterService } from './error-reporter.service';
@@ -13,6 +13,7 @@ import { DeploymentService } from './deployment.service';
 import WssService from './wss.service';
 import { OrgService } from './orgservice';
 import { NavService } from './NavService';
+import { BusinessService } from './business.service';
 
 class AppServices {
     private _appTheme: ThemePalette;
@@ -26,7 +27,8 @@ class AppServices {
         this.storage = new NativeStorageService();
         this.errorReporter = new ErrorReporterService();
         this.networkCallStatusService = new NetworkCallStatusService();
-
+        this.cookieService = new CookieService();
+        
         this.navService = new NavService();
         this.httpClient = new HttpClient(this.storage);
 
@@ -37,6 +39,7 @@ class AppServices {
         this.deviceServices = new DevicesService(this.deviceGroupsServices, this.client);
         this.wssService = new WssService(this.client);
         this.orgsService = new OrgService(this.client);
+        this.businessService = new BusinessService(this.client, this.cookieService);
         this.userServices = new UserService(this.httpClient, this.client, this.errorReporter, this.storage);
         console.log(`[AppServices__constructor] - AppServices initialized. ${AppServices._instanceCount}`);
     }
@@ -50,6 +53,7 @@ class AppServices {
     }
 
     httpClient: HttpClient;
+    cookieService: CookieService;
     networkCallStatusService: NetworkCallStatusService;
     errorReporter: ErrorReporterService;
     storage: NativeStorageService;
@@ -61,6 +65,7 @@ class AppServices {
     orgsService: OrgService;
     wssService: WssService;
     navService: NavService;
+    businessService: BusinessService;
 
     static instance: AppServices = new AppServices();
 }

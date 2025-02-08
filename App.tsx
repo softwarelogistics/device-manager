@@ -41,6 +41,9 @@ import colors from './styles.colors';
 import palettes from './styles.palettes';
 import { WiFiTroubleShootingPage } from './pages/wifiTroubleShooting';
 import { DeviceTwinPage } from './pages/device-twin';
+import CustomersPage from './pages/customers';
+import {CustomerPage} from './pages/customer.page'
+import CustomerLocationsPage from './pages/customerLocations.page'
 
 const Stack = createNativeStackNavigator();
 
@@ -140,7 +143,11 @@ const App = () => {
         <Stack.Screen name="liveDevicePage" component={LiveDevicePage} options={{ title: 'Device Info' }} />
         <Stack.Screen name="deviceProfilePage" component={DeviceProfilePage} options={{ title: 'Device Profile' }} />
         <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
-  
+
+        <Stack.Screen name="customersPage" component={CustomersPage} options={{ title: 'Customers' }} />
+        <Stack.Screen name="customerPage" component={CustomerPage} options={{ title: 'Customer' }} />
+        <Stack.Screen name="customerLocationsPage" component={CustomerLocationsPage} options={{ title: 'Customer Locations'}} />
+
         <Stack.Screen name="scanPage" component={ScanPage} options={{ title: 'Scan for Devices' }} />
         <Stack.Screen name="associatePage" component={AssociatePage} options={{ title: 'Associate Existing Device' }} />
        
