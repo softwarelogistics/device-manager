@@ -52,8 +52,6 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
   const themePalette = AppServices.instance.getAppTheme();
 
-  
-  
   const writeChar = async () => {
     if (!peripheralId) {
       console.error('PeripheralId not set, can not write.');

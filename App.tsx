@@ -28,6 +28,7 @@ import { InstancePage } from './pages/instance.page';
 import { UserOptionsPage } from './pages/userOptionsPage';
 import { DeviceProfilePage } from './pages/deviceProfilePage';
 import { WelcomePage } from './pages/welcomePage';
+import { WiFiPage } from './pages/wifi.page';
 import { AboutPage } from './pages/about.page';
 import AssociatePage from './pages/associatePage';
 import { DeviceAdvancedPage } from './pages/device-advanced';
@@ -132,6 +133,7 @@ const App = () => {
         <Stack.Screen name="acceptInvite" component={AcceptInvitePage} options={{ title: 'Accept Invitation' }} />
    
 
+        <Stack.Screen name="wifi" component={WiFiPage} options={{ title: 'Set WiFi' }} />
         <Stack.Screen name="homeWelcome" component={WelcomePage} options={{ title: 'Welcome' }} />
         <Stack.Screen name="welcome" component={WelcomePage} options={{ title: 'Welcome' }} />
         <Stack.Screen name="home" component={InstancesPage} options={{ title: 'Instances' }} />
