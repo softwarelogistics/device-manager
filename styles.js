@@ -159,6 +159,12 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.icon
   },
 
+  signalStrengthIcon: {
+    textAlign: 'center',
+    color: palettes.accent.normal,
+    fontSize: fontSizes.smallIcon
+  },
+
   buttonPrimary: {
     backgroundColor: colors.primaryColor
   },

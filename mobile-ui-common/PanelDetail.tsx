@@ -1,6 +1,6 @@
 import { View, Text, ScrollView } from "react-native"
 import Icon from "react-native-vector-icons/Ionicons";
-
+import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import styles from '../styles';
 import { barGreyChevronRightLabelStyle, barGreyChevronRightStyle, chevronBarColorTick, chevronBarVerticalStyle, headerStyle, labelStyle } from "../compound.styles";
 import ProgressSpinner from "./progress-spinner";
@@ -50,6 +50,21 @@ export const connectionBlock = (color: string, icon: string, label: string, stat
             </View>
         }
     </View>
+}
+
+export const wiFiIcon = (level: number) => {
+    if (level > -40) {
+        return <MciIcon name="wifi-strength-4" style={[styles.signalStrengthIcon]}></MciIcon>
+    } else if (level > -60) {
+        return <MciIcon name="wifi-strength-3" style={[styles.signalStrengthIcon]}></MciIcon>
+    } else if (level > -80) {
+        return <MciIcon name="wifi-strength-2" style={[styles.signalStrengthIcon]}></MciIcon>
+    } else {
+        return <MciIcon name="wifi-strength-1" style={[styles.signalStrengthIcon]}></MciIcon>
+    }
+
+ <MciIcon name="radar" style={[styles.centeredIcon]}></MciIcon>
+       
 }
 
 export const busyBlock = (busyMessage: string = "Please Wait") => {

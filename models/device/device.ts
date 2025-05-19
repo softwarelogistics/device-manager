@@ -801,8 +801,10 @@ export interface DeviceDetail {
 
   export interface PublicDeviceInfo {
     ownerOrganziation: Core.EntityHeader;
+    deviceTypeLabel: string;
     deviceType: Core.EntityHeader;
     customer: Core.EntityHeader;
+    deviceNameLabel: string;
     contactName: string;
     contactEmail: string;
     contactPhone: string;

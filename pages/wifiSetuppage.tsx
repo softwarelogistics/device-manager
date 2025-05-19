@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator, Pressable, TouchableOpacity, FlatList, Platform, ScrollView } from "react-native";
+import { View, Text, ActivityIndicator, Pressable, TouchableOpacity, FlatList, Platform, ScrollView, TextInput } from "react-native";
 import { IReactPageServices } from "../services/react-page-services";
 import AppServices from "../services/app-services";
 import styles from '../styles';
@@ -13,8 +13,16 @@ import { PermissionsHelper } from "../services/ble-permissions";
 import { ConnectedDevice } from "../mobile-ui-common/connected-device";
 import { scanUtils } from "../services/scan-utils";
 import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
-import { connectionBlock, panelDetail, sectionHeader } from "../mobile-ui-common/PanelDetail";
+import { connectionBlock, panelDetail, sectionHeader, wiFiIcon } from "../mobile-ui-common/PanelDetail";
 import { SysConfig } from "../models/blemodels/sysconfig";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { inputLabelStyle, inputStyleWithBottomMargin, placeholderTextColor } from "../compound.styles";
+
+interface SSID {
+    idx: number;
+    name: string;
+    level: number;
+}
 
 export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) => {
     const themePalette = AppServices.instance.getAppTheme();
@@ -29,6 +37,13 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
     const [initialCall, setInitialCall] = useState<boolean>(true);
     const [isDeviceConnected, setIsDeviceConnected] = useState<boolean>(false);
     const [pageVisible, setPageVisible] = useState<boolean>(true);
+    const [peripheralId, setPeripheralId] = useState<string | undefined>(undefined);
+    const [ssids, setSsids] = useState<SSID[]| undefined>(undefined);
+    const [selectedSsid, setSelectedSsid] = useState<SSID | undefined>(undefined);
+    const [wifiPassword, setWifiPassword] = useState<string | undefined>(undefined);    
+    const [isBusy, setIsBusy] = useState<boolean>(false);
+    const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+    const [showPassword, setShowPassword] = useState<boolean>(false);
 
     const charHandler = async (value: any) => {
         if (value.characteristic == CHAR_UUID_STATE) {
@@ -37,9 +52,24 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
         }
 
         if (value.characteristic == CHAR_UUID_CONSOLE) {
-            var now = new Date();
-            var msg = `${now.getHours()}:${now.getMinutes()} ${now.getSeconds()} ${value.value}`;
-            console.log("Console", msg);
+            let msgContent: string = value.value;
+            if(msgContent.startsWith("wifi=scanresult;")) {
+                var sites = msgContent.split("//");
+                let resultSection = sites[1].trim();
+                console.log("WiFi Scan Results", resultSection);
+                var siteList = resultSection.split(";");
+                let ssidList: SSID[] = [];
+                let idx = 1;
+                for(let site of siteList) {
+                    let sections = site.split("=");
+                    if(sections.length > 1) {
+                        ssidList.push({idx: idx++, name: sections[0], level: parseInt(sections[1]) });
+                    }
+                }
+
+                setSsids(ssidList);
+                setIsBusy(false);
+            }       
         }
     }
     
@@ -91,6 +121,11 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
 
    const startScan = async () => {
         ble.peripherals = [];
+        setDiscoveredPeripherals([]);
+        setSsids(undefined);
+        setSelectedSsid(undefined);
+        setWifiPassword(undefined);
+        setRemoteDeviceState(undefined);
 
         console.log('[ScanPage__StartScan] Start Scan;');
 
@@ -148,7 +183,10 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
     }
 
     const setDevice = async (device: BLENuvIoTDevice) => {
+        setIsBusy(true);
+        setBusyMessage('Connecting to Device');
         await ConnectedDevice.connectAndSubscribe(device.peripheralId, [CHAR_UUID_STATE, CHAR_UUID_CONSOLE], 1)
+        setPeripheralId(device.peripheralId);
         let result = await ConnectedDevice.getCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
         if (result) {
             let sysConfig = new SysConfig(result);
@@ -164,12 +202,29 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
                 console.log('Device Info not found');
             }
         } 
+        setIsBusy(false);
     }
 
     const clearDevice = () => {
         ConnectedDevice.disconnect();
+        setSsids(undefined);
         setDeviceInfo(undefined);
+        setPeripheralId(undefined);
         setRemoteDeviceState(undefined);        
+    }
+
+    const wiFiScan = () => {
+        setBusyMessage('Scanning for WiFi Hotspots');
+        setIsBusy(true);
+        ConnectedDevice.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `siteScan=true;`);
+    }
+
+    const writeConnectionInfo = async () => {
+        if(selectedSsid && wifiPassword) {
+           await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${selectedSsid.name};`);
+           await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${wifiPassword};`); 
+           await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reconnect=true;`); 
+        }
     }
 
     if (initialCall) {
@@ -178,7 +233,14 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
         ble.peripherals = [];
         ConnectedDevice.onReceived = (value) => charHandler(value);
         ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
-        ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
+        ConnectedDevice.onDisconnected = () => {
+            console.log('Device has disconnected');
+            setIsDeviceConnected(false);
+            setSsids(undefined);
+            setDeviceInfo(undefined);
+            setPeripheralId(undefined);
+            setRemoteDeviceState(undefined);        
+        }
     }
 
     useEffect(() => {
@@ -211,6 +273,10 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
         });
     }, [isDeviceConnected]);
 
+    const setSsid = (ssid: SSID) => {
+        setSelectedSsid(ssid);
+    }
+
     const myItemSeparator = () => { return <View style={{ height: 1, backgroundColor: "#c0c0c0git ", marginHorizontal: 6 }} />; };
 
     const myListEmpty = () => {
@@ -223,10 +289,10 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
 
     return <View style={[styles.container, { padding: 0, backgroundColor: themePalette.background }]}>
      {
-      isScanning &&
+      (isScanning || isBusy) &&
       <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
         <Text style={{ fontSize: 25, color: themePalette.shellTextColor }}>{busyMessage}</Text>
-        <ActivityIndicator size="large" color={palettes.accent.normal} animating={isScanning} />
+        <ActivityIndicator size="large" color={palettes.accent.normal} animating={isScanning || isBusy} />
       </View>
     }
     {
@@ -255,19 +321,84 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
       </>
     }
     {
-    remoteDeviceState &&
+       !selectedSsid && ssids && ssids.length > 0 &&
+      <>
+        <Text style={{ fontSize: 18, padding: 15, color: themePalette.shellTextColor }}>{ssids.length} WiFi Hotspot{ssids.length === 1 ? '' : 's'} Found</Text>
+        <FlatList
+          contentContainerStyle={{ alignItems: "stretch" }}
+          style={{ backgroundColor: themePalette.background, width: "100%" }}
+          ItemSeparatorComponent={myItemSeparator}
+          ListEmptyComponent={myListEmpty}
+          data={ssids}
+          renderItem={({ item }) =>
+            <Pressable onPress={() => setSsid(item)} key={item.idx} >
+              <View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 50, backgroundColor: themePalette.shell, }]}  >
+                <View style={{ flex: 3, flexDirection:'row' }} key={item.idx}>
+                  <Text style={[{ color: themePalette.shellTextColor, flex:12, fontSize: 18}]}>{item.name}</Text>
+                  {wiFiIcon(item.level)}
+                </View>
+              </View>
+            </Pressable>
+          }
+        />
+      </>
+    }
+    {
+        ssids && ssids.length == 0 && !selectedSsid && 
+        <View style={[styles.scrollContainer, { paddingBottom:50, backgroundColor: themePalette.background }]} >
+            <Text>No WiFi Connections Available</Text>
+        </View>
+    }
+    {
+        selectedSsid && 
+            <KeyboardAwareScrollView>
+                <View style={{ padding: 20 }}>
+                    {remoteDeviceState && <View style={{ marginTop: 8 }} >
+                        {sectionHeader('Connectivity')}
+                        <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >
+                        {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
+                        {connectionBlock('orange', 'wifi-outline', 'WiFi', remoteDeviceState.wifiStatus == 'Connected')}
+                        {connectionBlock('orange', 'cellular-outline', 'Cellular', remoteDeviceState.cellularConnected)}
+                        {connectionBlock('orange', 'cloud', 'Cloud', remoteDeviceState.isCloudConnected)}
+                        </View>
+                    </View>}
+        
+                    <Text style={inputLabelStyle}>WiFi SSID:</Text>
+                    <TextInput style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter Wifi SSID" value={selectedSsid.name} readOnly={true} />
+
+                    <Text style={inputLabelStyle}>WiFi PWD:</Text>
+                    <View style={{ flexDirection: 'row' }}>
+                        <TextInput secureTextEntry={!showPassword} style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter WiFi Password" value={wifiPassword} onChangeText={e => setWifiPassword(e)} />
+                        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} >
+                            <Icon name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={24} color={themePalette.shellTextColor} />
+                        </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity style={[styles.submitButton]} onPress={() => writeConnectionInfo()}>
+                        <Text style={[styles.submitButtonText,]}> Connect</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.submitButton]} onPress={() => setSelectedSsid(undefined)}>
+                        <Text style={[styles.submitButtonText,]}> Cancel</Text>
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAwareScrollView>
+    }
+    {
+    remoteDeviceState && !ssids &&
      <ScrollView style={[styles.scrollContainer, { paddingBottom:50, backgroundColor: themePalette.background }]} >
         <View > 
+            <TouchableOpacity style={[styles.submitButton, {width: 30, marginBottom:50}]} onPress={() => wiFiScan()}>
+                   <Icon style={{ textAlign: 'center', }} size={48} color="white" name="wifi-outline" />
+            </TouchableOpacity>
             {
-            sysConfig && deviceInfo && 
-            <View> 
-                {sectionHeader('Device Information')}
-                {panelDetail('purple', "Device", deviceInfo?.deviceName)}
-                {panelDetail('purple', "Customer", deviceInfo?.customer.text)}
-                {panelDetail('purple', "Type", deviceInfo?.deviceType.text)}
-                {panelDetail('purple', "Firmware", deviceInfo?.deviceFirmware.text)}
-                {panelDetail('purple', "Desired Firmware Rev", deviceInfo?.deviceFirmwareRevision.text)}
-            </View>
+                sysConfig && deviceInfo && 
+                <View> 
+                    {sectionHeader('Device Information')}
+                    {panelDetail('purple', "Name", deviceInfo?.deviceName)}
+                    {panelDetail('purple', "Customer", deviceInfo?.customer.text)}
+                    {panelDetail('purple', "Type", deviceInfo?.deviceType.text)}
+                    {panelDetail('purple', "Firmware", deviceInfo?.deviceFirmware.text)}
+                    {panelDetail('purple', "Desired Firmware Rev", deviceInfo?.deviceFirmwareRevision.text)}
+                </View>
             }
     
             <View style={{ marginTop: 24 }}>
@@ -298,7 +429,7 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
       <View style={[styles.centeredContent, { padding: 50, backgroundColor: themePalette.background }]}>
         <MciIcon name="radar" style={[styles.centeredIcon]}></MciIcon>
         <TouchableOpacity style={[styles.submitButton]} onPress={() => startScan()}>
-          <Text style={[styles.submitButtonText,]}> Begin Scanning</Text>
+          <Text style={[styles.submitButtonText,]}> Find Devices</Text>
         </TouchableOpacity>
       </View>
     }
