@@ -308,6 +308,10 @@ export class DevicesService {
     return null;
   }
 
+  public async getPublicDeviceInfo(orgId: string, repoId: string, deviceId: string): Promise<Devices.PublicDeviceInfo> {
+    const uri = `/api/public/device/${orgId}/${repoId}/${deviceId}`;
+    return await this.nuviotClient.request<Devices.PublicDeviceInfo>(uri);
+  }
 
   public refreshDeviceData(repoId: string, deviceId: string) {
     const uri = `/api/device/${repoId}/${deviceId}/metadata`;

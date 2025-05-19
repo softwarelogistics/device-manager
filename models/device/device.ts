@@ -799,5 +799,18 @@ export interface DeviceDetail {
 
   }
 
+  export interface PublicDeviceInfo {
+    ownerOrganziation: Core.EntityHeader;
+    deviceType: Core.EntityHeader;
+    customer: Core.EntityHeader;
+    contactName: string;
+    contactEmail: string;
+    contactPhone: string;
+    deviceName: string;
+    deviceId: string;
+    devicId: string;
+    deviceFirmware: Core.EntityHeader;
+    deviceFirmwareRevision: Core.EntityHeader;
+  }
 }
 

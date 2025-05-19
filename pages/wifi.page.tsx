@@ -23,7 +23,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { Picker } from "@react-native-picker/picker";
 import { inputLabelStyle, inputStyleWithBottomMargin, placeholderTextColor } from "../compound.styles";
 
-export default function WiFiPage({ navigation, props, route }: IReactPageServices) {
+export const WiFiPage = ({ navigation, props, route }: IReactPageServices) => {
   const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
   const [discoveredPeripherals, setDiscoveredPeripherals] = useState<Peripheral[]>([]);
 
