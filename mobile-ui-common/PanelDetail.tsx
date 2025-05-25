@@ -2,7 +2,7 @@ import { View, Text, ScrollView } from "react-native"
 import Icon from "react-native-vector-icons/Ionicons";
 import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import styles from '../styles';
-import { barGreyChevronRightLabelStyle, barGreyChevronRightStyle, chevronBarColorTick, chevronBarVerticalStyle, headerStyle, labelStyle } from "../compound.styles";
+import { barGreyChevronRightLabelStyle, barGreyChevronRightStyle, chevronBarColorTick, chevronBarVerticalStyle, headerStyle, labelStyle, h1Style, h2Style, h1CenteredStyle, h2CenteredStyle } from "../compound.styles";
 import ProgressSpinner from "./progress-spinner";
 import AppServices from "../services/app-services";
 import { IOValues } from "../models/blemodels/iovalues";
@@ -26,6 +26,31 @@ export const panelDetail = (color: string, label: string, value: string | null |
 export const sectionHeader = (sectionHeader: string) => {
     return (<View>
         <Text style={headerStyle}>{sectionHeader}</Text>
+    </View>)
+}
+
+export const h1 = (sectionHeader: string) => {
+    return (<View>
+        <Text style={h1Style}>{sectionHeader}</Text>
+    </View>)
+}
+
+export const h2 = (sectionHeader: string) => {
+    return (<View>
+        <Text style={h2Style}>{sectionHeader}</Text>
+    </View>)
+}
+
+
+export const h1Centered = (sectionHeader: string) => {
+    return (<View>
+        <Text style={h1CenteredStyle}>{sectionHeader}</Text>
+    </View>)
+}
+
+export const h2Centered = (sectionHeader: string) => {
+    return (<View>
+        <Text style={h2CenteredStyle}>{sectionHeader}</Text>
     </View>)
 }
 

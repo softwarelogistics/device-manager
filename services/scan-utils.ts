@@ -32,7 +32,7 @@ export class BLEScanUtils {
                 let device: BLENuvIoTDevice = {
                   peripheralId: peripheral.id,
                   name: name,
-                  deviceType: sysConfig.deviceModelId,
+                  deviceFirmwareSku: sysConfig.deviceFirmwareSku,
                   provisioned: false,
                   orgId: sysConfig.orgId,
                   repoId: sysConfig.repoId,

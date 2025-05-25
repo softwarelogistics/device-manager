@@ -10,7 +10,6 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    alignItems: 'flex-start',
     backgroundColor: ThemePalette.background,
     padding: 16,
     width: '100%',
@@ -21,7 +20,9 @@ const styles = StyleSheet.create({
   },
   
   scrollContainer: {
-    padding: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingBottom: 20,
     flex: 1,
     width: '100%',
     height: '100%'
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
 
   signalStrengthIcon: {
     textAlign: 'center',
-    color: palettes.accent.normal,
+    color: palettes.primary.normal,
     fontSize: fontSizes.smallIcon
   },
 

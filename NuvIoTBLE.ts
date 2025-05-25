@@ -424,7 +424,7 @@ export class NuvIoTBLE {
 
   connectById(id: string, characteristicId: string | undefined = undefined, retryCount: number = 5): Promise<boolean> {    
     let promise = new Promise<boolean>(async (resolve, reject) => {
-        ble.btEmitter?.emit('connecting', `Connecting to ${id}`);
+        ble.btEmitter?.emit('connecting', `Connecting, Please Wait`);
         this._cancelConnect = false;
         while (!this._cancelConnect && retryCount > 0) {
           if (this.simulatedBLE()) {

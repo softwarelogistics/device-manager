@@ -13,10 +13,13 @@ import { PermissionsHelper } from "../services/ble-permissions";
 import { ConnectedDevice } from "../mobile-ui-common/connected-device";
 import { scanUtils } from "../services/scan-utils";
 import MciIcon from "react-native-vector-icons/MaterialCommunityIcons";
-import { connectionBlock, panelDetail, sectionHeader, wiFiIcon } from "../mobile-ui-common/PanelDetail";
+import { connectionBlock, panelDetail, sectionHeader, wiFiIcon, h1, h2, h1Centered,h2Centered } from "../mobile-ui-common/PanelDetail";
 import { SysConfig } from "../models/blemodels/sysconfig";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { inputLabelStyle, inputStyleWithBottomMargin, placeholderTextColor } from "../compound.styles";
+import WebLink from "../mobile-ui-common/web-link";
+import { AppLogo } from "../mobile-ui-common/AppLogo";
+import { center } from "@shopify/react-native-skia";
 
 interface SSID {
     idx: number;
@@ -44,6 +47,7 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
     const [isBusy, setIsBusy] = useState<boolean>(false);
     const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
     const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [showWelcome, setShowWelcome] = useState<boolean>(true);
 
     const charHandler = async (value: any) => {
         if (value.characteristic == CHAR_UUID_STATE) {
@@ -190,7 +194,7 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
         let result = await ConnectedDevice.getCharacteristic(device.peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
         if (result) {
             let sysConfig = new SysConfig(result);
-            
+            console.log(sysConfig);
             let deviceInfo = await AppServices.instance.deviceServices.getPublicDeviceInfo(sysConfig.orgId, sysConfig.repoId, sysConfig.id) ;
             if(deviceInfo) {
                 setSysConfig(sysConfig);
@@ -224,6 +228,7 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
            await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${selectedSsid.name};`);
            await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${wifiPassword};`); 
            await ble.writeCharacteristic(peripheralId!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reconnect=true;`); 
+           alert('WiFi Connection Information Sent to Device, please wait for the device to connect to the WiFi Hotspot');
         }
     }
 
@@ -234,28 +239,18 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
         ConnectedDevice.onReceived = (value) => charHandler(value);
         ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
         ConnectedDevice.onDisconnected = () => {
-            console.log('Device has disconnected');
+            alert('Disconnected from device');
             setIsDeviceConnected(false);
             setSsids(undefined);
             setDeviceInfo(undefined);
             setPeripheralId(undefined);
             setRemoteDeviceState(undefined);        
+            setSelectedSsid(undefined);
+            setWifiPassword(undefined);
         }
     }
 
     useEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-            <View style={{ flexDirection: 'row' }} >
-                <Icon.Button backgroundColor="transparent" underlayColor="transparent" color={themePalette.shellNavColor}  onPress={() => startScan()} name='refresh-outline' />
-            </View>
-            ),
-        });
-        
-        ConnectedDevice.onReceived = (value) => charHandler(value);
-        ConnectedDevice.onConnected = () => setIsDeviceConnected(true);
-        ConnectedDevice.onDisconnected = () => setIsDeviceConnected(false);
-    
         const focusSubscription = navigation.addListener('focus', async () => {
           setPageVisible(true);
         });
@@ -288,17 +283,40 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
     };
 
     return <View style={[styles.container, { padding: 0, backgroundColor: themePalette.background }]}>
+     { showWelcome &&
+         <View style={[styles.spinnerView, {paddingTop:30, backgroundColor: themePalette.background }]}>
+            <AppLogo />
+            {h2Centered('WiFi Configuration App')}
+            {h2Centered('V1.0.0')}
+            <Icon name="wifi-outline" style={[styles.centeredIcon]}></Icon>
+            <Text style={[{ color: themePalette.shellTextColor, flex:12, fontSize: 18}]}>The WiFi connection helper will connect to your Green Light Alerting, Kool K9 or SeaWolf Marine device to connect it to a WiFi hotspot</Text>
+            <View style={{ flex: 12 }}>
+            <WebLink url="https://www.software-logistics.com" label="Software Logistics, LLC"  />
+            <WebLink url="https://www.nuviot.com" label="NuvIoT"  />
+            <WebLink url="https://app.termly.io/document/terms-of-use-for-saas/90eaf71a-610a-435e-95b1-c94b808f8aca" label="Terms and Conditions"  />
+            <WebLink url="https://app.termly.io/document/privacy-policy/fb547f70-fe4e-43d6-9a28-15d403e4c720" label="Privacy Statement"  />          
+            </View>
+                <TouchableOpacity style={[styles.submitButton, {marginBottom:50}]} onPress={() => setShowWelcome(false)}>
+            <Text style={[styles.submitButtonText,]}>Get Started!</Text>
+        </TouchableOpacity>
+        </View>     
+     }
      {
       (isScanning || isBusy) &&
       <View style={[styles.spinnerView, { backgroundColor: themePalette.background }]}>
-        <Text style={{ fontSize: 25, color: themePalette.shellTextColor }}>{busyMessage}</Text>
+        <Text style={{ fontSize: 25, marginBottom:30, color: themePalette.shellTextColor }}>{busyMessage}</Text>
         <ActivityIndicator size="large" color={palettes.accent.normal} animating={isScanning || isBusy} />
       </View>
     }
     {
     !isScanning && !remoteDeviceState && devices.length > 0 &&
       <>
-        <Text style={{ fontSize: 18, padding: 15, color: themePalette.shellTextColor }}>{devices.length} Device{devices.length === 1 ? '' : 's'} Found</Text>
+       <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 15, backgroundColor: themePalette.background }}>        
+        <Icon size={36}  color={themePalette.accentColor}  onPress={() => setDevices([])} name='chevron-back-outline' />
+        <Text style={{ flex:1, fontSize: 28, fontWeight:500,  color: themePalette.accentColor }}>{devices.length} Device{devices.length === 1 ? '' : 's'} Found</Text>
+        <Icon size={36} color={themePalette.accentColor}  onPress={() => startScan()} name='refresh-outline' />
+       </View>
+
         <FlatList
           contentContainerStyle={{ alignItems: "stretch" }}
           style={{ backgroundColor: themePalette.background, width: "100%" }}
@@ -307,13 +325,12 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
           data={devices}
           renderItem={({ item }) =>
             <Pressable onPress={() => setDevice(item)} key={item.peripheralId} >
-              <View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 90, backgroundColor: themePalette.shell, }]}  >
+              <View style={[styles.listRow, { padding: 10, marginBottom: 10, height: 60, backgroundColor: themePalette.shell, }]}  >
+                <Icon style={{ fontSize: 40, color: palettes.primary.normal }} name='hardware-chip-outline' />
                 <View style={{ flex: 3 }} key={item.peripheralId}>
-                  <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>ID: {item.name}</Text>
-                  <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, fontSize: 18, flex: 3 }]}>Type: {item.deviceType}</Text>
+                  <Text numberOfLines={1} style={[{ color: themePalette.shellTextColor, marginLeft:15, marginTop:8, fontSize: 18, flex: 3 }]}>{item.name}</Text>
                 </View>
-                {item.provisioned && <Icon style={{ fontSize: 48, color: 'green' }} name='information-outline' />}
-                {!item.provisioned && <Icon style={{ fontSize: 48, color: 'green' }} name='add-circle-outline' />}
+                <Icon style={{ fontSize: 40, color: palettes.primary.normal }} name='chevron-forward-outline' />
               </View>
             </Pressable>
           }
@@ -323,7 +340,11 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
     {
        !selectedSsid && ssids && ssids.length > 0 &&
       <>
-        <Text style={{ fontSize: 18, padding: 15, color: themePalette.shellTextColor }}>{ssids.length} WiFi Hotspot{ssids.length === 1 ? '' : 's'} Found</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 15, backgroundColor: themePalette.background }}>        
+            <Icon size={36}  color={themePalette.accentColor}  onPress={() => setSsids(undefined)} name='chevron-back-outline' />
+            <Text style={{ flex:1, fontSize: 28, fontWeight:500,  color: themePalette.accentColor }}>{ssids.length} WiFi Hotspot{ssids.length === 1 ? '' : 's'} Found</Text>
+            <Icon size={36} color={themePalette.accentColor}  onPress={() => wiFiScan()} name='refresh-outline' />
+        </View>
         <FlatList
           contentContainerStyle={{ alignItems: "stretch" }}
           style={{ backgroundColor: themePalette.background, width: "100%" }}
@@ -368,7 +389,8 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
 
                     <Text style={inputLabelStyle}>WiFi PWD:</Text>
                     <View style={{ flexDirection: 'row' }}>
-                        <TextInput secureTextEntry={!showPassword} style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter WiFi Password" value={wifiPassword} onChangeText={e => setWifiPassword(e)} />
+                        <TextInput secureTextEntry={!showPassword} style={inputStyleWithBottomMargin} placeholderTextColor={placeholderTextColor} placeholder="Enter WiFi Password"
+                            value={wifiPassword} onChangeText={e => setWifiPassword(e)} />
                         <TouchableOpacity onPress={() => setShowPassword(!showPassword)} >
                             <Icon name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={24} color={themePalette.shellTextColor} />
                         </TouchableOpacity>
@@ -385,19 +407,20 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
     {
     remoteDeviceState && !ssids &&
      <ScrollView style={[styles.scrollContainer, { paddingBottom:50, backgroundColor: themePalette.background }]} >
-        <View > 
-            <TouchableOpacity style={[styles.submitButton, {width: 30, marginBottom:50}]} onPress={() => wiFiScan()}>
-                   <Icon style={{ textAlign: 'center', }} size={48} color="white" name="wifi-outline" />
-            </TouchableOpacity>
+        <View> 
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 15, paddingBottom:15, backgroundColor: themePalette.background }}>        
+                <Icon size={36}  color={themePalette.accentColor}  onPress={() => clearDevice()} name='chevron-back-outline' />
+                <Text style={{ flex:1, fontSize: 28, fontWeight:500,  color: themePalette.accentColor }}>Device Information</Text>
+                <Icon size={36} color={themePalette.accentColor}  onPress={() => wiFiScan()} name='wifi-outline' />
+            </View>
             {
                 sysConfig && deviceInfo && 
                 <View> 
-                    {sectionHeader('Device Information')}
-                    {panelDetail('purple', "Name", deviceInfo?.deviceName)}
-                    {panelDetail('purple', "Customer", deviceInfo?.customer.text)}
-                    {panelDetail('purple', "Type", deviceInfo?.deviceType.text)}
-                    {panelDetail('purple', "Firmware", deviceInfo?.deviceFirmware.text)}
-                    {panelDetail('purple', "Desired Firmware Rev", deviceInfo?.deviceFirmwareRevision.text)}
+                    {panelDetail('purple', "Name", deviceInfo.deviceName)}
+                    {deviceInfo.customer && panelDetail('purple', "Customer", deviceInfo.customer.text)}
+                    {deviceInfo.deviceType && panelDetail('purple', "Type", deviceInfo.deviceType.text)}
+                    {deviceInfo.deviceFirmware &&  panelDetail('purple', "Firmware", deviceInfo.deviceFirmware.text)}
+                    {deviceInfo.deviceFirmwareRevision && panelDetail('purple', "Desired Firmware Rev", deviceInfo.deviceFirmwareRevision.text)}
                 </View>
             }
     
@@ -409,7 +432,7 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
                 {panelDetail('green', 'Firmware Rev', remoteDeviceState.firmwareRevision)}
                 {panelDetail('green', 'Commissioned', remoteDeviceState.commissioned ? 'Yes' : 'No')}
             </View>
-            <View style={{ marginTop: 8 }} >
+            <View style={{ marginTop: 8, marginBottom:60 }} >
                 {sectionHeader('Connectivity')}
                 <View style={{ flexDirection: 'row', marginHorizontal: 8 }} >
                 {connectionBlock('orange', 'bluetooth-outline', 'Bluetooth', true)}
@@ -419,18 +442,16 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
                 </View>
             </View>
         </View>
-         <TouchableOpacity style={[styles.submitButton, {marginBottom:50}]} onPress={() => clearDevice()}>
-          <Text style={[styles.submitButtonText,]}> Done</Text>
-        </TouchableOpacity>
     </ScrollView>
     }
     {
-      !isScanning && !remoteDeviceState && devices.length <= 0 &&
+      !showWelcome && !isScanning && !remoteDeviceState && devices.length <= 0 &&
       <View style={[styles.centeredContent, { padding: 50, backgroundColor: themePalette.background }]}>
-        <MciIcon name="radar" style={[styles.centeredIcon]}></MciIcon>
+        <Text  style={[{ margin:30, color: themePalette.shellTextColor,  fontSize: 18}]}>Press Find Devices to locate any Green Light Alerting, Kool K9 or SeaWolf Marine devices in the range of your phone.</Text>
         <TouchableOpacity style={[styles.submitButton]} onPress={() => startScan()}>
           <Text style={[styles.submitButtonText,]}> Find Devices</Text>
         </TouchableOpacity>
+        <MciIcon name="radar" style={[styles.centeredIcon]}></MciIcon>
       </View>
     }
    </View>

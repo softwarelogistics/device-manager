@@ -3,7 +3,7 @@
     "name": "WiFi Manager",
     "owner": "kevindwolf",
     "slug": "wifi-mgr",
-    "version": "1.0.1",
+    "version": "5.8.1",
     "orientation": "portrait",
     "icon": "./assets/adaptive-icon.png",
     "userInterfaceStyle": "light",
@@ -69,7 +69,7 @@
     "extra": {
       "environment": "development",
       "eas": {
-        "projectId": "980a83b6-7e96-48b1-af09-e9827a85e453"
+        "projectId": "60332f43-00fd-4a35-8b33-c269770169e9"
       }
     }
   }

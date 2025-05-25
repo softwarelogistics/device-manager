@@ -24,7 +24,15 @@ export class ConnectedDevice {
         await LogWriter.log(`[Console__disconnectHandler]`,`disconnected; // deviceid=${id}`)
         ConnectedDevice.connectionState = DISCONNECTED;
         ble.removeAllListeners();
-        if (ConnectedDevice.onDisconnected) ConnectedDevice.onDisconnected();
+        if (ConnectedDevice.onDisconnected) {
+            ConnectedDevice.onDisconnected();
+
+            console.log('Connection Set handler set.');
+        }
+        else{
+            console.log('No onDisconnected handler set.');
+        }
+
         ConnectedDevice.peripheralId = undefined;
     }
 
@@ -54,7 +62,7 @@ export class ConnectedDevice {
                 if (result) {
                     await LogWriter.log('[ConnectedDevice__connect]',`Connected`);
                     ble.addListener('receive', (char) => ConnectedDevice.charHandler(char));
-                    ble.addListener('disconnected', ConnectedDevice.disconnectHandler);
+                    ble.addListener('disconnected',() => {console.log('dishander'); ConnectedDevice.disconnectHandler(peripheralId!); }) ;
                     ConnectedDevice.connectionState = CONNECTED;
 
                     if(ConnectedDevice._subscriptions) {

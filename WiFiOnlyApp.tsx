@@ -47,7 +47,7 @@ const WiFiOnlyApp = () => {
   return (
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator initialRouteName="wifi" screenOptions={{ headerBackTitleVisible: false,  headerTintColor: palettes.primary.white, headerStyle: { backgroundColor: colors.primaryBlue } }}>
-        <Stack.Screen name="wifi" component={WiFiSetupPage} options={{ title: 'Set WiFi' }} />
+        <Stack.Screen name="wifi" component={WiFiSetupPage} options={{ title: 'NuvIoT - WiFi Configuration App' }} />
      
    
       </Stack.Navigator>

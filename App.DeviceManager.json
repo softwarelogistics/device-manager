@@ -1,14 +1,15 @@
 {
   "expo": {
-    "name": "WiFi Manager",
+    "scheme": "nuviot",
+    "name": "NuvIoT",
     "owner": "kevindwolf",
-    "slug": "wifi-mgr",
-    "version": "1.0.1",
+    "slug": "device-mgr",
+    "version": "5.8.0",
     "orientation": "portrait",
     "icon": "./assets/adaptive-icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/wifiapp.splash.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -30,10 +31,11 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nuviot.wifiapp",
+      "bundleIdentifier": "com.softwarelogistics.devicemgr",
       "infoPlist": {
-        "NSBluetoothAlwaysUsageDescription": "NuvIoT WiFi Connection Manager uses Bluetooth to communicate such as Green Light Alerting, Kool K9 and SeaWolf Mobile.",
+        "NSBluetoothAlwaysUsageDescription": "NuvIoT Device Manager uses Bluetooth to communicate with NuvIoT Devices.",
         "LSApplicationQueriesSchemes": [
+          "nuviot",
           "nuviot"
         ],
         "ITSAppUsesNonExemptEncryption": false
@@ -69,7 +71,7 @@
     "extra": {
       "environment": "development",
       "eas": {
-        "projectId": "980a83b6-7e96-48b1-af09-e9827a85e453"
+        "projectId": "60332f43-00fd-4a35-8b33-c269770169e9"
       }
     }
   }

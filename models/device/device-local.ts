@@ -1,6 +1,6 @@
 export interface BLENuvIoTDevice {
     name: string;
-    deviceType: string;
+    deviceFirmwareSku: string;
     peripheralId: string;
     provisioned: boolean;
     
