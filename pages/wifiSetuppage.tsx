@@ -287,7 +287,7 @@ export const WiFiSetupPage = ({ navigation, props, route }: IReactPageServices) 
          <View style={[styles.spinnerView, {paddingTop:30, backgroundColor: themePalette.background }]}>
             <AppLogo />
             {h2Centered('WiFi Configuration App')}
-            {h2Centered('V1.0.0')}
+            {h2Centered('V1.2.0')}
             <Icon name="wifi-outline" style={[styles.centeredIcon]}></Icon>
             <Text style={[{ color: themePalette.shellTextColor, flex:12, fontSize: 18}]}>The WiFi connection helper will connect to your Green Light Alerting, Kool K9 or SeaWolf Marine device to connect it to a WiFi hotspot</Text>
             <View style={{ flex: 12 }}>
